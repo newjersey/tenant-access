@@ -1,0 +1,19 @@
+name: biome
+
+on:
+  workflow_call:
+
+jobs:
+  biome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - name: Install dependencies
+        run: npm i # change this to npm ci after you start a project
+      - name: Run biome check
+        run: npm run check

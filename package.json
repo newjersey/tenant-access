@@ -1,0 +1,32 @@
+{
+  "name": "innovation-repo-template",
+  "version": "0.4.0",
+  "description": "Template repository for the New Jersey Innovation Authority",
+  "repository": "github:newjersey/innovation-repo-template",
+  "homepage": "https://github.com/newjersey/innovation-repo-template",
+  "bugs": "https://github.com/newjersey/innovation-repo-template/issues",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": {
+    "name": "New Jersey Innovation Authority",
+    "url": "https://github.com/newjersey"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "husky": "latest",
+    "lint-staged": "latest"
+  },
+  "lint-staged": {
+    "*": "biome check --write --no-errors-on-unmatched"
+  }
+}

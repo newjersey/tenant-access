@@ -1,0 +1,15 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - "main"
+  push:
+    branches:
+      - "main"
+
+jobs:
+  biome:
+    uses: ./.github/workflows/biome.yml
+  unit-tests:
+    uses: ./.github/workflows/unit_tests.yml

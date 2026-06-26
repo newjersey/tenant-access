@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "eamodio.gitlens",
+    "editorconfig.editorconfig",
+    "ms-vscode.vscode-json",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "unwantedRecommendations": [
+    "chakrounanas.turbo-console-log",
+    "circleci.circleci",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "hookyqr.beautify"
+  ]
+}
