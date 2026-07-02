@@ -51,9 +51,7 @@
         "noVar": "error"
       },
       "nursery": {
-        "noFloatingPromises": "error",
-        "noNestedPromises": "error",
-        "useErrorCause": "error"
+        "noFloatingPromises": "error"
       }
     }
   },

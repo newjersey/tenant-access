@@ -1,19 +1,27 @@
 {
-  "name": "innovation-repo-template",
+  "name": "tenant-access",
   "version": "0.4.0",
-  "description": "Template repository for the New Jersey Innovation Authority",
-  "repository": "github:newjersey/innovation-repo-template",
-  "homepage": "https://github.com/newjersey/innovation-repo-template",
-  "bugs": "https://github.com/newjersey/innovation-repo-template/issues",
+  "description": "Tenant access application for the New Jersey Innovation Authority",
+  "repository": "github:newjersey/tenant-access",
+  "homepage": "https://github.com/newjersey/tenant-access",
+  "bugs": "https://github.com/newjersey/tenant-access/issues",
+  "workspaces": [
+    "app"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
+    "test": "npm run test --workspace=app",
+    "test:ui": "npm run test:ui --workspace=app",
+    "test:coverage": "npm run test:coverage --workspace=app",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev": "npm run dev --workspace=app",
+    "build": "npm run build --workspace=app",
+    "preview": "npm run preview --workspace=app"
   },
   "keywords": [],
   "author": {
@@ -22,9 +30,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "latest",
-    "husky": "latest",
-    "lint-staged": "latest"
+    "@biomejs/biome": "^2.5.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8"
   },
   "lint-staged": {
     "*": "biome check --write --no-errors-on-unmatched"
