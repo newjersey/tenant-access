@@ -35,6 +35,6 @@
     "lint-staged": "^17.0.8"
   },
   "lint-staged": {
-    "*": "biome check --write --no-errors-on-unmatched"
+    "*.{js,jsx,ts,tsx,json,css}": "biome check --write --no-errors-on-unmatched"
   }
 }
