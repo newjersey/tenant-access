@@ -6,7 +6,7 @@ describe("Footer", () => {
   it("renders the component", () => {
     render(<Footer />);
 
-    const footerElement = screen.getByRole("region");
-    expect(footerElement).toBeInTheDocument();
+    const returnToTopLink = screen.getByRole("link", { name: /return to top/i });
+    expect(returnToTopLink).toBeInTheDocument();
   });
 });

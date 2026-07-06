@@ -6,7 +6,7 @@ describe("Identifier", () => {
   it("renders the component", () => {
     render(<Identifier />);
 
-    const identifierElement = screen.getByRole("region");
-    expect(identifierElement).toBeInTheDocument();
+    const copyrightText = screen.getByText(/© \d{4} State of New Jersey/i);
+    expect(copyrightText).toBeInTheDocument();
   });
 });
