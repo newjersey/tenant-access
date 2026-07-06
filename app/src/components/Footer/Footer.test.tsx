@@ -6,7 +6,7 @@ describe("Footer", () => {
   it("renders the component", () => {
     render(<Footer />);
 
-    const footerElement = screen.getByRole("contentinfo");
+    const footerElement = screen.getByRole("region");
     expect(footerElement).toBeInTheDocument();
   });
 });

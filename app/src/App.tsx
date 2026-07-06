@@ -1,12 +1,16 @@
 import Banner from "@/components/Banner/Banner";
 import Footer from "@/components/Footer/Footer";
+import Identifier from "@/components/Identifier/Identifier";
 
 function App() {
   return (
     <>
       <Banner />
-      <section id="center">Hello App</section>
-      <Footer />
+      <main>Hello App</main>
+      <footer role="contentinfo">
+        <Footer />
+        <Identifier />
+      </footer>
     </>
   );
 }

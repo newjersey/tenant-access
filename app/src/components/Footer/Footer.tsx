@@ -3,7 +3,7 @@
  */
 const Footer = () => {
   return (
-    <footer className="usa-footer usa-footer--slim">
+    <div className="usa-footer usa-footer--slim">
       <div className="grid-container usa-footer__return-to-top">
         <a href="#banner">Return to top</a>
       </div>
@@ -65,7 +65,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
+    </div>
   );
 };
 
