@@ -87,8 +87,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          PR_TITLE="Sync main to dev - $(date +%Y-%m-%d)"
           gh pr create \
             --base dev \
             --head main \
-            --title "Sync main to dev" \
+            --title "$PR_TITLE" \
             --body-file pr_body.txt
