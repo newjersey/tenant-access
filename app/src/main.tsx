@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "@/index.css";
 import App from "@/App.tsx";
+import CreateListingPage from "@/pages/CreateListingPage";
+import DashboardPage from "@/pages/DashboardPage";
 import HomePage from "@/pages/HomePage";
 import RegisterPage from "@/pages/RegisterPage";
 import SigninPage from "@/pages/SigninPage";
@@ -23,6 +25,14 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "dashboard",
+        element: <DashboardPage />,
+      },
+      {
+        path: "dashboard/new",
+        element: <CreateListingPage />,
       },
     ],
   },
