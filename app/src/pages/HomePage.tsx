@@ -5,7 +5,7 @@ function HomePage() {
     <div>
       <h1>Home</h1>
       <p>Hello App</p>
-      <Link to="/login">Go to Login</Link>
+      <Link to="/signin">Go to signin</Link>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import App from "./App";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
+import SigninPage from "./pages/SigninPage";
 
 describe("App", () => {
   it("renders the home page", () => {
@@ -29,7 +29,7 @@ describe("App", () => {
     expect(screen.getByText(/Hello App/i)).toBeInTheDocument();
   });
 
-  it("renders the login page", () => {
+  it("renders the signin page", () => {
     const router = createMemoryRouter(
       [
         {
@@ -37,18 +37,18 @@ describe("App", () => {
           element: <App />,
           children: [
             {
-              path: "login",
-              element: <LoginPage />,
+              path: "signin",
+              element: <SigninPage />,
             },
           ],
         },
       ],
       {
-        initialEntries: ["/login"],
+        initialEntries: ["/signin"],
       },
     );
 
     render(<RouterProvider router={router} />);
-    expect(screen.getByText(/Login/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 });
