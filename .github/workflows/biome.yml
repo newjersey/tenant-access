@@ -3,6 +3,9 @@ name: biome
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   biome:
     runs-on: ubuntu-latest

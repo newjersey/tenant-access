@@ -1,0 +1,95 @@
+name: Sync main to dev
+
+on:
+  schedule:
+    # Run daily at 9 AM UTC (4/5 AM ET depending on DST)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Fetch dev branch
+        run: |
+          git fetch origin dev:dev
+
+      - name: Check if main is ahead of dev
+        id: check_diff
+        run: |
+          AHEAD=$(git rev-list --count dev..main)
+          echo "commits_ahead=$AHEAD" >> $GITHUB_OUTPUT
+
+          if [ "$AHEAD" -gt 0 ]; then
+            echo "main is $AHEAD commit(s) ahead of dev"
+            echo "needs_sync=true" >> $GITHUB_OUTPUT
+          else
+            echo "main is not ahead of dev, no sync needed"
+            echo "needs_sync=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for existing PR
+        if: steps.check_diff.outputs.needs_sync == 'true'
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_COUNT=$(gh pr list --base dev --head main --state open --json number --jq 'length')
+          echo "existing_pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$PR_COUNT" -gt 0 ]; then
+            echo "Found $PR_COUNT existing PR(s) from main to dev"
+          else
+            echo "No existing PR found"
+          fi
+
+      - name: Generate PR description
+        if: steps.check_diff.outputs.needs_sync == 'true' && steps.check_pr.outputs.existing_pr_count == '0'
+        id: pr_description
+        run: |
+          COMMIT_LIST=$(git log --oneline dev..main --no-decorate)
+          COMMIT_COUNT=$(echo "$COMMIT_LIST" | wc -l | tr -d ' ')
+
+          cat << 'EOF' > pr_body.txt
+          ## Sync main to dev
+
+          This PR syncs production changes from `main` to `dev`.
+
+          ### Commits being synced ($COMMIT_COUNT)
+
+          ```
+          $COMMIT_LIST
+          ```
+
+          ---
+          *This PR was automatically created by the sync workflow.*
+          EOF
+
+          # Replace variables in the template
+          sed -i "s/\$COMMIT_COUNT/$COMMIT_COUNT/" pr_body.txt
+          sed -i "/\$COMMIT_LIST/r"<(echo "$COMMIT_LIST") pr_body.txt
+          sed -i "/\$COMMIT_LIST/d" pr_body.txt
+
+          echo "Generated PR description"
+
+      - name: Create PR
+        if: steps.check_diff.outputs.needs_sync == 'true' && steps.check_pr.outputs.existing_pr_count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_TITLE="Sync main to dev - $(date +%Y-%m-%d)"
+          gh pr create \
+            --base dev \
+            --head main \
+            --title "$PR_TITLE" \
+            --body-file pr_body.txt
