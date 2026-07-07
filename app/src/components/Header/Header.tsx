@@ -56,7 +56,7 @@ const Header = () => {
             <div className="usa-logo" id="basic-logo">
               <em className="usa-logo__text">
                 <Link to="/" className="display-flex flex-align-center">
-                  <img className="njhmf-logo" src="./images/logo-img.jpg" alt="NJHMF logo" />
+                  <img className="njhmf-logo" src="/images/logo-img.jpg" alt="NJHMF logo" />
                   New Jersey Housing and Mortgage Finance Agency
                 </Link>
               </em>
@@ -85,7 +85,7 @@ const Header = () => {
               onClick={handleMenuClose}
             >
               <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-                <use xlinkHref="./images/sprite.svg#close"></use>
+                <use xlinkHref="/images/sprite.svg#close"></use>
               </svg>
             </button>
 

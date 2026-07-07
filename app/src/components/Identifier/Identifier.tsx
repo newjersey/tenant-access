@@ -1,3 +1,5 @@
+import content from "@/data/content/en/common.json";
+
 const Identifier = () => {
   const currentYear = new Date().getFullYear();
 
@@ -12,7 +14,7 @@ const Identifier = () => {
             <a href="https://nj.gov" className="usa-identifier__logo">
               <img
                 className="usa-identifier__logo-img"
-                src="./images/nj-logo-gray-20.png"
+                src="/images/nj-logo-gray-20.png"
                 alt="the State of New Jersey logo"
               />
             </a>
@@ -36,12 +38,12 @@ const Identifier = () => {
                 href="https://nj.gov/governor/admin/about/"
                 className="usa-identifier__required-link"
               >
-                Governor Mikie Sherrill
+                {content.governor}
               </a>
             </li>
             <li className="usa-identifier__required-links-item">
               <a href="https://nj.gov/governor/admin/lt/" className="usa-identifier__required-link">
-                Lt. Governor Dr. Dale G. Caldwell
+                {content.ltGovernor}
               </a>
             </li>
             <li className="usa-identifier__required-links-item">
@@ -111,10 +113,7 @@ const Identifier = () => {
           </ul>
         </div>
       </nav>
-      <section
-        className="usa-identifier__section usa-identifier__section--usagov"
-        aria-label="U.S. government information and services"
-      >
+      <section className="usa-identifier__section usa-identifier__section--usagov">
         <div className="usa-identifier__container">
           <div className="usa-identifier__usagov-description">
             &copy; {currentYear} State of New Jersey

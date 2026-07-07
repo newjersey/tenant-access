@@ -1,0 +1,15 @@
+{
+  "governor": "Governor Mikie Sherrill",
+  "ltGovernor": "Lt. Governor Dr. Dale G. Caldwell",
+  "banner": {
+    "title": "Official Site of the State of New Jersey",
+    "cta": "Get updates"
+  },
+  "header": {
+    "signin": "Sign in",
+    "register": "Register"
+  },
+  "footer": {
+    "copyright": "© 2026 State of New Jersey"
+  }
+}
