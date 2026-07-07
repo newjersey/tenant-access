@@ -59,6 +59,7 @@ lib-cov
 # Coverage directory used by tools like istanbul
 coverage
 *.lcov
+.vitest
 
 # nyc test coverage
 .nyc_output
@@ -127,6 +128,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+dist-ssr
 
 # Gatsby files
 .cache/
@@ -164,6 +166,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+AGENTS.md
+CLAUDE.md
 
 ### Node Patch ###
 # Serverless Webpack directories

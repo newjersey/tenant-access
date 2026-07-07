@@ -1,15 +1,13 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": [
-      "**",
-      "!**/.yarn/*",
-      "!package-lock.json",
-      "!pnpm-lock.yaml",
-      "!yarn.lock",
-      "!bun.lockb",
-      "!.claude"
-    ]
+    "ignoreUnknown": false,
+    "includes": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.json", "**/*.css", "!.claude"]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
   },
   "formatter": {
     "enabled": true,
@@ -21,7 +19,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "complexity": {
         "noForEach": "error",
         "useArrowFunction": "error",
@@ -51,9 +49,7 @@
         "noVar": "error"
       },
       "nursery": {
-        "noFloatingPromises": "error",
-        "noNestedPromises": "error",
-        "useErrorCause": "error"
+        "noFloatingPromises": "error"
       }
     }
   },
@@ -74,5 +70,16 @@
       "semicolons": "always",
       "trailingCommas": "all"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.svg"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
 }
