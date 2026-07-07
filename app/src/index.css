@@ -1,1 +1,5 @@
 @import "@newjersey/njwds/dist/css/styles.css";
+
+button {
+  cursor: pointer;
+}

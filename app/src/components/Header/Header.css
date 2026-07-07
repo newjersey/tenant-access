@@ -1,0 +1,14 @@
+.njhmf-logo {
+  margin-right: 0.75rem;
+  width: 30px;
+}
+
+@media (min-width: 64em) {
+  .njhmf-logo {
+    width: 50px;
+  }
+
+  .usa-header--basic .njhmf-navbar {
+    width: 100%;
+  }
+}
