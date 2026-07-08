@@ -31,7 +31,7 @@ const Identifier = () => {
         <div className="usa-identifier__container">
           <ul className="usa-identifier__required-links-list">
             <li className="usa-identifier__required-links-item">
-              <a href="{content.govAboutUrl}" className="usa-identifier__required-link">
+              <a href={content.govAboutUrl} className="usa-identifier__required-link">
                 {content.governor}
               </a>
             </li>
@@ -41,7 +41,7 @@ const Identifier = () => {
               </a>
             </li>
             <li className="usa-identifier__required-links-item">
-              <a href="https://nj.gov/" className="usa-identifier__required-link usa-link">
+              <a href={content.govUrl} className="usa-identifier__required-link usa-link">
                 {content.identifier.njhome}
               </a>
             </li>
