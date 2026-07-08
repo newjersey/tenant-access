@@ -1,15 +1,50 @@
 {
   "governor": "Governor Mikie Sherrill",
   "ltGovernor": "Lt. Governor Dr. Dale G. Caldwell",
+  "stateName": "State of New Jersey",
+  "govUrl": "https://nj.gov",
+  "govAboutUrl": "https://nj.gov/governor/admin/about/",
+  "govLtAboutUrl": "https://nj.gov/governor/admin/lt/",
   "banner": {
     "title": "Official Site of the State of New Jersey",
     "cta": "Get updates"
   },
   "header": {
-    "signin": "Sign in",
-    "register": "Register"
+    "agencyName": "New Jersey Housing and Mortgage Finance Agency",
+    "menuText": "Menu",
+    "register": "Register",
+    "signin": "Sign in"
   },
   "footer": {
-    "copyright": "© 2026 State of New Jersey"
+    "returnToTop": "Return to top",
+    "linkTextAbout": "About the NJHRC",
+    "linkUrlAbout": "https://www.nj.gov/njhrc/about/about-njhrc",
+    "linkTextNews": "News",
+    "linkUrlNews": "https://nj.gov/dca/hmfa/about/pressreleases/index.shtml",
+    "linkTextPhone": "1-877-428-8844",
+    "linkUrlPhone": "tel:+18774288844",
+    "linkTextContact": "Contact us",
+    "linkUrlContact": "https://www.nj.gov/dca/hmfa/about/contactus/index.shtml",
+    "agencyName": "New Jersey Housing and Mortgage Finance Agency"
+  },
+  "identifier": {
+    "officialWebsite": "An official website of the",
+    "njhome": "NJ Home",
+    "services": "Services A to Z",
+    "servicesUrl": "https://nj.gov/nj/gov/njgov/alphaserv.html",
+    "departments": "Departments/Agencies",
+    "departmentsUrl": "https://nj.gov/nj/gov/deptserv/",
+    "faqs": "FAQs",
+    "faqsUrl": "https://nj.gov/faqs/",
+    "contact": "Contact us",
+    "contactUrl": "https://nj.gov/nj/feedback.html",
+    "privacy": "Privacy notice",
+    "privacyUrl": "https://nj.gov/nj/privacy.html",
+    "legal": "Legal Statement & Disclaimers",
+    "legalUrl": "https://nj.gov/nj/legal.html",
+    "accessibility": "Accessibility",
+    "accessibilityUrl": "https://nj.gov/nj/accessibility.html",
+    "opra": "Open Public Records Act (OPRA)",
+    "opraUrl": "https://nj.gov/opra/"
   }
 }
