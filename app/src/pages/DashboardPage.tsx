@@ -1,21 +1,22 @@
 import { Link } from "react-router-dom";
+import content from "@/data/content/en/dashboard.json";
 
 function DashboardPage() {
   return (
     <div>
-      <h1 className="display-flex flex-align-center">Dashboard</h1>
+      <h1 className="display-flex flex-align-center">{content.heading}</h1>
 
       <Link to="/dashboard/new" className="usa-button">
-        Create new listing
+        {content.createListingButton}
       </Link>
 
       <table className="usa-table width-full">
         <thead>
           <tr>
-            <th>Listing ID</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>{content.tableHeaders.id}</th>
+            <th>{content.tableHeaders.listingName}</th>
+            <th>{content.tableHeaders.status}</th>
+            <th>{content.tableHeaders.action}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +71,7 @@ function DashboardPage() {
       </table>
 
       <Link to="/dashboard/new" className="usa-button">
-        Create new listing
+        {content.createListingButton}
       </Link>
     </div>
   );

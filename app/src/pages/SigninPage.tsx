@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import content from "@/data/content/en/signin.json";
 
 function SigninPage() {
   const navigate = useNavigate();
@@ -12,16 +13,16 @@ function SigninPage() {
   return (
     <form className="usa-form" onSubmit={handleSubmit}>
       <fieldset className="usa-fieldset">
-        <legend className="usa-legend font-heading-xl text-bold">Sign in</legend>
+        <legend className="usa-legend font-heading-xl text-bold">{content.heading}</legend>
         <span>
           or{" "}
           <Link to="/register" className="usa-nav__link">
-            <span>Create an account</span>
+            <span>{content.createAccountCta}</span>
           </Link>
         </span>
 
         <label htmlFor="username" className="usa-label ">
-          Email address
+          {content.emailLabel}
         </label>
 
         <input
@@ -34,7 +35,7 @@ function SigninPage() {
         />
 
         <label htmlFor="password-sign-in" className="usa-label ">
-          Password
+          {content.passwordLabel}
         </label>
 
         <input id="password-sign-in" name="password" type="password" className="usa-input" />
@@ -45,16 +46,16 @@ function SigninPage() {
             className="margin-top-0 usa-button usa-button--unstyled usa-show-password"
             aria-controls="password-sign-in"
           >
-            Show password
+            {content.showPassword}
           </button>
         </p>
 
         <button className="usa-button" type="submit">
-          Sign in
+          {content.formCta}
         </button>
 
         <p>
-          <a href="#!">Forgot password?</a>
+          <a href="#!">{content.forgotPassword}</a>
         </p>
       </fieldset>
     </form>

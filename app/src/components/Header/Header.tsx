@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "@/components/Header/Header.css";
+import content from "@/data/content/en/common.json";
 
 /**
  * Header component for displaying the header content
@@ -56,8 +57,8 @@ const Header = () => {
             <div className="usa-logo" id="basic-logo">
               <em className="usa-logo__text">
                 <Link to="/" className="display-flex flex-align-center">
-                  <img className="njhmf-logo" src="./images/logo-img.jpg" alt="NJHMF logo" />
-                  New Jersey Housing and Mortgage Finance Agency
+                  <img className="njhmf-logo" src="/images/logo-img.jpg" alt="NJHMF logo" />
+                  {content.header.agencyName}
                 </Link>
               </em>
             </div>
@@ -69,7 +70,7 @@ const Header = () => {
               aria-expanded={isMenuOpen}
               aria-controls="basic-nav-section"
             >
-              Menu
+              {content.header.menuText}
             </button>
           </div>
           <nav
@@ -85,19 +86,19 @@ const Header = () => {
               onClick={handleMenuClose}
             >
               <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-                <use xlinkHref="./images/sprite.svg#close"></use>
+                <use xlinkHref="/images/sprite.svg#close"></use>
               </svg>
             </button>
 
             <ul className="usa-nav__primary usa-accordion">
               <li className="usa-nav__primary-item">
                 <Link to="/register" className="usa-nav__link" onClick={handleMenuClose}>
-                  <span>Register</span>
+                  <span>{content.header.register}</span>
                 </Link>
               </li>
               <li className="usa-nav__primary-item">
                 <Link to="/signin" className="usa-nav__link" onClick={handleMenuClose}>
-                  <span>Sign in</span>
+                  <span>{content.header.signin}</span>
                 </Link>
               </li>
             </ul>

@@ -1,0 +1,10 @@
+{
+  "heading": "Dashboard",
+  "createListingButton": "Create new listing",
+  "tableHeaders": {
+    "id": "ID",
+    "listingName": "Listing name",
+    "status": "Status",
+    "action": "Action"
+  }
+}

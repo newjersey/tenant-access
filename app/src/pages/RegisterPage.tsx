@@ -1,19 +1,20 @@
 import { Link } from "react-router-dom";
+import content from "@/data/content/en/register.json";
 
 function RegisterPage() {
   return (
     <form className="usa-form ">
       <fieldset className="usa-fieldset">
-        <legend className="usa-legend font-heading-xl text-bold">Create an account</legend>
+        <legend className="usa-legend font-heading-xl text-bold">{content.heading}</legend>
         <span>
           or{" "}
           <Link to="/signin" className="usa-nav__link">
-            <span>Sign in</span>
+            <span>{content.signinCta}</span>
           </Link>
         </span>
 
         <label htmlFor="username" className="usa-label ">
-          Email address
+          {content.emailLabel}
         </label>
 
         <input
@@ -27,7 +28,7 @@ function RegisterPage() {
 
         <div>
           <label htmlFor="password-sign-in" className="usa-label">
-            Password
+            {content.passwordLabel}
           </label>
 
           <input id="password-sign-in" name="password" type="password" className="usa-input" />
@@ -35,7 +36,7 @@ function RegisterPage() {
 
         <div>
           <label htmlFor="password-sign-in-confirm" className="usa-label">
-            Confirm password
+            {content.confirmPasswordLabel}
           </label>
 
           <input
@@ -47,7 +48,7 @@ function RegisterPage() {
         </div>
 
         <button className="usa-button" type="submit">
-          Create account
+          {content.formCta}
         </button>
       </fieldset>
     </form>

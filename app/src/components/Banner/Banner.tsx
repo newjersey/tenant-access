@@ -1,3 +1,5 @@
+import content from "@/data/content/en/common.json";
+
 /**
  * Banner component for displaying important messages or announcements
  */
@@ -10,19 +12,19 @@ const Banner = () => {
             <div className="grid-col-auto">
               <img
                 className="nj-banner__header-seal"
-                src="./images/nj_state_seal.png"
+                src="/images/nj_state_seal.png"
                 alt="New Jersey State Seal"
               />
             </div>
             <div className="grid-col-fill">
               <a href="https://nj.gov" rel="noopener">
-                Official Site of the State of New Jersey
+                {content.banner.title}
               </a>
             </div>
             <ul className="grid-col-auto display-flex flex-align-center">
               <li>
                 <a href="https://nj.gov/governor/" rel="noopener">
-                  Governor Mikie Sherrill • Lt. Governor Dr. Dale G. Caldwell
+                  {content.governor} • {content.ltGovernor}
                 </a>
               </li>
               <li className="grid-col-auto">
@@ -37,9 +39,9 @@ const Banner = () => {
                     aria-hidden="true"
                     focusable="false"
                   >
-                    <use xlinkHref="./images/sprite.svg#mail"></use>
+                    <use xlinkHref="/images/sprite.svg#mail"></use>
                   </svg>
-                  Get Updates
+                  {content.banner.cta}
                 </a>
               </li>
             </ul>
