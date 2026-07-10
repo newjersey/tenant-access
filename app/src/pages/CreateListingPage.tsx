@@ -1,7 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import content from "@/data/content/en/createlisting.json";
 
 function CreateListingPage() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // TODO: Add authentication logic here
+    void navigate("/dashboard");
+  };
+
   return (
     <div>
       <h1>{content.heading}</h1>
@@ -11,12 +19,12 @@ function CreateListingPage() {
         </Link>
       </p>
 
-      <form className="usa-form usa-form--large">
+      <form className="usa-form usa-form--large" onSubmit={handleSubmit}>
         <fieldset className="usa-fieldset">
           <legend className="usa-legend font-heading-lg text-bold">Location</legend>
 
           <label htmlFor="mailing-address-1" className="usa-label">
-            Street address 1
+            {content.labelStreetAddress1}
           </label>
           <input
             id="mailing-address-1"
@@ -27,7 +35,7 @@ function CreateListingPage() {
           />
 
           <label htmlFor="mailing-address-2" className="usa-label ">
-            Street address 2 <span className="usa-hint">(optional)</span>
+            {content.labelStreetAddress2} <span className="usa-hint">(optional)</span>
           </label>
           <input
             id="mailing-address-2"
@@ -39,13 +47,13 @@ function CreateListingPage() {
           <div className="grid-row grid-gap">
             <div className="mobile-lg:grid-col-8">
               <label htmlFor="city" className="usa-label ">
-                City
+                {content.labelCity}
               </label>
               <input id="city" name="city" type="text" className="usa-input " required />
             </div>
             <div className="mobile-lg:grid-col-4">
               <label htmlFor="state" className="usa-label ">
-                State
+                {content.labelState}
               </label>
               <select id="state" name="state" className="usa-select" required>
                 <option value="" selected disabled>
@@ -57,7 +65,7 @@ function CreateListingPage() {
           </div>
 
           <label htmlFor="zip" className="usa-label ">
-            ZIP
+            {content.labelZipCode}
           </label>
           <input
             id="zip"
@@ -71,14 +79,14 @@ function CreateListingPage() {
 
         <div className="usa-form-group">
           <fieldset className="usa-fieldset">
-            <legend className="usa-legend font-heading-lg text-bold">Property details</legend>
+            <legend className="usa-legend font-heading-lg text-bold">{content.labelDetails}</legend>
 
             <div className="usa-form-group ">
               <fieldset className="usa-fieldset">
-                <legend className="usa-legend ">Pets allowed</legend>
+                <legend className="usa-legend ">{content.labelPets}</legend>
 
                 <div id="with-hint-input-hint" className="usa-hint">
-                  Are pets allowed in the property?
+                  {content.labelPetsDescription}
                 </div>
                 <div className="usa-checkbox ">
                   <input
@@ -122,7 +130,7 @@ function CreateListingPage() {
         </div>
 
         <button type="submit" className="usa-button">
-          Create Listing
+          {content.buttonSubmit}
         </button>
       </form>
     </div>
