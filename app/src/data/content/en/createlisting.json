@@ -1,4 +1,14 @@
 {
   "heading": "Create new listing",
-  "returnToDashboard": "Return to dashboard"
+  "returnToDashboard": "Return to dashboard",
+  "labelStreetAddress1": "Street address 1",
+  "labelStreetAddress2": "Street address 2",
+  "labelCity": "City",
+  "labelState": "State",
+  "labelZipCode": "Zip code",
+  "labelCounty": "County",
+  "labelPets": "Pets allowed",
+  "labelPetsDescription": "Are pets allowed in the property?",
+  "labelDetails": "Property details",
+  "buttonSubmit": "Create listing"
 }
