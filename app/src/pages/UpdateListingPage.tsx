@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import content from "@/data/content/en/createlisting.json";
 
-function CreateListingPage() {
+function UpdateListingPage() {
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -12,7 +12,7 @@ function CreateListingPage() {
 
   return (
     <div>
-      <h1>{content.heading}</h1>
+      <h1>{content.headingUpdate}</h1>
       <p>
         <Link to="/dashboard" className="usa-button usa-button--unstyled">
           {content.returnToDashboard}
@@ -31,6 +31,7 @@ function CreateListingPage() {
             name="mailing-address-1"
             type="text"
             className="usa-input "
+            defaultValue="123 Main St"
             required
           />
 
@@ -42,6 +43,7 @@ function CreateListingPage() {
             name="mailing-address-2"
             type="text"
             className="usa-input "
+            defaultValue="Apt 1"
           />
 
           <div className="grid-row grid-gap">
@@ -49,13 +51,20 @@ function CreateListingPage() {
               <label htmlFor="city" className="usa-label ">
                 {content.labelCity}
               </label>
-              <input id="city" name="city" type="text" className="usa-input " required />
+              <input
+                id="city"
+                name="city"
+                type="text"
+                className="usa-input "
+                defaultValue="New Brunswick"
+                required
+              />
             </div>
             <div className="mobile-lg:grid-col-4">
               <label htmlFor="state" className="usa-label ">
                 {content.labelState}
               </label>
-              <select id="state" name="state" className="usa-select" required defaultValue="">
+              <select id="state" name="state" className="usa-select" defaultValue="NJ" required>
                 <option defaultValue="" disabled>
                   Select
                 </option>
@@ -73,6 +82,7 @@ function CreateListingPage() {
             type="text"
             pattern="[0-9]{5}(-[0-9]{4})?"
             className="usa-input usa-input--medium "
+            defaultValue="08901"
             required
           />
         </fieldset>
@@ -88,13 +98,14 @@ function CreateListingPage() {
                 <div id="with-hint-input-hint" className="usa-hint">
                   {content.labelPetsDescription}
                 </div>
-                <div className="usa-checkbox ">
+                <div className="usa-radio ">
                   <input
                     type="checkbox"
                     name="checkbox-group"
-                    value="checkbox1"
+                    defaultValue="checkbox1"
                     className="usa-checkbox__input"
                     id="pets1"
+                    defaultChecked
                   />
                   <label className="usa-checkbox__label" htmlFor="pets1">
                     Dogs
@@ -104,7 +115,7 @@ function CreateListingPage() {
                   <input
                     type="checkbox"
                     name="checkbox-group"
-                    value="checkbox2"
+                    defaultValue="checkbox2"
                     className="usa-checkbox__input"
                     id="pets2"
                   />
@@ -116,7 +127,7 @@ function CreateListingPage() {
                   <input
                     type="checkbox"
                     name="checkbox-group"
-                    value="checkbox3"
+                    defaultValue="checkbox3"
                     className="usa-checkbox__input"
                     id="pets3"
                   />
@@ -130,11 +141,18 @@ function CreateListingPage() {
         </div>
 
         <button type="submit" className="usa-button">
-          {content.buttonSubmit}
+          {content.buttonUpdate}
         </button>
       </form>
+
+      <Link
+        to="/dashboard"
+        className="margin-top-4 usa-button usa-button--unstyled nj-button--unstyled-danger"
+      >
+        {content.buttonDelete}
+      </Link>
     </div>
   );
 }
 
-export default CreateListingPage;
+export default UpdateListingPage;
