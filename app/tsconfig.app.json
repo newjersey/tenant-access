@@ -24,7 +24,10 @@
 
     /* Path Aliases */
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // react-splide ships types but omits a "types" key from its package.json
+      // "exports" map, so bundler resolution can't find them. Point at them directly.
+      "@splidejs/react-splide": ["../node_modules/@splidejs/react-splide/dist/types/index.d.ts"]
     }
   },
   "include": ["src"]
