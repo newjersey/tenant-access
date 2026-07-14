@@ -8,9 +8,9 @@ A tenant access application for the New Jersey Innovation Authority. This applic
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Testing](#testing)
-5. [Contributing](#contributing)
+5. [Code Quality](#code-quality)
 6. [License](#license)
-7. [Contact](#contact)
+7. [Disclaimer](#disclaimer)
 
 ## Architecture
 
@@ -19,6 +19,7 @@ This is a modern React application built with Vite and TypeScript, organized as 
 ### Built With
 
 - [React 19](https://react.dev/) - UI library
+- [React Router 7](https://reactrouter.com/) - Client-side routing
 - [TypeScript 6](https://www.typescriptlang.org/) - Type-safe JavaScript
 - [Vite 8](https://vite.dev/) - Build tool and dev server
 - [Vitest 4](https://vitest.dev/) - Unit testing framework

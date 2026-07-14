@@ -1,5 +1,7 @@
 @import "@newjersey/njwds/dist/css/styles.css";
+@import "@splidejs/react-splide/css";
 
-button {
+button,
+summary {
   cursor: pointer;
 }

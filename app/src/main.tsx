@@ -8,10 +8,14 @@ import ErrorFallback from "@/components/ErrorBoundary/ErrorFallback";
 import RouteErrorFallback from "@/components/ErrorBoundary/RouteErrorFallback";
 import CreateListingPage from "@/pages/CreateListingPage";
 import DashboardPage from "@/pages/DashboardPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import HomePage from "@/pages/HomePage";
 import NotFoundPage from "@/pages/NotFoundPage";
+import PropertyDetailsPage from "@/pages/PropertyDetailsPage";
 import RegisterPage from "@/pages/RegisterPage";
+import SearchResultsPage from "@/pages/SearchResultsPage";
 import SigninPage from "@/pages/SigninPage";
+import UpdateListingPage from "@/pages/UpdateListingPage";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +42,22 @@ const router = createBrowserRouter([
       {
         path: "dashboard/new",
         element: <CreateListingPage />,
+      },
+      {
+        path: "dashboard/update/:id",
+        element: <UpdateListingPage />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: "search",
+        element: <SearchResultsPage />,
+      },
+      {
+        path: "property/:id",
+        element: <PropertyDetailsPage />,
       },
       {
         path: "*",
