@@ -16,7 +16,7 @@ describe("Alert", () => {
       </Alert>,
     );
 
-    expect(screen.getByRole("link", { name: "here" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "listing was deleted" })).toBeInTheDocument();
   });
 
   it("renders the header text when a header is provided", () => {
