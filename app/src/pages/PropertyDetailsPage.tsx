@@ -47,44 +47,46 @@ function PropertyDetailsPage() {
             </ul>
 
             <table className="usa-table width-full">
-              <tr>
-                <th scope="row">
-                  <strong>Contact</strong>
-                </th>
-                <td>
-                  Fern Spinazzola
-                  <br />
-                  Regan Development Corp., Property Manager or Realtor
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">
-                  <strong>Phone</strong>
-                </th>
-                <td>914-693-6613</td>
-              </tr>
-              <tr>
-                <th scope="row">
-                  <strong>Fax</strong>
-                </th>
-                <td>833-954-0003</td>
-              </tr>
-              <tr>
-                <th scope="row">
-                  <strong>Email</strong>
-                </th>
-                <td>rentals@regandevelopment.com</td>
-              </tr>
-              <tr>
-                <th scope="row">
-                  <strong>Physical address</strong>
-                </th>
-                <td>
-                  1055 Saw Mill River Road, Suite 204
-                  <br />
-                  Ardsley, NY 10502
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Contact</strong>
+                  </th>
+                  <td>
+                    Fern Spinazzola
+                    <br />
+                    Regan Development Corp., Property Manager or Realtor
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <strong>Phone</strong>
+                  </th>
+                  <td>914-693-6613</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <strong>Fax</strong>
+                  </th>
+                  <td>833-954-0003</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <strong>Email</strong>
+                  </th>
+                  <td>rentals@regandevelopment.com</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <strong>Physical address</strong>
+                  </th>
+                  <td>
+                    1055 Saw Mill River Road, Suite 204
+                    <br />
+                    Ardsley, NY 10502
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
 
@@ -112,64 +114,76 @@ function PropertyDetailsPage() {
           <div className="tablet:grid-col">
             <table className="usa-table width-full">
               <caption>Basic features</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
 
             <table className="usa-table width-full">
               <caption>Accessibility</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
 
             <table className="usa-table width-full">
               <caption>Safety</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
           </div>
 
           <div className="tablet:grid-col">
             <table className="usa-table width-full">
               <caption>Utilities</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
 
             <table className="usa-table width-full">
               <caption>Nearby services</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
 
             <table className="usa-table width-full">
               <caption>Comments</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <strong>Example</strong>
+                  </th>
+                  <td>Example data for property</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
