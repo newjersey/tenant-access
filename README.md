@@ -20,7 +20,7 @@ This is a modern React application built with Vite and TypeScript, organized as 
 
 - [React 19](https://react.dev/) - UI library
 - [React Router 7](https://reactrouter.com/) - Client-side routing
-- [TypeScript 6](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [TypeScript 7](https://www.typescriptlang.org/) - Type-safe JavaScript
 - [Vite 8](https://vite.dev/) - Build tool and dev server
 - [Vitest 4](https://vitest.dev/) - Unit testing framework
 - [Testing Library](https://testing-library.com/) - Component testing utilities
