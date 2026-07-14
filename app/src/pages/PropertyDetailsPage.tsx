@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 function PropertyDetailsPage() {
   return (
-    <div>
+    <>
       <Link to="/search" className="usa-button usa-button--unstyled">
         <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
           <use href="/images/sprite.svg#arrow_back"></use>
@@ -93,19 +93,32 @@ function PropertyDetailsPage() {
                 </td>
               </tr>
             </table>
+          </div>
 
+          <div className="tablet:grid-col padding-top-3">
+            <Splide aria-label="My Favorite Images">
+              <SplideSlide>
+                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
+              </SplideSlide>
+              <SplideSlide>
+                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
+              </SplideSlide>
+              <SplideSlide>
+                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
+              </SplideSlide>
+              <SplideSlide>
+                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
+              </SplideSlide>
+            </Splide>
+          </div>
+          {/* .tablet:grid-col*/}
+        </div>
+        {/* .grid-row*/}
+
+        <div className="grid-row grid-gap border-top margin-top-4 padding-top-4">
+          <div className="tablet:grid-col">
             <table className="usa-table width-full">
               <caption>Basic features</caption>
-              <tr>
-                <th scope="row">
-                  <strong>Example</strong>
-                </th>
-                <td>Example data for property</td>
-              </tr>
-            </table>
-
-            <table className="usa-table width-full">
-              <caption>Utilities</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
@@ -126,6 +139,18 @@ function PropertyDetailsPage() {
 
             <table className="usa-table width-full">
               <caption>Safety</caption>
+              <tr>
+                <th scope="row">
+                  <strong>Example</strong>
+                </th>
+                <td>Example data for property</td>
+              </tr>
+            </table>
+          </div>
+
+          <div className="tablet:grid-col">
+            <table className="usa-table width-full">
+              <caption>Utilities</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
@@ -154,26 +179,10 @@ function PropertyDetailsPage() {
               </tr>
             </table>
           </div>
-
-          <div className="tablet:grid-col padding-top-3">
-            <Splide aria-label="My Favorite Images">
-              <SplideSlide>
-                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
-              </SplideSlide>
-              <SplideSlide>
-                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
-              </SplideSlide>
-              <SplideSlide>
-                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
-              </SplideSlide>
-              <SplideSlide>
-                <img src="https://placehold.co/500x500" alt="500 x 500 placeholder" />
-              </SplideSlide>
-            </Splide>
-          </div>
         </div>
       </div>
-    </div>
+      {/* .grid-container*/}
+    </>
   );
 }
 
