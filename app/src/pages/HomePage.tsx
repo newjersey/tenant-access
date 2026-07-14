@@ -11,10 +11,13 @@ function HomePage() {
       {cities.counties.map((county) => {
         // If the town has a slug, use it; otherwise, generate a slug from the name
         const countySlug = resolveSlug(county);
+        const summaryId = `county-${countySlug}`;
 
         return (
-          <details key={countySlug} className="padding-y-1">
-            <summary className="font-heading-lg text-bold">{county.name}</summary>
+          <details key={countySlug} className="padding-y-1" aria-labelledby={summaryId}>
+            <summary id={summaryId} className="font-heading-lg text-bold">
+              {county.name}
+            </summary>
             <div className="margin-top-2 padding-2 border-left-1 border-base-lighter">
               <Link to={`/search?county=${countySlug}`}>View all properties in {county.name}</Link>
               <ul className="usa-list">

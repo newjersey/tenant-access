@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import App from "./App";
+import homeContent from "./data/content/en/home.json";
 import HomePage from "./pages/HomePage";
 import SigninPage from "./pages/SigninPage";
 
@@ -26,7 +27,9 @@ describe("App", () => {
     );
 
     render(<RouterProvider router={router} />);
-    expect(screen.getByRole("heading", { level: 1, name: /home/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: homeContent.heading }),
+    ).toBeInTheDocument();
   });
 
   it("renders the signin page", () => {

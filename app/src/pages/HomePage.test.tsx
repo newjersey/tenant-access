@@ -11,27 +11,25 @@ const renderHomePage = () =>
   );
 
 describe("HomePage", () => {
-  it("renders each county as a heading linking to its filtered results", () => {
+  it("links each county to its filtered results", () => {
     renderHomePage();
 
-    const bergenLink = screen.getByRole("link", { name: "Bergen" });
-    expect(bergenLink).toHaveAttribute("href", "/search?county=bergen");
+    const countyLink = screen.getByRole("link", { name: "View all properties in Atlantic" });
+    expect(countyLink).toHaveAttribute("href", "/search?county=atlantic");
   });
 
-  it("renders each town under its county linking to filtered results", () => {
+  it("links each town to its filtered results within its county", () => {
     renderHomePage();
 
-    const foxHollowLink = screen.getByRole("link", { name: "Fox Hollow" });
-    expect(foxHollowLink).toHaveAttribute("href", "/search?county=bergen&town=fox-hollow");
+    const townLink = screen.getByRole("link", { name: "Atlantic City" });
+    expect(townLink).toHaveAttribute("href", "/search?county=atlantic&town=atlantic-city");
   });
 
-  it("groups towns within their county section", () => {
+  it("groups each county's towns under its own disclosure", () => {
     renderHomePage();
 
-    const monmouthGroup = screen.getByRole("list", { name: "Monmouth" });
-    expect(within(monmouthGroup).getByRole("link", { name: "Willow Creek" })).toBeInTheDocument();
-    expect(
-      within(monmouthGroup).queryByRole("link", { name: "Fox Hollow" }),
-    ).not.toBeInTheDocument();
+    const atlanticGroup = screen.getByRole("group", { name: "Atlantic" });
+    expect(within(atlanticGroup).getByRole("link", { name: "Atlantic City" })).toBeInTheDocument();
+    expect(within(atlanticGroup).queryByRole("link", { name: "Newark" })).not.toBeInTheDocument();
   });
 });
