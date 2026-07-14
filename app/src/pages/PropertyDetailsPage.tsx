@@ -53,7 +53,7 @@ function PropertyDetailsPage() {
               <li>Background Check Policy</li>
             </ul>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <tr>
                 <th scope="row">
                   <strong>Contact</strong>
@@ -86,67 +86,71 @@ function PropertyDetailsPage() {
                 <th scope="row">
                   <strong>Physical address</strong>
                 </th>
-                <td>1055 Saw Mill River Road, Suite 204, Ardsley, NY 10502</td>
+                <td>
+                  1055 Saw Mill River Road, Suite 204
+                  <br />
+                  Ardsley, NY 10502
+                </td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Basic features</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Utilities</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Accessibility</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Safety</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Nearby services</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
 
-            <table className="usa-table">
+            <table className="usa-table width-full">
               <caption>Comments</caption>
               <tr>
                 <th scope="row">
                   <strong>Example</strong>
                 </th>
-                <td>Example</td>
+                <td>Example data for property</td>
               </tr>
             </table>
           </div>
