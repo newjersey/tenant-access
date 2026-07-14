@@ -1,11 +1,13 @@
+import type { ReactNode } from "react";
+
 interface AlertProps {
-  content: string;
+  children: ReactNode;
   header?: string;
   type?: "warning" | "info" | "success" | "error";
   slim?: boolean;
 }
 
-function Alert({ content, header, type = "info", slim = false }: AlertProps) {
+function Alert({ children, header, type = "info", slim = false }: AlertProps) {
   const className = ["usa-alert", `usa-alert--${type}`, slim && "usa-alert--slim"]
     .filter(Boolean)
     .join(" ");
@@ -17,7 +19,7 @@ function Alert({ content, header, type = "info", slim = false }: AlertProps) {
     <div role={role} className={className}>
       <div className="usa-alert__body">
         {header && !slim && <p className="usa-alert__heading">{header}</p>}
-        <p className="usa-alert__text">{content}</p>
+        <p className="usa-alert__text">{children}</p>
       </div>
     </div>
   );

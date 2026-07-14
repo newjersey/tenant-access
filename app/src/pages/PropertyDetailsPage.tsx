@@ -11,25 +11,39 @@ function PropertyDetailsPage() {
         Return to listings
       </Link>
 
-      <Alert
-        slim
-        content="
-          NJHRC Disclaimer: The property listings provided in the New Jersey
-          Housing Resource Center (NJHRC) have NOT been inspected by NJHRC.
-          It is imperative that persons  searching for housing speak with the
-          landlord and/or property management company and thoroughly inspect
-          the property and surroundings prior to signing any contracts to verify
-          the current status and condition of any property.
-          "
-      />
+      <Alert slim>
+        NJHRC Disclaimer: The property listings provided in the New Jersey Housing Resource Center
+        (NJHRC) have NOT been inspected by NJHRC. It is imperative that persons searching for
+        housing speak with the landlord and/or property management company and thoroughly inspect
+        the property and surroundings prior to signing any contracts to verify the current status
+        and condition of any property. Visit these links for tips on{" "}
+        <a
+          href="http://www.state.nj.us/dca/hmfa/media/download/renters/"
+          className="usa-link--external"
+        >
+          renting
+        </a>{" "}
+        and{" "}
+        <a
+          href="http://www.state.nj.us/dca/hmfa/homeownership/buyers/"
+          className="usa-link--external"
+        >
+          buying
+        </a>{" "}
+        properties.
+      </Alert>
 
       <div className="grid-container">
         <div className="grid-row grid-gap">
           <div className="tablet:grid-col-7">
             <h1>Clifton Main Mews</h1>
 
-            <Alert content="This property is income restricted" type="info" slim />
-            <Alert content="This property has a waiting list" type="info" slim />
+            <Alert type="info" slim>
+              This property is income restricted
+            </Alert>
+            <Alert type="info" slim>
+              This property has a waiting list
+            </Alert>
 
             <h2>Basic information</h2>
 
