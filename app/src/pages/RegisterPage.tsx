@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import content from "@/data/content/en/register.json";
 
 function RegisterPage() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // TODO: Add authentication logic here
+    void navigate("/dashboard");
+  };
+
   return (
-    <form className="usa-form ">
+    <form className="usa-form usa-form--large" onSubmit={handleSubmit}>
       <fieldset className="usa-fieldset">
         <legend className="usa-legend font-heading-xl text-bold">{content.heading}</legend>
         <span>

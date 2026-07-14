@@ -1,0 +1,37 @@
+{
+  "counties": [
+    {
+      "name": "Metropolitan Areas in New Jersey",
+      "towns": [
+        { "name": "Clifton" },
+        { "name": "Dover" },
+        { "name": "Edison" },
+        { "name": "Hamilton" },
+        { "name": "Jersey City" },
+        { "name": "Newark" },
+        { "name": "Paterson" },
+        { "name": "Plainfield" },
+        { "name": "Tinton Falls" },
+        { "name": "Trenton" },
+        { "name": "Weehawken" }
+      ]
+    },
+    {
+      "name": "Atlantic",
+      "towns": [
+        { "name": "Absecon" },
+        { "name": "Atlantic City" },
+        { "name": "Egg Harbor City" },
+        { "name": "Egg Harbor Township" },
+        { "name": "Galloway" },
+        { "name": "Hammonton" },
+        { "name": "Mays Landing" },
+        { "name": "Minotola" },
+        { "name": "Northfield" },
+        { "name": "Pleasantville" },
+        { "name": "Somers Point" },
+        { "name": "Ventnor City" }
+      ]
+    }
+  ]
+}

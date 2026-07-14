@@ -26,7 +26,7 @@ describe("App", () => {
     );
 
     render(<RouterProvider router={router} />);
-    expect(screen.getByText(/Hello App/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /home/i })).toBeInTheDocument();
   });
 
   it("renders the signin page", () => {
