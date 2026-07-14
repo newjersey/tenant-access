@@ -31,14 +31,23 @@ This is a modern React application built with Vite and TypeScript, organized as 
 
 ```
 tenant-access/
-├── app/              # Main application workspace
+├── app/              # Frontend application workspace (React + Vite)
 │   ├── src/          # Application source code
 │   ├── public/       # Static assets
 │   └── package.json  # App-specific dependencies
+├── api/              # Backend workspace (AWS Lambda, TypeScript)
+│   ├── src/          # Lambda handler source code
+│   └── package.json  # API-specific dependencies
 ├── .github/          # GitHub workflows and templates
 ├── .husky/           # Git hooks
 └── package.json      # Root workspace configuration
 ```
+
+The `api` workspace is a minimal skeleton for the planned backend: a Lambda
+that communicates with a PostgreSQL database. It is configured for a Node
+runtime (its own `tsconfig.json`, separate from the frontend) with a
+placeholder handler. Build tooling, database client, and deployment are not
+yet chosen. Build/typecheck it with `npm run build:api`.
 
 ## Installation
 
@@ -59,6 +68,20 @@ cd tenant-access
 # Install dependencies
 npm install
 ```
+
+### Adding Dependencies
+
+This is an npm workspace monorepo: the root `package.json` owns the workspace configuration and the single `package-lock.json`, and dependencies are hoisted to the root `node_modules`. **Always install from the repository root**, targeting the `app` workspace:
+
+```bash
+# Runtime dependency for the app
+npm install <package> --workspace=app
+
+# Dev-only dependency for the app
+npm install --save-dev <package> --workspace=app
+```
+
+Commit the updated `app/package.json` and the root `package-lock.json` together in the same change. CI runs `npm ci`, which installs strictly from the committed lockfile and fails if it is out of sync with `package.json`.
 
 ## Usage
 
