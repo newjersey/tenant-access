@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "@/components/Header/Header.css";
+import Icon from "@/components/Icon/Icon";
 import content from "@/data/content/en/common.json";
 
 /**
@@ -85,9 +86,7 @@ const Header = () => {
               aria-label="Close navigation"
               onClick={handleMenuClose}
             >
-              <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-                <use xlinkHref="/images/sprite.svg#close"></use>
-              </svg>
+              <Icon icon="close" />
             </button>
 
             <ul className="usa-nav__primary usa-accordion">

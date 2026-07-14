@@ -1,25 +1,35 @@
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Link } from "react-router-dom";
 import Alert from "@/components/Alert/Alert";
+import Icon from "@/components/Icon/Icon";
 
 function PropertyDetailsPage() {
   return (
     <>
       <Link to="/search" className="usa-button usa-button--unstyled">
-        <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-          <use href="/images/sprite.svg#arrow_back"></use>
-        </svg>
+        <Icon icon="arrow_back" />
         Return to listings
       </Link>
 
-      <Alert content="This property is income restricted" type="info" slim />
-
-      <Alert content="This property has a waiting list" type="info" slim />
+      <Alert
+        slim
+        content="
+          NJHRC Disclaimer: The property listings provided in the New Jersey
+          Housing Resource Center (NJHRC) have NOT been inspected by NJHRC.
+          It is imperative that persons  searching for housing speak with the
+          landlord and/or property management company and thoroughly inspect
+          the property and surroundings prior to signing any contracts to verify
+          the current status and condition of any property.
+          "
+      />
 
       <div className="grid-container">
         <div className="grid-row grid-gap">
           <div className="tablet:grid-col-7">
-            <h1 className="display-flex flex-align-center">Clifton Main Mews</h1>
+            <h1>Clifton Main Mews</h1>
+
+            <Alert content="This property is income restricted" type="info" slim />
+            <Alert content="This property has a waiting list" type="info" slim />
 
             <h2>Basic information</h2>
 
@@ -78,7 +88,7 @@ function PropertyDetailsPage() {
                 </tr>
                 <tr>
                   <th scope="row">
-                    <strong>Physical address</strong>
+                    <strong>Address</strong>
                   </th>
                   <td>
                     1055 Saw Mill River Road, Suite 204
