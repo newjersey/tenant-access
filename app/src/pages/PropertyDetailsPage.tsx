@@ -1,5 +1,6 @@
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Link } from "react-router-dom";
+import Alert from "@/components/Alert/Alert";
 
 function PropertyDetailsPage() {
   return (
@@ -11,17 +12,9 @@ function PropertyDetailsPage() {
         Return to listings
       </Link>
 
-      <div role="alert" className="usa-alert usa-alert--warning usa-alert--slim">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">This property is income restricted.</p>
-        </div>
-      </div>
+      <Alert content="This property is income restricted" type="info" slim />
 
-      <div role="alert" className="usa-alert usa-alert--info usa-alert--slim">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">This property has a waiting list.</p>
-        </div>
-      </div>
+      <Alert content="This property has a waiting list" type="info" slim />
 
       <div className="grid-container">
         <div className="grid-row grid-gap">
