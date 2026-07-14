@@ -1,4 +1,5 @@
 @import "@newjersey/njwds/dist/css/styles.css";
+@import "@splidejs/react-splide/css";
 
 button,
 summary {

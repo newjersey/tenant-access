@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@newjersey/njwds": "^2.9.1",
+    "@splidejs/react-splide": "^0.7.12",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-error-boundary": "^6.1.2",
