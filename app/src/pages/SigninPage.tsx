@@ -11,7 +11,7 @@ function SigninPage() {
   };
 
   return (
-    <form className="usa-form" onSubmit={handleSubmit}>
+    <form className="usa-form usa-form--large" onSubmit={handleSubmit}>
       <fieldset className="usa-fieldset">
         <legend className="usa-legend font-heading-xl text-bold">{content.heading}</legend>
         <span>
@@ -32,13 +32,20 @@ function SigninPage() {
           autoCapitalize="off"
           autoCorrect="off"
           className="usa-input"
+          required
         />
 
         <label htmlFor="password-sign-in" className="usa-label ">
           {content.passwordLabel}
         </label>
 
-        <input id="password-sign-in" name="password" type="password" className="usa-input" />
+        <input
+          id="password-sign-in"
+          name="password"
+          type="password"
+          className="usa-input"
+          required
+        />
 
         <p className="usa-form__note">
           <button
@@ -55,7 +62,7 @@ function SigninPage() {
         </button>
 
         <p>
-          <a href="#!">{content.forgotPassword}</a>
+          <Link to="/forgot-password">{content.forgotPassword}</Link>
         </p>
       </fieldset>
     </form>

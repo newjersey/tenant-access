@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon/Icon";
 import content from "@/data/content/en/common.json";
 
 /**
@@ -33,14 +34,7 @@ const Banner = () => {
                   href="https://nj.gov/subscribe/"
                   rel="noopener"
                 >
-                  <svg
-                    className="usa-icon usa-icon--size-3 nj-banner__mail-icon margin-right-05"
-                    role="img"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <use xlinkHref="/images/sprite.svg#mail"></use>
-                  </svg>
+                  <Icon icon="mail" size="3" class="nj-banner__mail-icon margin-right-05" />
                   {content.banner.cta}
                 </a>
               </li>

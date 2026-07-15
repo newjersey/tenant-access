@@ -8,9 +8,9 @@ A tenant access application for the New Jersey Innovation Authority. This applic
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Testing](#testing)
-5. [Contributing](#contributing)
+5. [Code Quality](#code-quality)
 6. [License](#license)
-7. [Contact](#contact)
+7. [Disclaimer](#disclaimer)
 
 ## Architecture
 
@@ -19,7 +19,8 @@ This is a modern React application built with Vite and TypeScript, organized as 
 ### Built With
 
 - [React 19](https://react.dev/) - UI library
-- [TypeScript 6](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [React Router 7](https://reactrouter.com/) - Client-side routing
+- [TypeScript 7](https://www.typescriptlang.org/) - Type-safe JavaScript
 - [Vite 8](https://vite.dev/) - Build tool and dev server
 - [Vitest 4](https://vitest.dev/) - Unit testing framework
 - [Testing Library](https://testing-library.com/) - Component testing utilities
@@ -30,14 +31,23 @@ This is a modern React application built with Vite and TypeScript, organized as 
 
 ```
 tenant-access/
-├── app/              # Main application workspace
+├── app/              # Frontend application workspace (React + Vite)
 │   ├── src/          # Application source code
 │   ├── public/       # Static assets
 │   └── package.json  # App-specific dependencies
+├── api/              # Backend workspace (AWS Lambda, TypeScript)
+│   ├── src/          # Lambda handler source code
+│   └── package.json  # API-specific dependencies
 ├── .github/          # GitHub workflows and templates
 ├── .husky/           # Git hooks
 └── package.json      # Root workspace configuration
 ```
+
+The `api` workspace is a minimal skeleton for the planned backend: a Lambda
+that communicates with a PostgreSQL database. It is configured for a Node
+runtime (its own `tsconfig.json`, separate from the frontend) with a
+placeholder handler. Build tooling, database client, and deployment are not
+yet chosen. Build/typecheck it with `npm run build:api`.
 
 ## Installation
 
@@ -58,6 +68,20 @@ cd tenant-access
 # Install dependencies
 npm install
 ```
+
+### Adding Dependencies
+
+This is an npm workspace monorepo: the root `package.json` owns the workspace configuration and the single `package-lock.json`, and dependencies are hoisted to the root `node_modules`. **Always install from the repository root**, targeting the `app` workspace:
+
+```bash
+# Runtime dependency for the app
+npm install <package> --workspace=app
+
+# Dev-only dependency for the app
+npm install --save-dev <package> --workspace=app
+```
+
+Commit the updated `app/package.json` and the root `package-lock.json` together in the same change. CI runs `npm ci`, which installs strictly from the committed lockfile and fails if it is out of sync with `package.json`.
 
 ## Usage
 

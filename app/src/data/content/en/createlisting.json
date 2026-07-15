@@ -1,5 +1,6 @@
 {
   "heading": "Create new listing",
+  "headingUpdate": "Update listing",
   "returnToDashboard": "Return to dashboard",
   "labelStreetAddress1": "Street address 1",
   "labelStreetAddress2": "Street address 2",
@@ -10,5 +11,7 @@
   "labelPets": "Pets allowed",
   "labelPetsDescription": "Are pets allowed in the property?",
   "labelDetails": "Property details",
-  "buttonSubmit": "Create listing"
+  "buttonSubmit": "Create listing",
+  "buttonUpdate": "Update listing",
+  "buttonDelete": "Delete listing"
 }

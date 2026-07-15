@@ -10,7 +10,7 @@ function DashboardPage() {
         {content.createListingButton}
       </Link>
 
-      <table className="usa-table width-full">
+      <table className="usa-table usa-table--stacked width-full">
         <thead>
           <tr>
             <th>{content.tableHeaders.id}</th>
@@ -26,7 +26,10 @@ function DashboardPage() {
             <td>221 King Street, Trenton, NJ 08608</td>
             <td>Active</td>
             <td>
-              <Link to="/dashboard/203" aria-label="Update 221 King Street, Trenton, NJ 08608">
+              <Link
+                to="/dashboard/update/203"
+                aria-label="Update 221 King Street, Trenton, NJ 08608"
+              >
                 Update
               </Link>
             </td>
@@ -36,7 +39,10 @@ function DashboardPage() {
             <td>123 Sesame Street, Newark, NJ 07102</td>
             <td>Active</td>
             <td>
-              <Link to="/dashboard/234" aria-label="Update 123 Sesame Street, Newark, NJ 07102">
+              <Link
+                to="/dashboard/update/234"
+                aria-label="Update 123 Sesame Street, Newark, NJ 07102"
+              >
                 Update
               </Link>
             </td>
@@ -47,7 +53,7 @@ function DashboardPage() {
             <td>Removed</td>
             <td>
               <Link
-                to="/dashboard/2843"
+                to="/dashboard/update/2843"
                 aria-label="Update 02 Shady Lane, Point Pleasant, NJ 08340"
               >
                 Update
@@ -60,7 +66,7 @@ function DashboardPage() {
             <td>Active</td>
             <td>
               <Link
-                to="/dashboard/9385"
+                to="/dashboard/update/9385"
                 aria-label="Update 14 Aspen Drive, North Caldwell, NJ 07001"
               >
                 Update
