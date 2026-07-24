@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:coverage:ci": "vitest --coverage --run"
   },
   "dependencies": {
     "@newjersey/njwds": "^2.9.1",
@@ -27,6 +28,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.9",
     "@vitest/ui": "^4.1.9",
     "jsdom": "^29.1.1",
     "typescript": "~7.0.2",
