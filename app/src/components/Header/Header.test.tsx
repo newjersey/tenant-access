@@ -136,4 +136,20 @@ describe("Header", () => {
 
     expect(menuButton).toHaveFocus();
   });
+
+  it("does not trigger handler when Escape is pressed and menu is closed", async () => {
+    const user = userEvent.setup();
+    render(
+      <BrowserRouter>
+        <Header />
+      </BrowserRouter>,
+    );
+
+    // Press Escape while menu is closed
+    await user.keyboard("{Escape}");
+
+    // Verify menu stays closed
+    const menuButton = screen.getByRole("button", { name: /menu/i });
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  });
 });
