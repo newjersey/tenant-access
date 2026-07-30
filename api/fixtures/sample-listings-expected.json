@@ -1,0 +1,31 @@
+[
+  {
+    "uid": 1002997,
+    "name": "Lexington Manor Apartments",
+    "address": "451 Bergen Ave",
+    "city": "Jersey City",
+    "state": "NJ",
+    "zipCode": "07305",
+    "rent": 500,
+    "bedrooms": 3,
+    "bathrooms": 1.5,
+    "unitType": "Apartments",
+    "imageId": null,
+    "imageUrl": null,
+    "phoneNumber": "201-324-2969",
+    "website": null,
+    "description": null,
+    "isWaitlistOpen": true,
+    "amenities": [
+      "Landlord can accept Spanish-language phone calls",
+      "Accessibility features. Inspect the property for your requirements",
+      "Income Restricted",
+      "No Smoking"
+    ],
+    "contactName": "Hansel Cabrera",
+    "contactOrganization": "Lexington Manor",
+    "fullListingUrl": "https://www.myhousingsearch.com/dbh/ViewUnit/1002997?ch=NJ&hm=0VCafRSK",
+    "rentType": "Median Income Based Rent",
+    "depositRange": "$0 - $750"
+  }
+]
