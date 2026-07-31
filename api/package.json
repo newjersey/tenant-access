@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:coverage:ci": "vitest --coverage --run",
     "typecheck": "tsc -b"
   },
   "dependencies": {

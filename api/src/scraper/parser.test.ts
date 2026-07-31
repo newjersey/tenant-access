@@ -21,4 +21,41 @@ describe("myhousingsearch parser", () => {
 
     expect(actual).toEqual(expected);
   });
+
+  it("should return empty array when row_info is missing", () => {
+    const html = "<html><body>No row_info here</body></html>";
+    const scrapeDate = new Date("2026-07-24T12:00:00.000Z");
+    const actual = parseListings(html, scrapeDate);
+
+    expect(actual).toEqual([]);
+  });
+
+  it("should skip listings when element is missing", () => {
+    const html = `
+      <html>
+        <script>
+          var row_info = [
+            {uid: 999999, image_id: null}
+          ];
+        </script>
+        <body>
+          <!-- No element with id="unit_999999" -->
+        </body>
+      </html>
+    `;
+    const scrapeDate = new Date("2026-07-24T12:00:00.000Z");
+    const actual = parseListings(html, scrapeDate);
+
+    expect(actual).toEqual([]);
+  });
+
+  it("should handle missing optional fields", () => {
+    const html = `
+      <script>var row_info = [{uid: 1, image_id: null}];</script>
+      <li id="unit_1"></li>
+    `;
+    const scrapeDate = new Date("2026-07-24T12:00:00.000Z");
+    const actual = parseListings(html, scrapeDate);
+    expect(actual).toBeTruthy();
+  });
 });

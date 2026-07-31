@@ -38,19 +38,14 @@ function extractRowInfo(html: string): RowInfo[] {
     return [];
   }
 
-  try {
-    const jsonStr = rowInfoMatch[1]
-      .replace(/uid:/g, '"uid":')
-      .replace(/image_id:/g, '"image_id":')
-      .replace(/,(\s*[}\]])/g, "$1")
-      .replace(/\/\/.*/g, "")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/null/g, "null");
+  const jsonStr = rowInfoMatch[1]
+    .replace(/uid:/g, '"uid":')
+    .replace(/image_id:/g, '"image_id":')
+    .replace(/,(\s*[}\]])/g, "$1")
+    .replace(/\/\/.*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
 
-    return JSON.parse(jsonStr);
-  } catch (_error) {
-    return [];
-  }
+  return JSON.parse(jsonStr);
 }
 
 function parseListingElement(
@@ -142,7 +137,7 @@ function parseListingElement(
   const description = element.find(".shsDescription").first().text().trim() || null;
 
   const lastUpdatedText = element.find(".shsLastUpdated").first().text().trim();
-  let lastUpdated: Date | null = null;
+  let lastUpdated: string | null = null;
 
   if (lastUpdatedText.toLowerCase().includes("just updated")) {
     // Same calendar day as scrape date (start of day)
@@ -163,16 +158,6 @@ function parseListingElement(
   } else if (lastUpdatedText.toLowerCase().includes("updated this month")) {
     // 1st day of current month
     lastUpdated = new Date(scrapeDate.getFullYear(), scrapeDate.getMonth(), 1).toISOString();
-  } else {
-    // Try to parse actual date if present
-    const dateMatch = lastUpdatedText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (dateMatch) {
-      const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
-      const day = parseInt(dateMatch[2]);
-      const year = parseInt(dateMatch[3]);
-      lastUpdated = new Date(year, month, day).toISOString();
-    }
-    // Otherwise stays null
   }
 
   const availText = element.find(".shsAvail").first().text().trim().toLowerCase();
