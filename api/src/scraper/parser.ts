@@ -142,22 +142,24 @@ function parseListingElement(
   if (lastUpdatedText.toLowerCase().includes("just updated")) {
     // Same calendar day as scrape date (start of day)
     lastUpdated = new Date(
-      scrapeDate.getFullYear(),
-      scrapeDate.getMonth(),
-      scrapeDate.getDate(),
+      Date.UTC(scrapeDate.getUTCFullYear(), scrapeDate.getUTCMonth(), scrapeDate.getUTCDate()),
     ).toISOString();
   } else if (lastUpdatedText.toLowerCase().includes("updated this week")) {
     // Most recent Sunday
     const dayOfWeek = scrapeDate.getDay(); // 0 = Sunday, 6 = Saturday
     const daysToSubtract = dayOfWeek; // If today is Sunday, subtract 0; if Monday, subtract 1, etc.
     lastUpdated = new Date(
-      scrapeDate.getFullYear(),
-      scrapeDate.getMonth(),
-      scrapeDate.getDate() - daysToSubtract,
+      Date.UTC(
+        scrapeDate.getUTCFullYear(),
+        scrapeDate.getUTCMonth(),
+        scrapeDate.getUTCDate() - daysToSubtract,
+      ),
     ).toISOString();
   } else if (lastUpdatedText.toLowerCase().includes("updated this month")) {
     // 1st day of current month
-    lastUpdated = new Date(scrapeDate.getFullYear(), scrapeDate.getMonth(), 1).toISOString();
+    lastUpdated = new Date(
+      Date.UTC(scrapeDate.getUTCFullYear(), scrapeDate.getUTCMonth(), 1),
+    ).toISOString();
   }
 
   const availText = element.find(".shsAvail").first().text().trim().toLowerCase();

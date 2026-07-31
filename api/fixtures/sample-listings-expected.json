@@ -1,7 +1,7 @@
 [
   {
     "uid": 1002997,
-    "lastUpdated": "2026-07-24T07:00:00.000Z",
+    "lastUpdated": "2026-07-24T00:00:00.000Z",
     "name": "Lexington Manor Apartments",
     "address": "451 Bergen Ave",
     "city": "Jersey City",
@@ -31,7 +31,7 @@
   },
   {
     "uid": 1388803,
-    "lastUpdated": "2026-07-19T07:00:00.000Z",
+    "lastUpdated": "2026-07-19T00:00:00.000Z",
     "name": "Project Homes Urban Renewal",
     "address": "657 Bergen Ave",
     "city": "Asbury Park",
@@ -61,7 +61,7 @@
   },
   {
     "uid": 1388536,
-    "lastUpdated": "2026-07-01T07:00:00.000Z",
+    "lastUpdated": "2026-07-01T00:00:00.000Z",
     "name": "72 Lake Avenue",
     "address": "72 Lake Ave",
     "city": "Midland Park",
