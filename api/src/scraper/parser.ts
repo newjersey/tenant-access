@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 
-interface Listing {
+export interface Listing {
   uid: number;
   name: string;
   address: string;
@@ -16,7 +16,7 @@ interface Listing {
   phoneNumber: string | null;
   website: string | null;
   description: string | null;
-  lastUpdated: Date | null;
+  lastUpdated: string | null;
   isWaitlistOpen: boolean;
   amenities: string[];
   contactName: string | null;
@@ -57,6 +57,7 @@ function parseListingElement(
   $: cheerio.CheerioAPI,
   uid: number,
   imageId: number | null,
+  scrapeDate: Date,
 ): Listing | null {
   const element = $(`#unit_${uid}`);
 
@@ -142,13 +143,36 @@ function parseListingElement(
 
   const lastUpdatedText = element.find(".shsLastUpdated").first().text().trim();
   let lastUpdated: Date | null = null;
-  if (lastUpdatedText.includes("Just Updated")) {
-    lastUpdated = new Date();
+
+  if (lastUpdatedText.toLowerCase().includes("just updated")) {
+    // Same calendar day as scrape date (start of day)
+    lastUpdated = new Date(
+      scrapeDate.getFullYear(),
+      scrapeDate.getMonth(),
+      scrapeDate.getDate(),
+    ).toISOString();
+  } else if (lastUpdatedText.toLowerCase().includes("updated this week")) {
+    // Most recent Sunday
+    const dayOfWeek = scrapeDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const daysToSubtract = dayOfWeek; // If today is Sunday, subtract 0; if Monday, subtract 1, etc.
+    lastUpdated = new Date(
+      scrapeDate.getFullYear(),
+      scrapeDate.getMonth(),
+      scrapeDate.getDate() - daysToSubtract,
+    ).toISOString();
+  } else if (lastUpdatedText.toLowerCase().includes("updated this month")) {
+    // 1st day of current month
+    lastUpdated = new Date(scrapeDate.getFullYear(), scrapeDate.getMonth(), 1).toISOString();
   } else {
-    const dateMatch = lastUpdatedText.match(/\d{1,2}\/\d{1,2}\/\d{4}/);
+    // Try to parse actual date if present
+    const dateMatch = lastUpdatedText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (dateMatch) {
-      lastUpdated = new Date(dateMatch[0]);
+      const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
+      const day = parseInt(dateMatch[2]);
+      const year = parseInt(dateMatch[3]);
+      lastUpdated = new Date(year, month, day).toISOString();
     }
+    // Otherwise stays null
   }
 
   const availText = element.find(".shsAvail").first().text().trim().toLowerCase();
@@ -194,14 +218,14 @@ function parseListingElement(
   };
 }
 
-export function parseListings(html: string): Listing[] {
+export function parseListings(html: string, scrapeDate: Date = new Date()): Listing[] {
   const $ = cheerio.load(html);
   const rowInfo = extractRowInfo(html);
 
   const listings: Listing[] = [];
 
   for (const row of rowInfo) {
-    const listing = parseListingElement($, row.uid, row.image_id);
+    const listing = parseListingElement($, row.uid, row.image_id, scrapeDate);
     if (listing) {
       listings.push(listing);
     }
