@@ -83,6 +83,27 @@ npm install --save-dev <package> --workspace=app
 
 Commit the updated `app/package.json` and the root `package-lock.json` together in the same change. CI runs `npm ci`, which installs strictly from the committed lockfile and fails if it is out of sync with `package.json`.
 
+## Database Migrations
+
+```bash
+# Create a new migration file
+bash api/scripts/create_migration.sh <description>
+
+# Example:
+# bash api/scripts/create_migration.sh add_email_column
+
+# This creates the file:
+# api/migrations/20260130143022_add_email_column.sql
+
+# Then edit your new migration file with SQL
+
+# Run latest migration
+bash api/scripts/migrate.sh
+
+# Run all migrations (only needed for fresh setup)
+bash api/scripts/migrate.sh --all
+```
+
 ## Usage
 
 ### Development
