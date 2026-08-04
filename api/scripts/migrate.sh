@@ -52,7 +52,7 @@ run_migration() {
   local filename=$(basename "$file")
 
   echo "Running $filename..."
-  if psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f "$file" > /dev/null; then
+  if psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f "$file"; then
     echo "Applied $filename"
     return 0
   else
