@@ -1,5 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
@@ -23,6 +25,11 @@ export class TenantAccessStack extends cdk.Stack {
     // VPC for RDS (using default VPC to save costs)
     const vpc = ec2.Vpc.fromLookup(this, "ExistingVPC", {
       vpcId: "vpc-0c73f9052afddcf4d",
+    });
+
+    vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      privateDnsEnabled: true,
     });
 
     // Security group for RDS
@@ -72,7 +79,38 @@ export class TenantAccessStack extends cdk.Stack {
       publiclyAccessible: false,
     });
 
-    // Output bucket name
+    // Migration Lambda (in VPC, bundles migrations/)
+    const migrationLambda = new NodejsFunction(this, "MigrationFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/migration-runner.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 512,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+        commandHooks: {
+          beforeBundling: () => [],
+          afterBundling: (inputDir: string, outputDir: string) => [
+            `cp -r ${inputDir}/api/migrations ${outputDir}/`,
+          ],
+          beforeInstall: () => [],
+        },
+      },
+    });
+
+    // Grant permissions
+    database.connections.allowFrom(migrationLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(migrationLambda);
+
     new cdk.CfnOutput(this, "BucketName", {
       value: dataBucket.bucketName,
       description: "S3 bucket for scraped listings data",
@@ -96,6 +134,11 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
       value: dbCredentials.secretArn,
       description: "ARN of secret containing database credentials",
+    });
+
+    new cdk.CfnOutput(this, "MigrationLambdaName", {
+      value: migrationLambda.functionName,
+      description: "Name of migration Lambda function",
     });
   }
 }

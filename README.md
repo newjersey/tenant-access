@@ -85,8 +85,10 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 
 ## Database Migrations
 
+### Create Migration File
+
 ```bash
-# Create a new migration file
+# Create a new migration file with the date prefix
 bash api/scripts/create_migration.sh <description>
 
 # Example:
@@ -96,13 +98,36 @@ bash api/scripts/create_migration.sh <description>
 # api/migrations/20260130143022_add_email_column.sql
 
 # Then edit your new migration file with SQL
-
-# Run latest migration
-bash api/scripts/migrate.sh
-
-# Run all migrations (only needed for fresh setup)
-bash api/scripts/migrate.sh --all
 ```
+
+### Execute Migration
+
+1. The Migration Lambda in the `tenant-access-stack.ts` CDK config file is bundled with the whole `api/migrations` directory. Even if the Lambda's code has not changed, we need to do a CDK deployment to
+
+2. Run `npx cdk deploy` to package the Lambda with the new migration.
+
+3. Note the `MigrationLambdaName` in the output of `npx cdk deploy`.
+For example, `TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo`
+
+3. Run the lambda with its name and the filename for the new migration.
+
+```
+aws lambda invoke \
+    --function-name INSERT_LAMBDA_NAME \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"migrationFile":"INSERT_SQL_FILENAME"}' \
+    /tmp/out.json && cat /tmp/out.json
+
+# For example:
+
+aws lambda invoke \
+    --function-name TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"migrationFile":"20260804110544_create_listings_table.sql"}' \
+    /tmp/out.json && cat /tmp/out.json
+```
+
+If you see a happy JSON like `{"statusCode":200,"body":"{\"success\":true,\"migration\":\"20260804110544_create_listings_table.sql\",\"message\":\"Migration completed successfully\"}"}`, it was a success. Otherwise, you can debug using CloudWatch.
 
 ## Usage
 
