@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
-    "@types/cheerio": "^0.22.35",
+    "@types/cheerio": "^1.0.0",
     "@types/node": "^26.1.1",
     "@vitest/coverage-v8": "^4.1.9",
     "tsx": "^4.23.1",
