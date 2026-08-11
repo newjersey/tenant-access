@@ -11,15 +11,21 @@ const { sendMock, connectMock, queryMock, endMock, clientConfigMock } = vi.hoist
 }));
 
 vi.mock("@aws-sdk/client-secrets-manager", () => ({
-  SecretsManagerClient: vi.fn(() => ({ send: sendMock })),
-  GetSecretValueCommand: vi.fn((input) => ({ input })),
+  SecretsManagerClient: class {
+    send = sendMock;
+  },
+  GetSecretValueCommand: class {},
 }));
 
 vi.mock("pg", () => ({
-  Client: vi.fn((config) => {
-    clientConfigMock(config);
-    return { connect: connectMock, query: queryMock, end: endMock };
-  }),
+  Client: class {
+    connect = connectMock;
+    query = queryMock;
+    end = endMock;
+    constructor(config: unknown) {
+      clientConfigMock(config);
+    }
+  },
 }));
 
 vi.mock("node:fs", () => ({
