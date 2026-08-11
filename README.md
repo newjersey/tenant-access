@@ -83,6 +83,10 @@ npm install --save-dev <package> --workspace=app
 
 Commit the updated `app/package.json` and the root `package-lock.json` together in the same change. CI runs `npm ci`, which installs strictly from the committed lockfile and fails if it is out of sync with `package.json`.
 
+## Infrastructure
+
+This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
+
 ## Database Migrations
 
 ### Create Migration File
@@ -92,19 +96,19 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 bash api/scripts/create_migration.sh <description>
 
 # Example:
-# bash api/scripts/create_migration.sh add_email_column
+# bash api/scripts/create_migration.sh create_listings_table
 
 # This creates the file:
-# api/migrations/20260130143022_add_email_column.sql
+# api/migrations/20260804110544_create_listings_table.sql
 
 # Then edit your new migration file with SQL
 ```
 
 ### Execute Migration
 
-1. The Migration Lambda in the `tenant-access-stack.ts` CDK config file is bundled with the whole `api/migrations` directory. Even if the Lambda's code has not changed, we need to do a CDK deployment to
+1. The Migration Lambda in the `tenant-access-stack.ts` CDK config file is bundled with the whole `api/migrations` directory. Even thought the Lambda's code itself will rarely change, we need to do a CDK deployment to include any new migration files.
 
-2. Run `npx cdk deploy` to package the Lambda with the new migration.
+2. Run `npx cdk deploy` to package the Lambda with the updated directory of migrations.
 
 3. Note the `MigrationLambdaName` in the output of `npx cdk deploy`.
 For example, `TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo`
