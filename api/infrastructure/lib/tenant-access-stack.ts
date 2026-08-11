@@ -79,6 +79,7 @@ export class TenantAccessStack extends cdk.Stack {
       publiclyAccessible: false,
     });
 
+    // TODO: trigger this automatically, probably with Custom Resource
     // Migration Lambda (in VPC, bundles migrations/)
     const migrationLambda = new NodejsFunction(this, "MigrationFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
