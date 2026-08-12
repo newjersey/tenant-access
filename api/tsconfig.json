@@ -7,8 +7,6 @@
     "moduleResolution": "nodenext",
     "types": ["node", "aws-lambda"],
     "outDir": "./dist",
-    "rootDir": "./src",
-
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -16,5 +14,6 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/**/*", "infrastructure/**/*"],
+  "exclude": ["node_modules", "dist", "coverage"]
 }

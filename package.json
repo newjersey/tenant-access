@@ -5,6 +5,9 @@
   "repository": "github:newjersey/tenant-access",
   "homepage": "https://github.com/newjersey/tenant-access",
   "bugs": "https://github.com/newjersey/tenant-access/issues",
+  "engines": {
+    "node": "^24.0.0"
+  },
   "workspaces": [
     "app",
     "api"
