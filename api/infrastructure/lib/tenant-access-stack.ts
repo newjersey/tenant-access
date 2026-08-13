@@ -112,6 +112,53 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(migrationLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(migrationLambda);
 
+    // Update Listings Lambda (in VPC)
+    const updateLambda = new NodejsFunction(this, "UpdateListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/update-listings.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 512,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(updateLambda);
+
+    const queryLambda = new NodejsFunction(this, "QueryListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/query-listings.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(1),
+      memorySize: 256,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(queryLambda);
+
     new cdk.CfnOutput(this, "BucketName", {
       value: dataBucket.bucketName,
       description: "S3 bucket for scraped listings data",
@@ -140,6 +187,16 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "MigrationLambdaName", {
       value: migrationLambda.functionName,
       description: "Name of migration Lambda function",
+    });
+
+    new cdk.CfnOutput(this, "UpdateListingsLambdaName", {
+      value: updateLambda.functionName,
+      description: "Name of update-listings Lambda function",
+    });
+
+    new cdk.CfnOutput(this, "QueryListingsLambdaName", {
+      value: queryLambda.functionName,
+      description: "Name of query-listings Lambda function",
     });
   }
 }
