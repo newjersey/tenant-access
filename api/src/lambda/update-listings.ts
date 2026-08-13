@@ -81,24 +81,20 @@ export const handler = async (event: Event) => {
     };
   }
 
-  const client = await getClient();
+  let client: Awaited<ReturnType<typeof getClient>> | undefined;
 
   try {
+    client = await getClient();
     await client.query("BEGIN");
     for (const listing of listings) {
       await client.query(INSERT_SQL, toValues(listing));
     }
     await client.query("COMMIT");
     console.log(`Upserted ${listings.length} listing(s)`);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, inserted: listings.length }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ success: true, inserted: listings.length }) };
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    await client?.query("ROLLBACK").catch(() => {});
     console.error("Insert failed:", error);
-
     return {
       statusCode: 500,
       body: JSON.stringify({
@@ -107,6 +103,6 @@ export const handler = async (event: Event) => {
       }),
     };
   } finally {
-    await client.end();
+    await client?.end();
   }
 };
