@@ -40,7 +40,7 @@ export const handler = async (event: Event) => {
       statusCode: 500,
       body: JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error && error.message,
       }),
     };
   }

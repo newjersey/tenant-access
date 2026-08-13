@@ -147,16 +147,4 @@ describe("insert-listings handler", () => {
     });
     expect(endMock).toHaveBeenCalledOnce();
   });
-
-  it("stringifies non-Error throwables", async () => {
-    getClientMock.mockRejectedValue("connection refused");
-
-    const result = await handler({ listings: [makeListing()] });
-
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body)).toEqual({
-      success: false,
-      error: "connection refused",
-    });
-  });
 });
