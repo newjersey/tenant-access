@@ -53,10 +53,11 @@ function extractRowInfo(html: string): RowInfo[] {
 function parseListingElement(
   $: cheerio.CheerioAPI,
   element: UnitElement,
-  uid: number,
-  imageId: number | null,
+  row: RowInfo,
   scrapeDate: Date,
 ): Listing {
+  const { uid, image_id: imageId } = row;
+
   const addressLink = element.find(".shsAddress a").first();
   const addressLinkText = addressLink.html() || "";
   const addressParts = addressLinkText.split("<br>").map((part) => part.trim());
@@ -219,7 +220,7 @@ export function parseListings(html: string, scrapeDate: Date = new Date()): List
     const element = byUid.get(row.uid);
     if (!element) continue;
 
-    listings.push(parseListingElement($, $(element), row.uid, row.image_id, scrapeDate));
+    listings.push(parseListingElement($, $(element), row, scrapeDate));
   }
 
   return listings;
