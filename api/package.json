@@ -8,16 +8,28 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:coverage:ci": "vitest --coverage --run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "cdk": "cdk",
+    "cdk:synth": "cdk synth",
+    "cdk:deploy": "cdk deploy",
+    "cdk:diff": "cdk diff",
+    "cdk:destroy": "cdk destroy"
   },
   "dependencies": {
-    "cheerio": "^1.2.0"
+    "@aws-sdk/client-secrets-manager": "^3.1103.0",
+    "cheerio": "^1.2.0",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/cheerio": "^1.0.0",
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.4",
     "@vitest/coverage-v8": "^4.1.9",
+    "aws-cdk": "^2.135.0",
+    "aws-cdk-lib": "^2.135.0",
+    "constructs": "^10.3.0",
+    "esbuild": "^0.28.1",
     "tsx": "^4.23.1",
     "typescript": "~7.0.2",
     "vitest": "^4.1.9"

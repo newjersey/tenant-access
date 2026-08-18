@@ -80,6 +80,16 @@
       "formatter": {
         "enabled": false
       }
+    },
+    {
+      "includes": ["api/src/lambda/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
     }
   ]
 }
