@@ -153,8 +153,14 @@ export const handler = async (event: S3Event) => {
 
     // Reconcile visibility from the authoritative uid list. Idempotent, and
     // independent of clock skew or of which rows this run happened to touch.
-    const hidden = await client.query("UPDATE listings SET shown_to_public = false WHERE uid <> ALL($1::int[]) AND shown_to_public", [uids]);
-    const shown = await client.query("UPDATE listings SET shown_to_public = true WHERE uid = ANY($1::int[]) AND NOT shown_to_public", [uids]);
+    const hidden = await client.query(
+      "UPDATE listings SET shown_to_public = false WHERE uid <> ALL($1::int[]) AND shown_to_public",
+      [uids],
+    );
+    const shown = await client.query(
+      "UPDATE listings SET shown_to_public = true WHERE uid = ANY($1::int[]) AND NOT shown_to_public",
+      [uids],
+    );
 
     await client.query("COMMIT");
 

@@ -4,11 +4,11 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
-import type { Construct } from "constructs";
 import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import type { Construct } from "constructs";
 
 export class TenantAccessStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,7 +23,10 @@ export class TenantAccessStack extends cdk.Stack {
       lifecycleRules: [
         { id: "expire-raw-html", prefix: "raw/", expiration: cdk.Duration.days(7) },
         { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
-        { id: "abort-incomplete-uploads", abortIncompleteMultipartUploadAfter: cdk.Duration.days(1) },
+        {
+          id: "abort-incomplete-uploads",
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
       ],
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
