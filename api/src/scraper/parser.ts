@@ -31,6 +31,8 @@ interface RowInfo {
   image_id: number | null;
 }
 
+type UnitElement = ReturnType<cheerio.CheerioAPI>;
+
 function extractRowInfo(html: string): RowInfo[] {
   const rowInfoMatch = html.match(/var row_info = (\[[\s\S]*?\]);/);
 
@@ -50,16 +52,11 @@ function extractRowInfo(html: string): RowInfo[] {
 
 function parseListingElement(
   $: cheerio.CheerioAPI,
+  element: UnitElement,
   uid: number,
   imageId: number | null,
   scrapeDate: Date,
-): Listing | null {
-  const element = $(`#unit_${uid}`);
-
-  if (!element.length) {
-    return null;
-  }
-
+): Listing {
   const addressLink = element.find(".shsAddress a").first();
   const addressLinkText = addressLink.html() || "";
   const addressParts = addressLinkText.split("<br>").map((part) => part.trim());
@@ -211,11 +208,18 @@ export function parseListings(html: string, scrapeDate: Date = new Date()): List
 
   const listings: Listing[] = [];
 
+  const byUid = new Map<number, ReturnType<cheerio.CheerioAPI>>();
+  $("[id^=unit_]").each((_, el) => {
+    const id = $(el).attr("id");
+    const uid = Number(id?.slice("unit_".length));
+    if (Number.isFinite(uid)) byUid.set(uid, $(el));
+  });
+
   for (const row of rowInfo) {
-    const listing = parseListingElement($, row.uid, row.image_id, scrapeDate);
-    if (listing) {
-      listings.push(listing);
-    }
+    const element = byUid.get(row.uid);
+    if (!element) continue;
+
+    listings.push(parseListingElement($, $(element), row.uid, row.image_id, scrapeDate));
   }
 
   return listings;
