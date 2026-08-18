@@ -40,17 +40,6 @@ export const handler = async (event: S3Event) => {
 
     console.log(`Parsed ${listings.length} listing(s) from ${(html.length / 1e6).toFixed(1)}MB`);
 
-    // The uid list is written first, so the listings.json PUT that triggers
-    // update-listings is the last thing to land for this date.
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: `${parsedPrefix}${date}/uids.json`,
-        Body: JSON.stringify(listings.map((listing) => listing.uid)),
-        ContentType: "application/json",
-      }),
-    );
-
     const listingsKey = `${parsedPrefix}${date}/listings.json`;
     await s3.send(
       new PutObjectCommand({
