@@ -59,6 +59,14 @@ describe("update-listings handler", () => {
     serve(listings(2));
   });
 
+  it("throws when BUCKET_NAME is unset", async () => {
+    delete process.env.BUCKET_NAME;
+
+    await expect(handler(event())).rejects.toThrow("BUCKET_NAME is not set");
+    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(getClientMock).not.toHaveBeenCalled();
+  });
+
   it("returns early when the event has no records", async () => {
     const result = await handler({ Records: [] } as unknown as S3Event);
 
