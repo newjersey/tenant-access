@@ -1,150 +1,108 @@
+import type { S3Event } from "aws-lambda";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Listing } from "../scraper/parser.js";
 import { handler } from "./update-listings.js";
 
-const { getClientMock, queryMock, endMock } = vi.hoisted(() => ({
+const { getClientMock, queryMock, endMock, s3SendMock } = vi.hoisted(() => ({
   getClientMock: vi.fn(),
   queryMock: vi.fn(),
   endMock: vi.fn(),
+  s3SendMock: vi.fn(),
 }));
 
-vi.mock("./db.js", () => ({
-  getClient: getClientMock,
+vi.mock("./db.js", () => ({ getClient: getClientMock }));
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: class {
+    send = s3SendMock;
+  },
+  GetObjectCommand: class {
+    constructor(readonly input: { Bucket: string; Key: string }) {}
+  },
 }));
 
-// Minimal valid-ish Listing; only fields the handler reads matter here.
-function makeListing(overrides: Partial<Listing> = {}): Listing {
-  return {
-    uid: 1002997,
-    name: "Lexington Manor Apartments",
-    address: "451 Bergen Ave",
-    city: "Jersey City",
-    state: "NJ",
-    zipCode: "07305",
-    rent: 500,
-    bedrooms: 3,
-    bathrooms: 1.5,
-    unitType: "Apartments",
-    imageId: null,
-    imageUrl: null,
-    phoneNumber: "201-324-2969",
-    website: null,
-    description: null,
-    lastUpdated: "2026-07-24T00:00:00.000Z",
-    isWaitlistOpen: true,
-    amenities: ["No Smoking"],
-    contactName: "Hansel Cabrera",
-    contactOrganization: "Lexington Manor",
-    fullListingUrl: "https://example.com/1002997",
-    rentType: "Standard Rent",
-    depositRange: "$0 - $750",
-    ...overrides,
-  };
+// Only uid is read by the assertions; the rest bind as undefined against a mock.
+function listings(count: number): Listing[] {
+  return Array.from({ length: count }, (_, i) => ({ uid: 10_000 + i }) as unknown as Listing);
 }
 
-describe("insert-listings handler", () => {
+function event(): S3Event {
+  return {
+    Records: [{ s3: { object: { key: "parsed/2026-08-18/listings.json" } } }],
+  } as unknown as S3Event;
+}
+
+function serve(rows: Listing[]) {
+  s3SendMock.mockResolvedValue({
+    Body: { transformToString: async () => JSON.stringify(rows) },
+  });
+}
+
+function shownCount(count: number) {
+  queryMock.mockImplementation((sql: string) =>
+    String(sql).startsWith("SELECT COUNT(*)")
+      ? Promise.resolve({ rows: [{ count: String(count) }] })
+      : Promise.resolve({ rowCount: 0 }),
+  );
+}
+
+describe("update-listings handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
 
+    process.env.BUCKET_NAME = "test-bucket";
     getClientMock.mockResolvedValue({ query: queryMock, end: endMock });
-    queryMock.mockResolvedValue({ rowCount: 1 });
     endMock.mockResolvedValue(undefined);
+    shownCount(0);
+    serve(listings(2));
   });
 
-  it("returns inserted:0 and never connects when given no listings", async () => {
-    const result = await handler({ listings: [] });
+  it("returns early when the event has no records", async () => {
+    const result = await handler({ Records: [] } as unknown as S3Event);
 
-    expect(JSON.parse(result.body)).toEqual({
-      success: true,
-      inserted: 0,
-      message: "No listings provided",
+    expect(JSON.parse(result.body)).toMatchObject({ success: true });
+    expect(getClientMock).not.toHaveBeenCalled();
+  });
+
+  it("reads the key from the event and commits the upsert", async () => {
+    const result = await handler(event());
+
+    expect(s3SendMock.mock.calls[0][0].input).toEqual({
+      Bucket: "test-bucket",
+      Key: "parsed/2026-08-18/listings.json",
     });
-    expect(getClientMock).not.toHaveBeenCalled();
-  });
-
-  it("treats a missing listings field as empty", async () => {
-    // biome-ignore lint/suspicious/noExplicitAny: exercising the `?? []` guard with a malformed event
-    const result = await handler({} as any);
-
-    expect(JSON.parse(result.body)).toMatchObject({ inserted: 0 });
-    expect(getClientMock).not.toHaveBeenCalled();
-  });
-
-  it("wraps inserts in a transaction and commits", async () => {
-    const listings = [makeListing({ uid: 1 }), makeListing({ uid: 2 })];
-
-    const result = await handler({ listings });
-
-    expect(JSON.parse(result.body)).toEqual({ success: true, inserted: 2 });
-
-    // BEGIN, one INSERT per listing, COMMIT.
-    expect(queryMock).toHaveBeenNthCalledWith(1, "BEGIN");
-    expect(queryMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringContaining("INSERT INTO listings"),
-      expect.arrayContaining([1]),
-    );
-    expect(queryMock).toHaveBeenNthCalledWith(
-      3,
-      expect.stringContaining("INSERT INTO listings"),
-      expect.arrayContaining([2]),
-    );
-    expect(queryMock).toHaveBeenNthCalledWith(4, "COMMIT");
+    expect(JSON.parse(result.body)).toMatchObject({ success: true, upserted: 2 });
+    expect(queryMock).toHaveBeenCalledWith("BEGIN");
+    expect(queryMock).toHaveBeenCalledWith("COMMIT");
     expect(endMock).toHaveBeenCalledOnce();
   });
 
-  it("passes the listing fields as ordered parameters", async () => {
-    const listing = makeListing({ uid: 42, amenities: ["Elevator"] });
+  it("refuses a degraded run without writing anything", async () => {
+    serve(listings(500));
+    shownCount(3000);
 
-    await handler({ listings: [listing] });
+    const result = await handler(event());
 
-    const insertCall = queryMock.mock.calls.find(([sql]) =>
-      String(sql).startsWith("INSERT INTO listings"),
-    );
-    const params = insertCall?.[1] as unknown[];
-
-    // uid is first, amenities array is passed through as a single param.
-    expect(params[0]).toBe(42);
-    expect(params).toContainEqual(["Elevator"]);
-    expect(params).toHaveLength(23);
+    expect(result.statusCode).toBe(500);
+    expect(JSON.parse(result.body).error).toMatch(/below safety floor 2400/);
+    expect(queryMock).not.toHaveBeenCalledWith("BEGIN");
   });
 
   it("rolls back and returns 500 when an insert fails", async () => {
     queryMock.mockImplementation((sql: string) => {
-      if (sql === "BEGIN") return Promise.resolve({});
-      if (String(sql).startsWith("INSERT")) {
-        return Promise.reject(new Error("null value in column violates not-null"));
+      if (String(sql).startsWith("SELECT COUNT(*)")) {
+        return Promise.resolve({ rows: [{ count: "0" }] });
       }
-      return Promise.resolve({}); // ROLLBACK
+      if (String(sql).startsWith("INSERT")) return Promise.reject(new Error("boom"));
+      return Promise.resolve({ rowCount: 0 });
     });
 
-    const result = await handler({ listings: [makeListing()] });
+    const result = await handler(event());
 
     expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body)).toEqual({
-      success: false,
-      error: "null value in column violates not-null",
-    });
+    expect(JSON.parse(result.body)).toEqual({ success: false, error: "boom" });
     expect(queryMock).toHaveBeenCalledWith("ROLLBACK");
-    expect(endMock).toHaveBeenCalledOnce();
-  });
-
-  it("survives a failed ROLLBACK (the .catch swallows it)", async () => {
-    queryMock.mockImplementation((sql: string) => {
-      if (String(sql).startsWith("INSERT")) return Promise.reject(new Error("insert boom"));
-      if (sql === "ROLLBACK") return Promise.reject(new Error("rollback boom"));
-      return Promise.resolve({});
-    });
-
-    const result = await handler({ listings: [makeListing()] });
-
-    // Original insert error is reported, not the rollback error.
-    expect(JSON.parse(result.body)).toEqual({
-      success: false,
-      error: "insert boom",
-    });
-    expect(endMock).toHaveBeenCalledOnce();
   });
 });
