@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/cheerio": "^1.0.0",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "@types/pg": "^8.21.0",
     "@vitest/coverage-v8": "^4.1.9",
     "aws-cdk": "^2.135.0",
