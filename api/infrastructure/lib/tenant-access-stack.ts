@@ -274,5 +274,10 @@ export class TenantAccessStack extends cdk.Stack {
       value: queryLambda.functionName,
       description: "Name of query-listings Lambda function",
     });
+
+    new cdk.CfnOutput(this, "ScrapeListingsLambdaName", {
+      value: scrapeLambda.functionName,
+      description: "Name of scrape-listings Lambda function",
+    });
   }
 }
