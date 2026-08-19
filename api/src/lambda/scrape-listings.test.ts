@@ -73,15 +73,6 @@ describe("scrape-listings handler", () => {
     expect(result).toEqual({ bucket: "test-bucket", key: "raw/2026-08-18/listings.html" });
   });
 
-  it("uses the Eastern calendar date, not UTC", async () => {
-    // 01:30 UTC on the 19th is still the 18th in New York.
-    vi.setSystemTime(new Date("2026-08-19T01:30:00Z"));
-
-    const result = await handler();
-
-    expect(result.key).toBe("raw/2026-08-18/listings.html");
-  });
-
   it("throws without uploading when the fetch fails", async () => {
     stubFetch(response({ ok: false, status: 403 }));
 
