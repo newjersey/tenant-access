@@ -52,11 +52,8 @@ function extractRowInfo(html: string): RowInfo[] {
 }
 
 function dollarAmounts(text: string): number[] {
-  return (text.match(/\$[\d,]+/g) ?? []).map((match) =>
-    parseInt(match.replace(/[$,]/g, ""), 10),
-  );
+  return (text.match(/\$[\d,]+/g) ?? []).map((match) => parseInt(match.replace(/[$,]/g, ""), 10));
 }
-
 
 function parseListingElement(
   $: cheerio.CheerioAPI,
@@ -89,7 +86,6 @@ function parseListingElement(
 
   const rentTypeElement = element.find(".shsCostLabel").first();
   const rentType = rentTypeElement.text().trim().replace(/\s+/g, " ") || "Standard Rent";
-
 
   // Rent appears three ways: a range ("$25 - $1,913"), a table of AMI tiers
   // (60% -> $1,036, 50% -> $848, ...), or a single figure. Take the low and
