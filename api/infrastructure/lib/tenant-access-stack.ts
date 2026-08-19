@@ -154,7 +154,7 @@ export class TenantAccessStack extends cdk.Stack {
         PARSED_PREFIX: "parsed/",
       },
       bundling: {
-        nodeModules: ["cheerio", "@aws-sdk/client-s3", "@aws-sdk/lib-storage"],
+        nodeModules: ["@aws-sdk/client-s3", "@aws-sdk/lib-storage"],
         externalModules: ["aws-sdk"],
       },
     });

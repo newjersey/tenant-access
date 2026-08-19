@@ -5,7 +5,6 @@ import { getClient } from "./db.js";
 
 const s3 = new S3Client();
 
-// 23 columns x 500 rows = 11,500 bind parameters, well under Postgres' 65,535.
 const BATCH_SIZE = 500;
 
 // Guards against hiding the whole catalog when a scrape or parse degrades:
@@ -22,6 +21,7 @@ const COLUMNS = [
   "state",
   "zip_code",
   "rent",
+  "rent_max",
   "bedrooms",
   "bathrooms",
   "unit_type",
@@ -49,6 +49,7 @@ function toValues(listing: Listing): unknown[] {
     listing.state,
     listing.zipCode,
     listing.rent,
+    listing.rentMax,
     listing.bedrooms,
     listing.bathrooms,
     listing.unitType,
