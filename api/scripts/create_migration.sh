@@ -37,6 +37,3 @@ EOF
 echo "Created new migration:"
 echo "   migrations/$FILENAME"
 echo ""
-echo "Next steps:"
-echo "  1. Edit: $FILEPATH"
-echo "  2. Run:  bash scripts/migrate.sh"

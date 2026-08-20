@@ -12,6 +12,7 @@ const SELECT_SQL = `
     state,
     zip_code           AS "zipCode",
     rent,
+    rent_max           AS "rentMax",
     bedrooms,
     bathrooms,
     unit_type          AS "unitType",
@@ -53,7 +54,7 @@ export const handler = async () => {
       statusCode: 500,
       body: JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error && error.message,
       }),
     };
   } finally {

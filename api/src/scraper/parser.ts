@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import * as cheerio from "cheerio/slim";
 
 export interface Listing {
   uid: number;
@@ -8,6 +8,7 @@ export interface Listing {
   state: string;
   zipCode: string;
   rent: number | null;
+  rentMax: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
   unitType: string | null;
@@ -31,6 +32,8 @@ interface RowInfo {
   image_id: number | null;
 }
 
+type UnitElement = ReturnType<cheerio.CheerioAPI>;
+
 function extractRowInfo(html: string): RowInfo[] {
   const rowInfoMatch = html.match(/var row_info = (\[[\s\S]*?\]);/);
 
@@ -48,17 +51,17 @@ function extractRowInfo(html: string): RowInfo[] {
   return JSON.parse(jsonStr);
 }
 
+function dollarAmounts(text: string): number[] {
+  return (text.match(/\$[\d,]+/g) ?? []).map((match) => parseInt(match.replace(/[$,]/g, ""), 10));
+}
+
 function parseListingElement(
   $: cheerio.CheerioAPI,
-  uid: number,
-  imageId: number | null,
+  element: UnitElement,
+  row: RowInfo,
   scrapeDate: Date,
-): Listing | null {
-  const element = $(`#unit_${uid}`);
-
-  if (!element.length) {
-    return null;
-  }
+): Listing {
+  const { uid, image_id: imageId } = row;
 
   const addressLink = element.find(".shsAddress a").first();
   const addressLinkText = addressLink.html() || "";
@@ -84,20 +87,17 @@ function parseListingElement(
   const rentTypeElement = element.find(".shsCostLabel").first();
   const rentType = rentTypeElement.text().trim().replace(/\s+/g, " ") || "Standard Rent";
 
-  let rent: number | null = null;
+  // Rent appears three ways: a range ("$25 - $1,913"), a table of AMI tiers
+  // (60% -> $1,036, 50% -> $848, ...), or a single figure. Take the low and
+  // high of whatever we find rather than trusting position.
   const costNum = element.find(".shsCostNum").first();
+  const costText = costNum.text();
+  const amounts = dollarAmounts(costText).length
+    ? dollarAmounts(costText)
+    : dollarAmounts(element.find(".shsCost, .shsRent").first().text());
 
-  const rentInTable = costNum.find("td.ctr").last().text().trim();
-  const rentMatch = rentInTable.match(/\$?([\d,]+)/);
-  if (rentMatch) {
-    rent = parseInt(rentMatch[1].replace(/,/g, ""), 10);
-  } else {
-    const rentText = element.find(".shsCost, .shsRent").first().text().trim();
-    const regularRentMatch = rentText.match(/\$?([\d,]+)/);
-    if (regularRentMatch) {
-      rent = parseInt(regularRentMatch[1].replace(/,/g, ""), 10);
-    }
-  }
+  const rent = amounts.length ? Math.min(...amounts) : null;
+  const rentMax = amounts.length > 1 ? Math.max(...amounts) : null;
 
   const depositElement = element.find(".shsSDDNum").first();
   const depositText = depositElement.text().trim();
@@ -186,6 +186,7 @@ function parseListingElement(
     state,
     zipCode,
     rent,
+    rentMax,
     bedrooms,
     bathrooms,
     unitType,
@@ -211,11 +212,18 @@ export function parseListings(html: string, scrapeDate: Date = new Date()): List
 
   const listings: Listing[] = [];
 
+  const byUid = new Map<number, ReturnType<cheerio.CheerioAPI>>();
+  $("[id^=unit_]").each((_, el) => {
+    const id = $(el).attr("id");
+    const uid = Number(id?.slice("unit_".length));
+    if (Number.isFinite(uid)) byUid.set(uid, $(el));
+  });
+
   for (const row of rowInfo) {
-    const listing = parseListingElement($, row.uid, row.image_id, scrapeDate);
-    if (listing) {
-      listings.push(listing);
-    }
+    const element = byUid.get(row.uid);
+    if (!element) continue;
+
+    listings.push(parseListingElement($, $(element), row, scrapeDate));
   }
 
   return listings;

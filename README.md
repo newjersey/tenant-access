@@ -87,6 +87,29 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 
 This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
 
+```mermaid
+flowchart TD
+    A@{ shape: stadium, label: "NightlyScrapeSchedule
+    EventBridge Scheduler" }
+    B@{ shape: rect, label: "ScrapeListingsFunction
+    Lambda" }
+    C@{ shape: lin-cyl, label: "ScrapedDataBucket
+    S3 Bucket" }
+    D@{ shape: rect, label: "ParseListingsFunction
+    Lambda" }
+    E@{ shape: rect, label: "UpdateListingsFunction
+    Lambda" }
+    F@{ shape: cyl, label: "ListingsDatabase
+    RDS Postgres" }
+
+    A --> |midnight Eastern triggers| B
+    B --> |writes ~14MB raw/YYYY-MM-DD/listings.html| C
+    C --> |OBJECT_CREATED in raw/ triggers| D
+    D --> |writes ~3MB parsed/YYYY-MM-DD/listings.json| C
+    C --> |OBJECT_CREATED in parsed/ triggers| E
+    E --> |upserts + reconciles shown_to_public| F
+```
+
 ## Database Migrations
 
 ### Create Migration File
