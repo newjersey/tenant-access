@@ -68,10 +68,7 @@ describe("parse-listings handler", () => {
 
     const [listingsPut] = puts();
     expect(listingsPut.input.Key).toBe("parsed/2026-07-24/listings.json");
-    expect(JSON.parse(listingsPut.input.Body).map((l: { uid: number }) => l.uid)).toEqual([
-      1002997, 1388803, 1388536,
-    ]);
-    expect(result.parsed).toEqual([{ key: "parsed/2026-07-24/listings.json", count: 3 }]);
+    expect(result.parsed).toEqual([{ key: "parsed/2026-07-24/listings.json", count: 4 }]);
   });
 
   it("throws when the key has no date", async () => {

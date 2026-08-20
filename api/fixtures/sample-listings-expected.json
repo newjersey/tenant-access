@@ -1,5 +1,37 @@
 [
   {
+    "uid": 1207170,
+    "name": "Cornerstone at Chatham",
+    "address": "522 Southern Blvd",
+    "city": "Chatham",
+    "state": "NJ",
+    "zipCode": "07928",
+    "rent": 784,
+    "rentMax": 1664,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "unitType": "Apartments",
+    "imageId": 2839032,
+    "imageUrl": "https://www.myhousingsearch.com/WebFile?id=2839032",
+    "phoneNumber": "973-593-0393",
+    "website": null,
+    "description": null,
+    "lastUpdated": "2026-07-24T00:00:00.000Z",
+    "isWaitlistOpen": false,
+    "amenities": [
+      "Landlord can accept Spanish-language phone calls",
+      "Accessibility features. Inspect the property for your requirements",
+      "Washer/Dryer",
+      "Income Restricted",
+      "No Smoking"
+    ],
+    "contactName": "Paige Arace",
+    "contactOrganization": "Cornerstone at Chatham",
+    "fullListingUrl": "https://www.myhousingsearch.com/dbh/ViewUnit/1207170?ch=NJ&hm=KgTKW2ie",
+    "rentType": "Median Income Based Rent",
+    "depositRange": "$1,176 - $2,496"
+  },
+  {
     "uid": 1002997,
     "name": "Lexington Manor Apartments",
     "address": "451 Bergen Ave",
