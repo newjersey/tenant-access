@@ -80,9 +80,10 @@ describe("scrape-listings handler", () => {
     expect(uploadCtorMock).not.toHaveBeenCalled();
   });
 
-  it("throws when the response is suspiciously small", async () => {
+  it("throws without uploading when the response is suspiciously small", async () => {
     stubFetch(response({ bytes: 4096 }));
 
     await expect(handler()).rejects.toThrow("Response only 4096 bytes");
+    expect(uploadCtorMock).not.toHaveBeenCalled();
   });
 });

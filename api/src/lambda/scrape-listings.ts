@@ -43,6 +43,14 @@ export const handler = async () => {
     throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
   }
 
+  // HeadObject would be another call; the upload's own byte count is enough.
+  const contentLength = Number(response.headers.get("content-length") ?? 0);
+  console.log(`Uploaded s3://${bucket}/${key} (content-length ${contentLength})`);
+
+  if (contentLength > 0 && contentLength < MIN_HTML_BYTES) {
+    throw new Error(`Response only ${contentLength} bytes; expected >= ${MIN_HTML_BYTES}`);
+  }
+
   // Streamed straight to S3 so the 14MB body is never fully buffered in memory.
   const upload = new Upload({
     client: s3,
@@ -55,14 +63,6 @@ export const handler = async () => {
   });
 
   await upload.done();
-
-  // HeadObject would be another call; the upload's own byte count is enough.
-  const contentLength = Number(response.headers.get("content-length") ?? 0);
-  console.log(`Uploaded s3://${bucket}/${key} (content-length ${contentLength})`);
-
-  if (contentLength > 0 && contentLength < MIN_HTML_BYTES) {
-    throw new Error(`Response only ${contentLength} bytes; expected >= ${MIN_HTML_BYTES}`);
-  }
 
   return { bucket, key };
 };
