@@ -1,41 +1,40 @@
-import { Link } from "react-router-dom";
 import content from "@/data/content/en/home.json";
-import cities from "@/data/locations/cities.json";
-import { resolveSlug } from "@/utils/slugify";
 
 function HomePage() {
   return (
-    <div>
-      <h1>{content.heading}</h1>
+    <>
+    <section className="usa-hero">
+      <div className="grid-container">
+        <div className="usa-hero__callout">
+          <h1 className="usa-hero__heading">{content.heading}</h1>
+          <br/>
+          {content.search_instructions}
+            <form className="usa-form maxw-none ">
+              <label htmlFor="input-type-text" className="usa-label ">
+                {content.location}
+              </label>
+              <input id="input-type-text" name="input-type-text" type="text" className="usa-input  usa-input--xl">
+              </input>
+              <button className="usa-button">
+                {content.search_rentals}
+              </button>
+            </form>
+        </div>
+      </div>
+    </section>
 
-      {cities.counties.map((county) => {
-        // If the town has a slug, use it; otherwise, generate a slug from the name
-        const countySlug = resolveSlug(county);
-        const summaryId = `county-${countySlug}`;
+    <section className="usa-section">
+      <h2>{content.why}</h2>
+      <p>{content.introduction}</p>
+      <ul>
+        <li>{content.filter}</li>
+        <li>{content.many_units}</li>
+        <li>{content.easy_browsing}</li>
+      </ul>
+      <button className="usa-button usa-button--outline">{content.view_all}</button>
 
-        return (
-          <details key={countySlug} className="padding-y-1" aria-labelledby={summaryId}>
-            <summary id={summaryId} className="font-heading-lg text-bold">
-              {county.name}
-            </summary>
-            <div className="margin-top-2 padding-2 border-left-1 border-base-lighter">
-              <Link to={`/search?county=${countySlug}`}>View all properties in {county.name}</Link>
-              <ul className="usa-list">
-                {county.towns.map((town) => {
-                  const townSlug = resolveSlug(town);
-
-                  return (
-                    <li key={townSlug}>
-                      <Link to={`/search?county=${countySlug}&town=${townSlug}`}>{town.name}</Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </details>
-        );
-      })}
-    </div>
+    </section>
+    </>
   );
 }
 

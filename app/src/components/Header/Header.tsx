@@ -4,9 +4,6 @@ import "@/components/Header/Header.css";
 import Icon from "@/components/Icon/Icon";
 import content from "@/data/content/en/common.json";
 
-/**
- * Header component for displaying the header content
- */
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -46,8 +43,7 @@ const Header = () => {
 
   return (
     <>
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Overlay click is supplementary - primary close methods are button and Escape key */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: Overlay click is supplementary - primary close methods are button and Escape key */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: Overlay click is supplementary - primary close methods are button and Escape key */}
       <div
         className={isMenuOpen ? "usa-overlay is-visible" : "usa-overlay"}
         onClick={handleMenuClose}
@@ -59,7 +55,7 @@ const Header = () => {
               <em className="usa-logo__text">
                 <Link to="/" className="display-flex flex-align-center">
                   <img className="njhmf-logo" src="/images/logo-img.jpg" alt="NJHMF logo" />
-                  {content.header.agencyName}
+                  {content.header.appName}
                 </Link>
               </em>
             </div>
