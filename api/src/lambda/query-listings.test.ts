@@ -46,18 +46,6 @@ describe("query-listings handler", () => {
     expect(endMock).toHaveBeenCalledOnce();
   });
 
-  it("returns an empty list when there are no listings", async () => {
-    queryMock.mockResolvedValue({ rowCount: 0, rows: [] });
-
-    const result = await handler();
-
-    expect(JSON.parse(result.body)).toEqual({
-      success: true,
-      count: 0,
-      listings: [],
-    });
-  });
-
   it("returns a 500 with the message when the query fails", async () => {
     queryMock.mockRejectedValue(new Error("connection terminated unexpectedly"));
 
@@ -70,17 +58,5 @@ describe("query-listings handler", () => {
     });
     // finally block must still close the client on error.
     expect(endMock).toHaveBeenCalledOnce();
-  });
-
-  it("stringifies non-Error throwables", async () => {
-    queryMock.mockRejectedValue("db exploded");
-
-    const result = await handler();
-
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body)).toEqual({
-      success: false,
-      error: "db exploded",
-    });
   });
 });

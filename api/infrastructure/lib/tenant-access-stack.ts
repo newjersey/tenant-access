@@ -4,6 +4,9 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3n from "aws-cdk-lib/aws-s3-notifications";
+import * as scheduler from "aws-cdk-lib/aws-scheduler";
+import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import type { Construct } from "constructs";
 
@@ -13,10 +16,16 @@ export class TenantAccessStack extends cdk.Stack {
 
     // S3 bucket for scraped data
     const dataBucket = new s3.Bucket(this, "ScrapedDataBucket", {
-      versioned: true,
+      versioned: false,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
       lifecycleRules: [
+        { id: "expire-raw-html", prefix: "raw/", expiration: cdk.Duration.days(7) },
+        { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
         {
-          expiration: cdk.Duration.days(90),
+          id: "abort-incomplete-uploads",
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
         },
       ],
       removalPolicy: cdk.RemovalPolicy.RETAIN,
@@ -25,6 +34,10 @@ export class TenantAccessStack extends cdk.Stack {
     // VPC for RDS (using default VPC to save costs)
     const vpc = ec2.Vpc.fromLookup(this, "ExistingVPC", {
       vpcId: "vpc-0c73f9052afddcf4d",
+    });
+
+    vpc.addGatewayEndpoint("S3Endpoint", {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
     });
 
     vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
@@ -112,6 +125,43 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(migrationLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(migrationLambda);
 
+    const scrapeLambda = new NodejsFunction(this, "ScrapeListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/scrape-listings.ts",
+      handler: "handler",
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 512,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        RAW_PREFIX: "raw/",
+      },
+      bundling: {
+        nodeModules: ["@aws-sdk/client-s3", "@aws-sdk/lib-storage"],
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    dataBucket.grantPut(scrapeLambda, "raw/*");
+
+    const parseLambda = new NodejsFunction(this, "ParseListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/parse-listings.ts",
+      handler: "handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 2048,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        PARSED_PREFIX: "parsed/",
+      },
+      bundling: {
+        nodeModules: ["@aws-sdk/client-s3", "@aws-sdk/lib-storage"],
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    dataBucket.grantRead(parseLambda, "raw/*");
+    dataBucket.grantPut(parseLambda, "parsed/*");
+
     // Update Listings Lambda (in VPC)
     const updateLambda = new NodejsFunction(this, "UpdateListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
@@ -121,18 +171,20 @@ export class TenantAccessStack extends cdk.Stack {
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      timeout: cdk.Duration.minutes(5),
+      timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
         externalModules: ["aws-sdk", "pg-native"],
       },
     });
 
+    dataBucket.grantRead(updateLambda, "parsed/*");
+    updateLambda.addEnvironment("BUCKET_NAME", dataBucket.bucketName);
     database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(updateLambda);
 
@@ -158,6 +210,30 @@ export class TenantAccessStack extends cdk.Stack {
 
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(parseLambda),
+      { prefix: "raw/", suffix: ".html" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(updateLambda),
+      { prefix: "parsed/", suffix: "listings.json" },
+    );
+
+    new scheduler.Schedule(this, "NightlyScrapeSchedule", {
+      schedule: scheduler.ScheduleExpression.cron({
+        minute: "0",
+        hour: "0",
+        day: "*",
+        month: "*",
+        timeZone: cdk.TimeZone.AMERICA_NEW_YORK,
+      }),
+      target: new schedulerTargets.LambdaInvoke(scrapeLambda),
+      description: "Nightly myhousingsearch.com scrape at midnight Eastern",
+    });
 
     new cdk.CfnOutput(this, "BucketName", {
       value: dataBucket.bucketName,
@@ -197,6 +273,11 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "QueryListingsLambdaName", {
       value: queryLambda.functionName,
       description: "Name of query-listings Lambda function",
+    });
+
+    new cdk.CfnOutput(this, "ScrapeListingsLambdaName", {
+      value: scrapeLambda.functionName,
+      description: "Name of scrape-listings Lambda function",
     });
   }
 }
