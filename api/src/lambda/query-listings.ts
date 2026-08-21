@@ -1,33 +1,10 @@
 import type { Listing } from "../scraper/parser.js";
 import { getClient } from "./db.js";
+import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
 
-// Maps snake_case DB columns back to the camelCase Listing shape.
 const SELECT_SQL = `
   SELECT
-    uid,
-    last_updated       AS "lastUpdated",
-    name,
-    address,
-    city,
-    state,
-    zip_code           AS "zipCode",
-    rent,
-    rent_max           AS "rentMax",
-    bedrooms,
-    bathrooms,
-    unit_type          AS "unitType",
-    image_id           AS "imageId",
-    image_url          AS "imageUrl",
-    phone_number       AS "phoneNumber",
-    website,
-    description,
-    is_waitlist_open   AS "isWaitlistOpen",
-    amenities,
-    contact_name       AS "contactName",
-    contact_organization AS "contactOrganization",
-    full_listing_url   AS "fullListingUrl",
-    rent_type          AS "rentType",
-    deposit_range      AS "depositRange"
+     ${LISTING_SELECT_COLUMNS}
   FROM listings
   ORDER BY uid
 `;

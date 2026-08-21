@@ -4,7 +4,7 @@ import content from "@/data/content/en/search-results.json";
 function SearchResultsPage() {
   return (
     <div>
-      <h1 className="display-flex flex-align-center">{content.heading} Clifton, NJ</h1>
+      <h1 className="display-flex flex-align-center">{content.heading}</h1>
 
       <Link to="/" className="usa-button">
         Return to home
