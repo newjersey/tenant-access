@@ -1,3 +1,4 @@
+import { isFromCloudFront } from "./require-cloudfront.js";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import type { Pool } from "pg";
 import type { Listing } from "../scraper/parser.js";
@@ -79,6 +80,9 @@ const respond = (
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const origin = event.headers?.origin ?? event.headers?.Origin;
+  if (!isFromCloudFront(event)) {
+    return respond(403, { success: false, error: "Forbidden" }, origin);
+  }
   const params = event.queryStringParameters ?? {};
   const location = params.location?.trim().slice(0, MAX_PARAM_LENGTH) || null;
   const maxPage = Math.max(1, Math.ceil(RESULT_CAP / PAGE_SIZE));

@@ -216,6 +216,11 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
+    // Shared secret proving a request came through CloudFront
+    // despite the name, unsafeUnwrap() is not a problem in this file because
+    // it's still just a pointer like "{{resolve:secretsmanager:...}}"
+    const originSecret = cdk.SecretValue.secretsManager("tenant-access/origin-secret").unsafeUnwrap();
+
     const searchLambda = new NodejsFunction(this, "SearchListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
       entry: "src/lambda/search-listings.ts",
@@ -230,6 +235,7 @@ export class TenantAccessStack extends cdk.Stack {
       environment: {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
+        ORIGIN_SECRET: originSecret,
         ALLOWED_ORIGINS: "http://localhost:5173", // TODO: dev only
       },
       bundling: {
@@ -341,6 +347,7 @@ export class TenantAccessStack extends cdk.Stack {
       defaultBehavior: {
         origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", searchApi.apiEndpoint)), {
           readTimeout: cdk.Duration.seconds(15),
+          customHeaders: { "x-origin-secret": originSecret },
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,

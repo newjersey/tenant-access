@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getClient } from "./db.js";
+let getClient: typeof import("./db.js").getClient;
 
 const { sendMock, connectMock, queryMock, endMock, clientConfigMock } = vi.hoisted(() => ({
   sendMock: vi.fn(),
@@ -33,8 +33,10 @@ vi.mock("pg", () => ({
 }));
 
 describe("getClient", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
+    ({ getClient } = await import("./db.js"));
 
     process.env.DB_HOST = "db.example.com";
     process.env.DB_SECRET_ARN = "arn:aws:secretsmanager:us-east-1:123:secret:db";
