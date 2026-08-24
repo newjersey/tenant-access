@@ -4,17 +4,23 @@ import type { Listing } from "../scraper/parser.js";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
 
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 50;
-const MAX_PAGE = 100_000;
+const PAGE_SIZE = 20;
+const CACHE_SECONDS = 300;
+const MAX_PARAM_LENGTH = 100;
 
-// For performance, stop counting past this many rows. The frontend shows "over 1000 results"
+// For performance, stop counting or searching past this many. The frontend shows "over 1000 results"
 // and unbounded pagination rather than an exact figure.
-const COUNT_CAP = 1001;
+const RESULT_CAP = 1001;
 
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// TODO: expand filter options
 const WHERE_SQL = `
   WHERE shown_to_public
-    AND ($1::text IS NULL OR LOWER(city) = LOWER($1))`;
+    AND ($1::text IS NULL OR lower(city) = lower($1))`;
 
 const RESULTS_SQL = `
   SELECT
@@ -30,7 +36,7 @@ const COUNT_SQL = `
   FROM (
     SELECT 1
     FROM listings${WHERE_SQL}
-    LIMIT ${COUNT_CAP}
+    LIMIT ${RESULT_CAP}
   )
 `;
 
@@ -44,45 +50,62 @@ async function queryTotalResultsCount(pool: Pool, location: string | null) {
   return Number(result.rows[0].total);
 }
 
-const parseAndConstrainInt = (raw: string | undefined, fallback: number, min: number, max: number): number => {
+const parseAndConstrainInt = (
+  raw: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number => {
   const parsed = Number.parseInt(raw ?? "", 10);
   return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, min), max);
 };
 
-const respond = (statusCode: number, body: unknown): APIGatewayProxyResultV2 => ({
+const respond = (
+  statusCode: number,
+  body: unknown,
+  origin: string | undefined,
+): APIGatewayProxyResultV2 => ({
   statusCode,
   headers: {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN ?? "*",
-    "Cache-Control": statusCode === 200 ? "public, max-age=300" : "no-store",
+    "Cache-Control": statusCode === 200 ? `public, max-age=${CACHE_SECONDS}` : "no-store",
+    Vary: "Origin",
+    ...(origin && ALLOWED_ORIGINS.includes(origin)
+      ? { "Access-Control-Allow-Origin": origin }
+      : {}),
   },
   body: JSON.stringify(body),
 });
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
+  const origin = event.headers?.origin ?? event.headers?.Origin;
   const params = event.queryStringParameters ?? {};
-  const location = params.location?.trim() || null;
-  const pageSize = parseAndConstrainInt(params.pageSize, DEFAULT_PAGE_SIZE, 1, MAX_PAGE_SIZE);
-  const page = parseAndConstrainInt(params.page, 1, 1, MAX_PAGE);
+  const location = params.location?.trim().slice(0, MAX_PARAM_LENGTH) || null;
+  const maxPage = Math.max(1, Math.ceil(RESULT_CAP / PAGE_SIZE));
+  const page = parseAndConstrainInt(params.page, 1, 1, maxPage);
 
   try {
     const pool = await getPool();
     const [listings, rawCount] = await Promise.all([
-      queryResults(pool, location, pageSize, (page - 1) * pageSize),
+      queryResults(pool, location, PAGE_SIZE, (page - 1) * PAGE_SIZE),
       queryTotalResultsCount(pool, location),
     ]);
 
-    return respond(200, {
-      success: true,
-      listings,
-      pagination: {
-        page,
-        pageSize,
-        total: rawCount,
+    return respond(
+      200,
+      {
+        success: true,
+        listings,
+        pagination: {
+          page,
+          pageSize: PAGE_SIZE,
+          total: rawCount,
+        },
       },
-    });
+      origin,
+    );
   } catch (error) {
     console.error("Search failed:", error);
-    return respond(500, { success: false, error: "Unable to search listings" });
+    return respond(500, { success: false, error: "Unable to search listings" }, origin);
   }
 };

@@ -1,5 +1,4 @@
-export const LISTING_SELECT_COLUMNS =
-  `uid,
+export const LISTING_SELECT_COLUMNS = `uid,
   last_updated       AS "lastUpdated",
   name,
   address,
