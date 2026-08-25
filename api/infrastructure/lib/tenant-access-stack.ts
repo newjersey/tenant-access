@@ -252,29 +252,29 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(searchLambda);
 
-    const searchApi = new apigwv2.HttpApi(this, "SearchApi", {
-      description: "Public listings search",
+    const publicApi = new apigwv2.HttpApi(this, "PublicApi", {
+      description: "Public API (listings search, accounts, more)",
       createDefaultStage: false,
     });
 
-    searchApi.addRoutes({
+    publicApi.addRoutes({
       path: "/listings/search",
       methods: [apigwv2.HttpMethod.GET],
       integration: new apigwv2int.HttpLambdaIntegration("SearchIntegration", searchLambda),
     });
 
-    new apigwv2.HttpStage(this, "SearchApiStage", {
-      httpApi: searchApi,
+    new apigwv2.HttpStage(this, "PublicApiStage", {
+      httpApi: publicApi,
       autoDeploy: true,
       throttle: { rateLimit: 50, burstLimit: 100 },
     });
 
-    const searchWebAcl = new wafv2.CfnWebACL(this, "SearchWebAcl", {
+    const publicWebAcl = new wafv2.CfnWebACL(this, "PublicWebAcl", {
       scope: "CLOUDFRONT", // requires this stack to be in us-east-1
       defaultAction: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
-        metricName: "SearchWebAcl",
+        metricName: "PublicWebAcl",
         sampledRequestsEnabled: true,
       },
       rules: [
@@ -345,12 +345,12 @@ export class TenantAccessStack extends cdk.Stack {
       enableAcceptEncodingBrotli: true,
     });
 
-    const searchDistribution = new cloudfront.Distribution(this, "SearchDistribution", {
-      comment: "Public listings search API",
-      webAclId: searchWebAcl.attrArn,
+    const publicApiDistribution = new cloudfront.Distribution(this, "PublicApiDistribution", {
+      comment: "Public API (CloudFront + WAF)",
+      webAclId: publicWebAcl.attrArn,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       defaultBehavior: {
-        origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", searchApi.apiEndpoint)), {
+        origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", publicApi.apiEndpoint)), {
           readTimeout: cdk.Duration.seconds(15),
           customHeaders: { "x-origin-secret": originSecret },
         }),
@@ -430,12 +430,12 @@ export class TenantAccessStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "SearchApiUrl", {
-      value: `https://${searchDistribution.distributionDomainName}/listings/search`,
+      value: `https://${publicApiDistribution.distributionDomainName}/listings/search`,
       description: "Public search endpoint (CloudFront + WAF)",
     });
 
     new cdk.CfnOutput(this, "SearchApiOriginEndpoint", {
-      value: searchApi.apiEndpoint,
+      value: publicApi.apiEndpoint,
       description: "HTTP API origin — bypasses CloudFront and WAF, do not publish",
     });
   }
