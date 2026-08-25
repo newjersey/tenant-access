@@ -153,6 +153,18 @@ flowchart TD
   F --> |if from CloudFront| G
 ```
 
+### Endpoints
+
+<details>
+<summary>`/listings/search?page=3&location=newark`</summary>
+
+Returns JSON of max-20 listings, plus the total count (max 1001) of listings that meet search criteria.
+
+Increment `page` to get later pages of results. Any number above 50 reverts to 50.
+
+Change `location` (ONLY searches by city name right now), or make it blank to return all locationss
+</details>
+
 ## Database Migrations
 
 ### Create Migration File
