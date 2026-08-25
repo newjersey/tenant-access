@@ -116,6 +116,25 @@ flowchart TD
 
 ### Application Backend
 
+Once per environment, the following line needs to be run so that there's a secret that allows the Lambdas to check that all requests must go through CloudFront so they hit all the security rules.
+
+```
+aws secretsmanager create-secret --name tenant-access/origin-secret \
+  --secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
+```
+
+Security considerations:
+* IP-based rate limiting
+* AWS-managed IP reputation check (`AWSManagedRulesAmazonIpReputationList`)
+* AWS-managed threat check (`AWSManagedRulesCommonRuleSet`)
+* A secret header passed by CloudFront that is checked by the Lambda and never seen by the browser (so everyone has to go in the front door, no climbing up into the bedroom window like a teen in a movie)
+
+Performance considerations:
+* CloudFront will cache results and return them when it can
+* Searches only return 20 results at a time
+* Pagination and counting only go 1001 deep into results
+* Lambda instances are capped to not make our costs explode in a worst-case scenario
+
 ```mermaid
 flowchart TD
   A@{ shape: sl-rect, label: "Request" }
