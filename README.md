@@ -156,7 +156,7 @@ flowchart TD
 ### Endpoints
 
 <details>
-<summary>`/listings/search?page=3&location=newark`</summary>
+<summary><code>/listings/search?page=3&location=newark</code></summary>
 
 Returns JSON of max-20 listings, plus the total count (max 1001) of listings that meet search criteria.
 
