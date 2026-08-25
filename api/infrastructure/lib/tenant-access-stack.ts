@@ -217,6 +217,9 @@ export class TenantAccessStack extends cdk.Stack {
     dbCredentials.grantRead(queryLambda);
 
     // Shared secret proving a request came through CloudFront
+    // created manually with:
+    // aws secretsmanager create-secret --name tenant-access/origin-secret \
+    //--secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
     // despite the name, unsafeUnwrap() is not a problem in this file because
     // it's still just a pointer like "{{resolve:secretsmanager:...}}"
     const originSecret = cdk.SecretValue.secretsManager(
