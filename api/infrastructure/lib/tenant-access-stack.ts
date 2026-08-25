@@ -331,7 +331,7 @@ export class TenantAccessStack extends cdk.Stack {
       defaultTtl: cdk.Duration.seconds(300),
       minTtl: cdk.Duration.seconds(0),
       maxTtl: cdk.Duration.seconds(300),
-      // Add more query parameters here -- others are ignored to protect cache
+      // Add more query parameters below -- others are ignored to protect cache
       queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList("location", "page"),
       // Origin must be in the key: the Access Control Allow Origin header varies by it.
       headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Origin"),

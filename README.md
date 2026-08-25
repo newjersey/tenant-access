@@ -87,6 +87,10 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 
 This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
 
+### Temporary Data Infrastructure
+
+This part of the infrastructure should only be running while the legacy application is still the source of truth. Once our application can serve as the source of truth, the EventBridge Scheduler, ScrapeListings Lambda, ScrapedDataBucket, and ParseListings Lambda can all be deprecated (the UpdateListings Lambda and ListingsDatabase would remain).
+
 ```mermaid
 flowchart TD
     A@{ shape: stadium, label: "NightlyScrapeSchedule
@@ -108,6 +112,26 @@ flowchart TD
     D --> |writes ~3MB parsed/YYYY-MM-DD/listings.json| C
     C --> |OBJECT_CREATED in parsed/ triggers| E
     E --> |upserts + reconciles shown_to_public| F
+```
+
+### Application Backend
+
+```mermaid
+flowchart TD
+  A@{ shape: sl-rect, label: "Request" }
+  B@{ shape: cloud, label: "CloudFront" }
+  C@{ shape: cross-circ }
+  D@{ shape: trapezoid, label: "API Gateway"}
+  F@{ shape: rounded, label: "Search Lambda"}
+  G@{ shape: cyl, label: "ListingsDatabase
+  RDS Postgres" }
+
+  A --> |searches| B
+  B --> |if fails WAF rules| C
+  B --> D
+  B -.-> |cached result| B
+  D --> |within rate limit| F
+  F --> |if from CloudFront| G
 ```
 
 ## Database Migrations
