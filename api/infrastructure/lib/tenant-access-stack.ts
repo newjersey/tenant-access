@@ -219,7 +219,9 @@ export class TenantAccessStack extends cdk.Stack {
     // Shared secret proving a request came through CloudFront
     // despite the name, unsafeUnwrap() is not a problem in this file because
     // it's still just a pointer like "{{resolve:secretsmanager:...}}"
-    const originSecret = cdk.SecretValue.secretsManager("tenant-access/origin-secret").unsafeUnwrap();
+    const originSecret = cdk.SecretValue.secretsManager(
+      "tenant-access/origin-secret",
+    ).unsafeUnwrap();
 
     const searchLambda = new NodejsFunction(this, "SearchListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,

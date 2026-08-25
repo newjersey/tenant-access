@@ -1,9 +1,9 @@
-import { isFromCloudFront } from "./require-cloudfront.js";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import type { Pool } from "pg";
 import type { Listing } from "../scraper/parser.js";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
+import { isFromCloudFront } from "./require-cloudfront.js";
 
 const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;

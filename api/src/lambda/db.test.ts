@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 let getClient: typeof import("./db.js").getClient;
 
 const { sendMock, connectMock, queryMock, endMock, clientConfigMock, poolConfigMock, poolOnMock } =
@@ -10,8 +11,7 @@ const { sendMock, connectMock, queryMock, endMock, clientConfigMock, poolConfigM
     clientConfigMock: vi.fn(),
     poolConfigMock: vi.fn(),
     poolOnMock: vi.fn(),
-  })
-);
+  }));
 
 vi.mock("@aws-sdk/client-secrets-manager", () => ({
   SecretsManagerClient: class {
