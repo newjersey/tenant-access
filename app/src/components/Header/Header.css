@@ -3,10 +3,6 @@
   width: 30px;
 }
 
-.usa-hero {
-  background-image: url("/images/photograph.png");
-}
-
 @media (min-width: 64em) {
   .njhmf-logo {
     width: 50px;

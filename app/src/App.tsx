@@ -10,7 +10,9 @@ function App() {
       <Banner />
       <Header />
       <main>
-        <Outlet />
+        <section className="grid-container usa-section">
+          <Outlet />
+        </section>
       </main>
 
       <footer role="contentinfo">
