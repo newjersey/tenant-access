@@ -52,9 +52,7 @@ async function queryTotalResultsCount(pool: Pool, location: string | null) {
   return Number(result.rows[0].total);
 }
 
-const parseAndConstrainPage = (
-  raw: string | undefined
-): number => {
+const parseAndConstrainPage = (raw: string | undefined): number => {
   const minPage = 1;
   const fallback = 1;
   const parsed = Number.parseInt(raw ?? "", 10);
