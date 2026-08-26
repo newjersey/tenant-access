@@ -79,7 +79,7 @@ const respond = (
 });
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
-  const origin = event.headers?.origin ?? event.headers?.Origin;
+  const origin = event.headers?.origin;
   if (!isFromCloudFront(event)) {
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
