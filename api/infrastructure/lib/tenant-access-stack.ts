@@ -241,7 +241,7 @@ export class TenantAccessStack extends cdk.Stack {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
         ORIGIN_SECRET: originSecret,
-        ALLOWED_ORIGINS: "http://localhost:5173", // TODO: dev only
+        ALLOWED_ORIGINS: "http://localhost:5173,https://dev.d2ejn42jgz68c8.amplifyapp.com", // TODO: dev only
       },
       bundling: {
         nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
