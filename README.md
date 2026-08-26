@@ -165,6 +165,23 @@ Increment `page` to get later pages of results. Any number above 50 reverts to 5
 Change `location` (ONLY searches by city name right now), or make it blank to return all locationss
 </details>
 
+### Frontend Hosting
+
+The React app in `app/` is hosted by AWS Amplify, which is **not** managed by the CDK stack in
+this repo. Each AWS account has its own Amplify app connected to this GitHub repository,
+watching a single branch:
+
+| Branch | AWS account |
+| --- | --- |
+| `dev` | Dev |
+| `main` | Prod |
+
+Pushing to one of those branches triggers an Amplify build automatically through a [webhook](https://github.com/newjersey/tenant-access/settings/hooks) (not a GitHub Action). To change any configuration, use the Amplify console in the relevant account.
+
+`amplify.yml` in the repository root is the build spec Amplify reads. It builds the frontend only (`app/dist`).
+
+Both environments are currently password-protected because the application is not ready for launch. The Prod restriction should be removed at launch; Dev can keep it indefinitely. The username and password are available in `Project Info` in the `#tenant-access` Innovation Slack channel.
+
 ## Database Migrations
 
 ### Create Migration File
