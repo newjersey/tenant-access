@@ -1,4 +1,8 @@
 import * as cdk from "aws-cdk-lib";
+import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
+import * as apigwv2int from "aws-cdk-lib/aws-apigatewayv2-integrations";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -8,6 +12,7 @@ import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
 
 export class TenantAccessStack extends cdk.Stack {
@@ -211,6 +216,150 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
+    // Shared secret proving a request came through CloudFront
+    // created manually with:
+    // aws secretsmanager create-secret --name tenant-access/origin-secret \
+    //--secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
+    // despite the name, unsafeUnwrap() is not a problem in this file because
+    // it's still just a pointer like "{{resolve:secretsmanager:...}}"
+    const originSecret = cdk.SecretValue.secretsManager(
+      "tenant-access/origin-secret",
+    ).unsafeUnwrap();
+
+    const searchLambda = new NodejsFunction(this, "SearchListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/search-listings.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 512,
+      reservedConcurrentExecutions: 10,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+        ORIGIN_SECRET: originSecret,
+        ALLOWED_ORIGINS: "http://localhost:5173,https://dev.d2ejn42jgz68c8.amplifyapp.com", // TODO: dev only
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(searchLambda);
+
+    const publicApi = new apigwv2.HttpApi(this, "PublicApi", {
+      description: "Public API (listings search, accounts, more)",
+      createDefaultStage: false,
+    });
+
+    publicApi.addRoutes({
+      path: "/listings/search",
+      methods: [apigwv2.HttpMethod.GET],
+      integration: new apigwv2int.HttpLambdaIntegration("SearchIntegration", searchLambda),
+    });
+
+    new apigwv2.HttpStage(this, "PublicApiStage", {
+      httpApi: publicApi,
+      autoDeploy: true,
+      throttle: { rateLimit: 50, burstLimit: 100 },
+    });
+
+    const publicWebAcl = new wafv2.CfnWebACL(this, "PublicWebAcl", {
+      scope: "CLOUDFRONT", // requires this stack to be in us-east-1
+      defaultAction: { allow: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: "PublicWebAcl",
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "RateLimitPerIp",
+          priority: 1,
+          action: { block: {} },
+          statement: {
+            rateBasedStatement: {
+              limit: 1000,
+              evaluationWindowSec: 300,
+              aggregateKeyType: "IP",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "RateLimitPerIp",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "IpReputation",
+          priority: 2,
+          overrideAction: { none: {} }, // use default AWS-managed list of suspicious IPs
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesAmazonIpReputationList",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "IpReputation",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          // Note: may need tuning if legitimate queries get blocked
+          name: "CommonRuleSet",
+          priority: 3,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesCommonRuleSet",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "CommonRuleSet",
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+
+    const searchCachePolicy = new cloudfront.CachePolicy(this, "SearchCachePolicy", {
+      comment: "Listings search: allowlisted query params only",
+      defaultTtl: cdk.Duration.seconds(300),
+      minTtl: cdk.Duration.seconds(0),
+      maxTtl: cdk.Duration.seconds(300),
+      // Add more query parameters below -- others are ignored to protect cache
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList("location", "page"),
+      // Origin must be in the key: the Access Control Allow Origin header varies by it.
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Origin"),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
+
+    const publicApiDistribution = new cloudfront.Distribution(this, "PublicApiDistribution", {
+      comment: "Public API (CloudFront + WAF)",
+      webAclId: publicWebAcl.attrArn,
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", publicApi.apiEndpoint)), {
+          readTimeout: cdk.Duration.seconds(15),
+          customHeaders: { "x-origin-secret": originSecret },
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: searchCachePolicy,
+      },
+    });
+
     dataBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(parseLambda),
@@ -278,6 +427,16 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ScrapeListingsLambdaName", {
       value: scrapeLambda.functionName,
       description: "Name of scrape-listings Lambda function",
+    });
+
+    new cdk.CfnOutput(this, "SearchApiUrl", {
+      value: `https://${publicApiDistribution.distributionDomainName}/listings/search`,
+      description: "Public search endpoint (CloudFront + WAF)",
+    });
+
+    new cdk.CfnOutput(this, "SearchApiOriginEndpoint", {
+      value: publicApi.apiEndpoint,
+      description: "HTTP API origin — bypasses CloudFront and WAF, do not publish",
     });
   }
 }

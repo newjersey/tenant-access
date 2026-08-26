@@ -87,6 +87,10 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 
 This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
 
+### Temporary Data Infrastructure
+
+This part of the infrastructure should only be running while the legacy application is still the source of truth. Once our application can serve as the source of truth, the EventBridge Scheduler, ScrapeListings Lambda, ScrapedDataBucket, and ParseListings Lambda can all be deprecated (the UpdateListings Lambda and ListingsDatabase would remain).
+
 ```mermaid
 flowchart TD
     A@{ shape: stadium, label: "NightlyScrapeSchedule
@@ -109,6 +113,74 @@ flowchart TD
     C --> |OBJECT_CREATED in parsed/ triggers| E
     E --> |upserts + reconciles shown_to_public| F
 ```
+
+### Application Backend
+
+Once per environment, the following line needs to be run so that there's a secret that allows the Lambdas to check that all requests must go through CloudFront so they hit all the security rules.
+
+```
+aws secretsmanager create-secret --name tenant-access/origin-secret \
+  --secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
+```
+
+Security considerations:
+* IP-based rate limiting
+* AWS-managed IP reputation check (`AWSManagedRulesAmazonIpReputationList`)
+* AWS-managed threat check (`AWSManagedRulesCommonRuleSet`)
+* A secret header passed by CloudFront that is checked by the Lambda and never seen by the browser (so everyone has to go in the front door, no climbing up into the bedroom window like a teen in a movie)
+
+Performance considerations:
+* CloudFront will cache results and return them when it can
+* Searches only return 20 results at a time
+* Pagination and counting only go 1001 deep into results
+* Lambda instances are capped to not make our costs explode in a worst-case scenario
+
+```mermaid
+flowchart TD
+  A@{ shape: sl-rect, label: "Request" }
+  B@{ shape: cloud, label: "CloudFront" }
+  C@{ shape: cross-circ }
+  D@{ shape: trapezoid, label: "API Gateway"}
+  F@{ shape: rounded, label: "Search Lambda"}
+  G@{ shape: cyl, label: "ListingsDatabase
+  RDS Postgres" }
+
+  A --> |searches| B
+  B --> |if fails WAF rules| C
+  B --> D
+  B -.-> |cached result| B
+  D --> |within rate limit| F
+  F --> |if from CloudFront| G
+```
+
+### Endpoints
+
+<details>
+<summary><code>/listings/search?page=3&location=newark</code></summary>
+
+Returns JSON of max-20 listings, plus the total count (max 1001) of listings that meet search criteria.
+
+Increment `page` to get later pages of results. Any number above 50 reverts to 50.
+
+Change `location` (ONLY searches by city name right now), or make it blank to return all locationss
+</details>
+
+### Frontend Hosting
+
+The React app in `app/` is hosted by AWS Amplify, which is **not** managed by the CDK stack in
+this repo. Each AWS account has its own Amplify app connected to this GitHub repository,
+watching a single branch:
+
+| Branch | AWS account |
+| --- | --- |
+| `dev` | Dev |
+| `main` | Prod |
+
+Pushing to one of those branches triggers an Amplify build automatically through a [webhook](https://github.com/newjersey/tenant-access/settings/hooks) (not a GitHub Action). To change any configuration, use the Amplify console in the relevant account.
+
+`amplify.yml` in the repository root is the build spec Amplify reads. It builds the frontend only (`app/dist`).
+
+Both environments are currently password-protected because the application is not ready for launch. The Prod restriction should be removed at launch; Dev can keep it indefinitely. The username and password are available in `Project Info` in the `#tenant-access` Innovation Slack channel.
 
 ## Database Migrations
 
