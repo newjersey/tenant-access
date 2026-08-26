@@ -1,3 +1,5 @@
 {
-  "heading": "Find rental properties in {{location}}"
+  "heading": "Find rental properties in {{location}}",
+  "all_locations": "New Jersey",
+  "page_label": "Page {{page}}"
 }
