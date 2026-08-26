@@ -9,9 +9,10 @@ const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;
 const MAX_PARAM_LENGTH = 100;
 
-// For performance, stop counting or searching past this many. The frontend shows "over 1000 results"
-// and unbounded pagination rather than an exact figure.
+// For performance, stop counting or searching past this many.
+// The frontend shows "over 1000 results" rather than an exact figure.
 const RESULT_CAP = 1001;
+const MAX_PAGE = 50; // 50 pages * 20 results per page = 1000
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
   .split(",")
@@ -51,14 +52,11 @@ async function queryTotalResultsCount(pool: Pool, location: string | null) {
   return Number(result.rows[0].total);
 }
 
-const parseAndConstrainInt = (
-  raw: string | undefined,
-  fallback: number,
-  min: number,
-  max: number,
-): number => {
+const parseAndConstrainPage = (raw: string | undefined): number => {
+  const minPage = 1;
+  const fallback = 1;
   const parsed = Number.parseInt(raw ?? "", 10);
-  return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, min), max);
+  return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, minPage), MAX_PAGE);
 };
 
 const respond = (
@@ -79,14 +77,13 @@ const respond = (
 });
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
-  const origin = event.headers?.origin ?? event.headers?.Origin;
+  const origin = event.headers?.origin;
   if (!isFromCloudFront(event)) {
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
   const params = event.queryStringParameters ?? {};
   const location = params.location?.trim().slice(0, MAX_PARAM_LENGTH) || null;
-  const maxPage = Math.max(1, Math.ceil(RESULT_CAP / PAGE_SIZE));
-  const page = parseAndConstrainInt(params.page, 1, 1, maxPage);
+  const page = parseAndConstrainPage(params.page);
 
   try {
     const pool = await getPool();
