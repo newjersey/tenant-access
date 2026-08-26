@@ -52,14 +52,13 @@ async function queryTotalResultsCount(pool: Pool, location: string | null) {
   return Number(result.rows[0].total);
 }
 
-const parseAndConstrainInt = (
-  raw: string | undefined,
-  fallback: number,
-  min: number,
-  max: number,
+const parseAndConstrainPage = (
+  raw: string | undefined
 ): number => {
+  const minPage = 1;
+  const fallback = 1;
   const parsed = Number.parseInt(raw ?? "", 10);
-  return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, min), max);
+  return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, minPage), MAX_PAGE);
 };
 
 const respond = (
@@ -86,7 +85,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   }
   const params = event.queryStringParameters ?? {};
   const location = params.location?.trim().slice(0, MAX_PARAM_LENGTH) || null;
-  const page = parseAndConstrainInt(params.page, 1, 1, MAX_PAGE);
+  const page = parseAndConstrainPage(params.page);
 
   try {
     const pool = await getPool();
