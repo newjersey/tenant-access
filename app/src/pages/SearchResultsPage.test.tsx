@@ -41,7 +41,14 @@ const resolveWith = (listings: Listing[]) =>
   searchListingsMock.mockResolvedValue({
     success: true,
     listings,
-    pagination: { page: 1, pageSize: 20, total: listings.length },
+    pagination: { page: 1, total: listings.length },
+  });
+
+const resolveWithTotal = (total: number, page: number) =>
+  searchListingsMock.mockResolvedValue({
+    success: true,
+    listings: [makeListing()],
+    pagination: { page, total },
   });
 
 const renderAt = (url: string) =>
@@ -105,5 +112,82 @@ describe("SearchResultsPage", () => {
     renderAt("/search");
 
     expect(await screen.findByRole("alert")).toHaveTextContent(content.error);
+  });
+
+  it("reports how many results were found", async () => {
+    resolveWithTotal(41, 1);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("Found 41 results")).toBeInTheDocument();
+  });
+
+  it("uses the singular when a lone listing matched", async () => {
+    resolveWith([makeListing()]);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("Found 1 result")).toBeInTheDocument();
+  });
+
+  it("hides pagination when everything fits on one page", async () => {
+    resolveWithTotal(12, 1);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("Found 12 results")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Pagination" })).not.toBeInTheDocument();
+  });
+
+  it("renders a bounded pagination naming every page", async () => {
+    resolveWithTotal(41, 2);
+
+    renderAt("/search?page=2");
+
+    expect(await screen.findByRole("navigation", { name: "Pagination" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Page 3" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Page 4" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Previous page" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Next page" })).toBeInTheDocument();
+  });
+
+  it("omits the previous arrow on the first page", async () => {
+    resolveWithTotal(41, 1);
+
+    renderAt("/search");
+
+    expect(await screen.findByRole("link", { name: "Next page" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Previous page" })).not.toBeInTheDocument();
+  });
+
+  it("switches to unbounded pagination once the API stops counting", async () => {
+    resolveWithTotal(1001, 1);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("Found over 1,000 results")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Page 5" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Page 50" })).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Pagination" })).toHaveTextContent("…");
+  });
+
+  it("keeps the unbounded layout deep into a capped range", async () => {
+    resolveWithTotal(1001, 45);
+
+    renderAt("/search?page=45");
+
+    expect(await screen.findByRole("link", { name: "Page 46" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Page 50" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Next page" })).toBeInTheDocument();
+  });
+
+  it("carries the location through to every page link", async () => {
+    resolveWithTotal(41, 1);
+
+    renderAt("/search?location=Long+Branch");
+
+    const nextPage = await screen.findByRole("link", { name: "Next page" });
+    expect(nextPage).toHaveAttribute("href", "/search?location=Long+Branch&page=2");
   });
 });

@@ -1,7 +1,9 @@
 {
   "heading": "Find rental properties in {{location}}",
   "all_locations": "New Jersey",
-  "page_label": "Page {{page}}",
+  "results_found": "Found {{count}} results",
+  "results_found_one": "Found 1 result",
+  "results_found_capped": "Found over 1,000 results",
   "return_home": "Return to home",
   "loading": "Loading listings...",
   "error": "We couldn't load listings right now. Please try again.",
