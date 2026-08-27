@@ -12,15 +12,7 @@ describe("paginationSlots when total is 1000 or fewer", () => {
   });
 
   it("collapses both ends in the middle of a long range", () => {
-    expect(paginationSlots(10, 400)).toEqual([
-      1,
-      "overflow-start",
-      9,
-      10,
-      11,
-      "overflow-end",
-      20,
-    ]);
+    expect(paginationSlots(10, 400)).toEqual([1, "overflow-start", 9, 10, 11, "overflow-end", 20]);
   });
 
   it("collapses the head near the end of a long range", () => {

@@ -39,7 +39,5 @@ function unboundedSlots(page: number): PaginationSlot[] {
 }
 
 export function paginationSlots(page: number, total: number): PaginationSlot[] {
-  return total >= RESULT_CAP
-    ? unboundedSlots(page)
-    : boundedSlots(page, lastPageOf(total));
+  return total >= RESULT_CAP ? unboundedSlots(page) : boundedSlots(page, lastPageOf(total));
 }
