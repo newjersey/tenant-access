@@ -31,7 +31,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   amenities: [],
   contactName: null,
   contactOrganization: null,
-  fullListingUrl: null,
+  fullListingUrl: "https://www.myhousingsearch.com/listing/1",
   rentType: null,
   depositRange: null,
   ...overrides,
@@ -94,7 +94,7 @@ describe("SearchResultsPage", () => {
     expect(screen.getByText("$1,300-$1,600/month")).toBeInTheDocument();
     expect(screen.getByText("221 King Street, Clifton, NJ 08608")).toBeInTheDocument();
     expect(screen.getByText("2 bd | 1 ba")).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(2 + 5);
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
   it("substitutes wording when a listing has no rent", async () => {
@@ -189,5 +189,37 @@ describe("SearchResultsPage", () => {
 
     const nextPage = await screen.findByRole("link", { name: "Next page" });
     expect(nextPage).toHaveAttribute("href", "/search?location=Long+Branch&page=2");
+  });
+
+  it("makes the whole card a single link to the full listing", async () => {
+    resolveWith([makeListing({ fullListingUrl: "https://example.gov/listing/7" })]);
+
+    renderAt("/search");
+
+    const card = await screen.findByRole("listitem");
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute("href", "https://example.gov/listing/7");
+    expect(links[0]).toHaveAccessibleName("$1,200/month, 221 King Street, Clifton, NJ 08608");
+    expect(card).toContainElement(links[0]);
+  });
+
+  it("shows the photo when there is one", async () => {
+    resolveWith([makeListing({ imageUrl: "https://example.gov/photo.jpg" })]);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
+    expect(document.querySelector("img")).toHaveAttribute("src", "https://example.gov/photo.jpg");
+  });
+
+  it("substitutes a placeholder for the listings with no photo", async () => {
+    resolveWith([makeListing({ imageUrl: null })]);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
+    expect(document.querySelector("img")).not.toBeInTheDocument();
+    expect(document.querySelector(".listing-card__img--empty")).toBeInTheDocument();
   });
 });

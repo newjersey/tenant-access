@@ -1,5 +1,7 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
+import Icon from "@/components/Icon/Icon";
 import Pagination from "@/components/Pagination/Pagination";
 import content from "@/data/content/en/search-results.json";
 import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchListings";
@@ -25,6 +27,47 @@ interface SearchResultsProps {
   search: SearchListingsState;
 }
 
+function ListingCard({ listing }: { listing: Listing }) {
+  const rent = formatRent(listing) ?? content.rent_unavailable;
+  const unitSummary = formatUnitSummary(listing);
+  const address = formatAddress(listing);
+
+  return (
+    <li className="usa-card tablet:grid-col-6 desktop:grid-col-4 listing-card">
+      <div className="usa-card__container">
+        <div className="usa-card__media">
+          {listing.imageUrl ? (
+            <img className="listing-card__img" src={listing.imageUrl} alt="" />
+          ) : (
+            <div className="listing-card__img listing-card__img--empty">
+              <Icon icon="image" size="9" />
+            </div>
+          )}
+        </div>
+
+        <div className="usa-card__header">
+          <h2 className="usa-card__heading">
+            <a
+              className="listing-card__link"
+              href={listing.fullListingUrl ?? undefined}
+              aria-label={`${rent}, ${address}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {rent}
+            </a>
+          </h2>
+        </div>
+
+        <div className="usa-card__body">
+          {unitSummary && <p>{unitSummary}</p>}
+          <p>{address}</p>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
     return <p>{content.loading}</p>;
@@ -44,31 +87,10 @@ function SearchResults({ search }: SearchResultsProps) {
     <>
       <p>{resultsLabel(total)}</p>
 
-      <ul className="usa-collection">
-        {search.listings.map((listing) => {
-          const rent = formatRent(listing);
-          const unitSummary = formatUnitSummary(listing);
-
-          return (
-            <li key={listing.uid} className="usa-collection__item">
-              {listing.imageUrl && (
-                <img className="usa-collection__img" src={listing.imageUrl} alt="" />
-              )}
-              <div className="usa-collection__body">
-                <p className="usa-collection__heading">
-                  <Link to={`/property/${listing.uid}`}>{rent ?? content.rent_unavailable}</Link>
-                </p>
-                <ul className="usa-collection__meta" aria-label={content.more_information}>
-                  {unitSummary && <li className="usa-collection__meta-item">{unitSummary}</li>}
-                  <li className="usa-collection__meta-item">{formatAddress(listing)}</li>
-                  {listing.phoneNumber && (
-                    <li className="usa-collection__meta-item">{listing.phoneNumber}</li>
-                  )}
-                </ul>
-              </div>
-            </li>
-          );
-        })}
+      <ul className="usa-card-group">
+        {search.listings.map((listing) => (
+          <ListingCard key={listing.uid} listing={listing} />
+        ))}
       </ul>
 
       <Pagination page={page} total={total} />

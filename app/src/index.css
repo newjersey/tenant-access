@@ -5,3 +5,30 @@ button,
 summary {
   cursor: pointer;
 }
+
+.listing-card__img {
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.listing-card__img--empty {
+  align-items: center;
+  background-color: #edeff0;
+  border-top-left-radius: calc(0.5rem - 2px);
+  border-top-right-radius: calc(0.5rem - 2px);
+  color: #71767a;
+  display: flex;
+  justify-content: center;
+}
+
+.listing-card__link::after {
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.listing-card .usa-card__container:hover {
+  border-color: #71767a;
+}
