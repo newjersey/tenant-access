@@ -9,7 +9,7 @@ function HomePage() {
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const term = location.trim();
-    navigate(term ? `/search?location=${encodeURIComponent(term)}` : "/search");
+    void navigate(term ? `/search?location=${encodeURIComponent(term)}` : "/search");
   };
 
   return (
