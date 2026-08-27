@@ -2,19 +2,15 @@ import { useEffect, useState } from "react";
 import { type Listing, searchListings, type SearchListingsResponse } from "@/clients/listings";
 import type { SearchQuery } from "@/utils/searchQuery";
 
-interface SearchListingsState {
-  listings: Listing[];
-  pagination: SearchListingsResponse["pagination"] | null;
-  isLoading: boolean;
-  hasError: boolean;
-}
+type Pagination = SearchListingsResponse["pagination"];
 
-const PENDING: SearchListingsState = {
-  listings: [],
-  pagination: null,
-  isLoading: true,
-  hasError: false,
-};
+export type SearchListingsState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; listings: Listing[]; pagination: Pagination };
+
+const LOADING: SearchListingsState = { status: "loading" };
+const ERROR: SearchListingsState = { status: "error" };
 
 /**
  * Fetch one page of listings, re-fetching whenever the location or page changes. The in-flight
@@ -22,27 +18,24 @@ const PENDING: SearchListingsState = {
  * one.
  */
 export function useSearchListings({ location, page }: SearchQuery): SearchListingsState {
-  const [state, setState] = useState<SearchListingsState>(PENDING);
+  const [state, setState] = useState<SearchListingsState>(LOADING);
 
   useEffect(() => {
     const controller = new AbortController();
-    setState(PENDING);
+    setState(LOADING);
 
     searchListings({ location, page }, controller.signal)
       .then((response) => {
         setState({
+          status: "ready",
           listings: response.listings,
           pagination: response.pagination,
-          isLoading: false,
-          hasError: false,
         });
       })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) {
-          return;
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setState(ERROR);
         }
-        console.error("Listing search failed:", error);
-        setState({ listings: [], pagination: null, isLoading: false, hasError: true });
       });
 
     return () => controller.abort();
