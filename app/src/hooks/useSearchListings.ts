@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type Listing, searchListings, type SearchListingsResponse } from "@/clients/listings";
+import { type Listing, type SearchListingsResponse, searchListings } from "@/clients/listings";
 import type { SearchQuery } from "@/utils/searchQuery";
 
 type Pagination = SearchListingsResponse["pagination"];
