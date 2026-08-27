@@ -233,7 +233,7 @@ describe("SearchResultsPage", () => {
   it("seeds the search box from the location in the URL", async () => {
     renderAt("/search?location=Long+Branch");
 
-    expect(await screen.findByRole("searchbox", { name: content.search_label })).toHaveValue(
+    expect(await screen.findByRole("combobox", { name: content.search_label })).toHaveValue(
       "Long Branch",
     );
   });
@@ -241,15 +241,26 @@ describe("SearchResultsPage", () => {
   it("leaves the search box empty when no location is set", async () => {
     renderAt("/search");
 
-    expect(await screen.findByRole("searchbox", { name: content.search_label })).toHaveValue("");
+    expect(await screen.findByRole("combobox", { name: content.search_label })).toHaveValue("");
+  });
+
+  it("suggests every city containing what was typed", async () => {
+    renderAt("/search");
+
+    const box = await screen.findByRole("combobox", { name: content.search_label });
+    await userEvent.type(box, "orange");
+
+    const suggested = screen.getAllByRole("option").map((option) => option.textContent);
+    expect(suggested).toEqual(["East Orange", "Orange", "South Orange", "West Orange"]);
   });
 
   it("starts a new search back at the first page", async () => {
     renderAt("/search?location=Newark&page=3");
 
-    const box = await screen.findByRole("searchbox", { name: content.search_label });
+    const box = await screen.findByRole("combobox", { name: content.search_label });
     await userEvent.clear(box);
     await userEvent.type(box, "Trenton");
+    await userEvent.click(screen.getByRole("option", { name: "Trenton" }));
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
@@ -258,13 +269,27 @@ describe("SearchResultsPage", () => {
     );
   });
 
-  it("searches every location when the box is emptied", async () => {
+  it("searches every location when the box is cleared", async () => {
     renderAt("/search?location=Newark");
 
-    const box = await screen.findByRole("searchbox", { name: content.search_label });
-    await userEvent.clear(box);
+    await screen.findByRole("combobox", { name: content.search_label });
+    await userEvent.click(screen.getByRole("button", { name: "Clear the select contents" }));
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: null, page: 1 },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("refuses a city that is not on the list", async () => {
+    renderAt("/search");
+
+    const box = await screen.findByRole("combobox", { name: content.search_label });
+    await userEvent.type(box, "Nutly");
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: content.search_button }));
     expect(searchListingsMock).toHaveBeenLastCalledWith(
       { location: null, page: 1 },
       expect.any(AbortSignal),

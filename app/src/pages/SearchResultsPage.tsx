@@ -1,8 +1,9 @@
-import type { SubmitEvent } from "react";
+import { type SubmitEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
 import Icon from "@/components/Icon/Icon";
+import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
 import Pagination from "@/components/Pagination/Pagination";
 import content from "@/data/content/en/search-results.json";
 import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchListings";
@@ -71,13 +72,13 @@ function ListingCard({ listing }: { listing: Listing }) {
 
 function SearchControls({ location }: { location: string | null }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selected, setSelected] = useState(location ?? undefined);
 
   const runSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const term = String(new FormData(event.currentTarget).get("location") ?? "").trim();
     const params = new URLSearchParams(searchParams);
-    if (term) {
-      params.set("location", term);
+    if (selected) {
+      params.set("location", selected);
     } else {
       params.delete("location");
     }
@@ -100,14 +101,11 @@ function SearchControls({ location }: { location: string | null }) {
             <label className="usa-sr-only" htmlFor="search-location">
               {content.search_label}
             </label>
-            <input
-              key={location ?? ""}
-              className="usa-input"
-              id="search-location"
-              type="search"
-              name="location"
-              defaultValue={location ?? ""}
-            />
+             <LocationComboBox
+                id="search-location"
+                defaultValue={location ?? undefined}
+                onChange={setSelected}
+              />
             <button className="usa-button" type="submit" aria-label={content.search_button}>
               <Icon icon="search" class="usa-search__submit-icon" />
             </button>
@@ -155,7 +153,7 @@ function SearchResultsPage() {
 
   return (
     <div>
-      <SearchControls location={location} />
+      <SearchControls key={location ?? ""} location={location} />
 
       <div className="grid-container">
         <SearchResults search={search} />

@@ -1,15 +1,15 @@
 import { type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
 import content from "@/data/content/en/home.json";
 
 function HomePage() {
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<string | undefined>();
   const navigate = useNavigate();
 
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const term = location.trim();
-    void navigate(term ? `/search?location=${encodeURIComponent(term)}` : "/search");
+    void navigate(location ? `/search?location=${encodeURIComponent(location)}` : "/search");
   };
 
   return (
@@ -23,14 +23,7 @@ function HomePage() {
               <label htmlFor="location" className="usa-label">
                 {content.location}
               </label>
-              <input
-                id="location"
-                name="location"
-                type="text"
-                className="usa-input usa-input--xl"
-                value={location}
-                onChange={(event) => setLocation(event.target.value)}
-              />
+              <LocationComboBox id="location" onChange={setLocation} />
               <button type="submit" className="usa-button">
                 {content.search_rentals}
               </button>
