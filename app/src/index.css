@@ -44,3 +44,7 @@ summary {
   display: flex;
   max-width: 30rem;
 }
+
+.usa-hero .usa-combo-box__list-option {
+  color: black;
+}
