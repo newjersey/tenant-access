@@ -1,4 +1,5 @@
-import { useSearchParams } from "react-router-dom";
+import type { SubmitEvent } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
 import Icon from "@/components/Icon/Icon";
@@ -68,6 +69,55 @@ function ListingCard({ listing }: { listing: Listing }) {
   );
 }
 
+function SearchControls({ location }: { location: string | null }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const runSearch = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = String(new FormData(event.currentTarget).get("location") ?? "").trim();
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set("location", term);
+    } else {
+      params.delete("location");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  return (
+    <div className="search-controls">
+      <div className="grid-container">
+        <Link to="/" className="usa-link display-inline-flex flex-align-center">
+          <Icon icon="navigate_before" />
+          {content.home}
+        </Link>
+
+        <h1>{content.heading}</h1>
+
+        <search>
+          <form className="usa-search usa-search--small" onSubmit={runSearch}>
+            <label className="usa-sr-only" htmlFor="search-location">
+              {content.search_label}
+            </label>
+            <input
+              key={location ?? ""}
+              className="usa-input"
+              id="search-location"
+              type="search"
+              name="location"
+              defaultValue={location ?? ""}
+            />
+            <button className="usa-button" type="submit" aria-label={content.search_button}>
+              <Icon icon="search" class="usa-search__submit-icon" />
+            </button>
+          </form>
+        </search>
+      </div>
+    </div>
+  );
+}
+
 function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
     return <p>{content.loading}</p>;
@@ -105,11 +155,11 @@ function SearchResultsPage() {
 
   return (
     <div>
-      <h1 className="display-flex flex-align-center">
-        {content.heading.replace("{{location}}", location ?? content.all_locations)}
-      </h1>
+      <SearchControls location={location} />
 
-      <SearchResults search={search} />
+      <div className="grid-container">
+        <SearchResults search={search} />
+      </div>
     </div>
   );
 }

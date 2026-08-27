@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Listing } from "@/clients/listings";
@@ -197,11 +198,10 @@ describe("SearchResultsPage", () => {
     renderAt("/search");
 
     const card = await screen.findByRole("listitem");
-    const links = screen.getAllByRole("link");
+    const links = within(card).getAllByRole("link");
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute("href", "https://example.gov/listing/7");
     expect(links[0]).toHaveAccessibleName("$1,200/month, 221 King Street, Clifton, NJ 08608");
-    expect(card).toContainElement(links[0]);
   });
 
   it("shows the photo when there is one", async () => {
@@ -221,5 +221,53 @@ describe("SearchResultsPage", () => {
     expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
     expect(document.querySelector("img")).not.toBeInTheDocument();
     expect(document.querySelector(".listing-card__img--empty")).toBeInTheDocument();
+  });
+
+  it("titles the page and offers a way back home", async () => {
+    renderAt("/search?location=Newark");
+
+    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(content.heading);
+    expect(screen.getByRole("link", { name: content.home })).toHaveAttribute("href", "/");
+  });
+
+  it("seeds the search box from the location in the URL", async () => {
+    renderAt("/search?location=Long+Branch");
+
+    expect(await screen.findByRole("searchbox", { name: content.search_label })).toHaveValue(
+      "Long Branch",
+    );
+  });
+
+  it("leaves the search box empty when no location is set", async () => {
+    renderAt("/search");
+
+    expect(await screen.findByRole("searchbox", { name: content.search_label })).toHaveValue("");
+  });
+
+  it("starts a new search back at the first page", async () => {
+    renderAt("/search?location=Newark&page=3");
+
+    const box = await screen.findByRole("searchbox", { name: content.search_label });
+    await userEvent.clear(box);
+    await userEvent.type(box, "Trenton");
+    await userEvent.click(screen.getByRole("button", { name: content.search_button }));
+
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: "Trenton", page: 1 },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("searches every location when the box is emptied", async () => {
+    renderAt("/search?location=Newark");
+
+    const box = await screen.findByRole("searchbox", { name: content.search_label });
+    await userEvent.clear(box);
+    await userEvent.click(screen.getByRole("button", { name: content.search_button }));
+
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: null, page: 1 },
+      expect.any(AbortSignal),
+    );
   });
 });

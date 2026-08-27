@@ -32,3 +32,15 @@ summary {
 .listing-card .usa-card__container:hover {
   border-color: #71767a;
 }
+
+.search-controls {
+  background-color: #f7f9fa;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  padding-top: 1rem;
+}
+
+.search-controls .usa-search {
+  display: flex;
+  max-width: 30rem;
+}
