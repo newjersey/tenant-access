@@ -23,10 +23,9 @@ function resultsLabel(total: number): string {
 
 interface SearchResultsProps {
   search: SearchListingsState;
-  hrefFor: (page: number) => string;
 }
 
-function SearchResults({ search, hrefFor }: SearchResultsProps) {
+function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
     return <p>{content.loading}</p>;
   }
@@ -72,7 +71,7 @@ function SearchResults({ search, hrefFor }: SearchResultsProps) {
         })}
       </ul>
 
-      <Pagination page={page} total={total} hrefFor={hrefFor} />
+      <Pagination page={page} total={total} />
     </>
   );
 }
@@ -82,20 +81,13 @@ function SearchResultsPage() {
   const { location, page } = parseSearchQuery(searchParams);
   const search = useSearchListings({ location, page });
 
-  // Rebuild the whole query string so filters added later survive a page change untouched.
-  const hrefFor = (target: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", String(target));
-    return `?${params}`;
-  };
-
   return (
     <div>
       <h1 className="display-flex flex-align-center">
         {content.heading.replace("{{location}}", location ?? content.all_locations)}
       </h1>
 
-      <SearchResults search={search} hrefFor={hrefFor} />
+      <SearchResults search={search} />
     </div>
   );
 }

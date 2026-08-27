@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import content from "@/data/content/en/common.json";
 import { lastPageOf, paginationSlots } from "@/utils/pagination";
@@ -6,17 +6,23 @@ import { lastPageOf, paginationSlots } from "@/utils/pagination";
 interface PaginationProps {
   page: number;
   total: number;
-  hrefFor: (page: number) => string;
 }
 
 const labels = content.pagination;
 
-function Pagination({ page, total, hrefFor }: PaginationProps) {
+function Pagination({ page, total }: PaginationProps) {
+  const [searchParams] = useSearchParams();
   const lastPage = lastPageOf(total);
 
   if (lastPage <= 1) {
     return null;
   }
+
+  const hrefFor = (target: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(target));
+    return `?${params}`;
+  };
 
   return (
     <nav aria-label={labels.label} className="usa-pagination">
