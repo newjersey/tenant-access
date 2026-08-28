@@ -118,7 +118,12 @@ function SearchControls({ location }: { location: string | null }) {
 
 function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
-    return <p>{content.loading}</p>;
+    return (
+      <p role="status">
+        <span className="loading-spinner" aria-hidden="true" />
+        {content.loading}
+      </p>
+    );
   }
 
   if (search.status === "error") {
