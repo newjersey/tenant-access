@@ -48,10 +48,10 @@ describe("useSearchListings", () => {
       initialProps: { location: "Newark", page: 1 },
     });
 
-    // Changing the query aborts the first request's controller via the effect cleanup.
+    // Changing the query aborts the first request's controller
     rerender({ location: "Trenton", page: 1 });
 
-    // The stale request now rejects, but its signal is aborted, so state must NOT flip to error.
+    // The stale request now rejects, but its signal is aborted, so state should NOT flip to error
     rejectStale(new DOMException("Aborted", "AbortError"));
     await staleRequest.catch(() => {});
 

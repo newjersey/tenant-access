@@ -12,11 +12,6 @@ export type SearchListingsState =
 const LOADING: SearchListingsState = { status: "loading" };
 const ERROR: SearchListingsState = { status: "error" };
 
-/**
- * Fetch one page of listings, re-fetching whenever the location or page changes. The in-flight
- * request is aborted when the query changes, so a slow earlier response cannot overwrite a newer
- * one.
- */
 export function useSearchListings({ location, page }: SearchQuery): SearchListingsState {
   const [state, setState] = useState<SearchListingsState>(LOADING);
 
