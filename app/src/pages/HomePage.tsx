@@ -38,10 +38,25 @@ function HomePage() {
         <div className="grid-container">
           <h2>{content.why}</h2>
           <p>{content.introduction}</p>
-          <ul>
-            <li>{content.filter}</li>
-            <li>{content.many_units}</li>
-            <li>{content.easy_browsing}</li>
+          <ul className="usa-icon-list margin-bottom-2 margin-top-2">
+            <li className="usa-icon-list__item">
+              <div className="usa-icon-list__icon text-green">
+                <Icon icon="check" />
+              </div>
+              <div className="usa-icon-list__content">{content.filter}</div>
+            </li>
+            <li className="usa-icon-list__item">
+              <div className="usa-icon-list__icon text-green">
+                <Icon icon="check" />
+              </div>
+              <div className="usa-icon-list__content">{content.many_units}</div>
+            </li>
+            <li className="usa-icon-list__item">
+              <div className="usa-icon-list__icon text-green">
+                <Icon icon="check" />
+              </div>
+              <div className="usa-icon-list__content">{content.easy_browsing}</div>
+            </li>
           </ul>
           <Link to="/search" className="usa-button usa-button--outline">
             {content.view_all}
