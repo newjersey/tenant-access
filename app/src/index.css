@@ -45,6 +45,10 @@ summary {
   max-width: 30rem;
 }
 
+.search-controls .usa-combo-box {
+  flex: 1;
+}
+
 .search-controls .usa-combo-box__input {
   margin-top: 0;
 }
