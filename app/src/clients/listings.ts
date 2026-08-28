@@ -36,17 +36,14 @@ export interface SearchListingsResponse {
   success: true;
   listings: Listing[];
   pagination: {
-    /** The page the API actually served, which may be clamped below the one requested. */
     page: number;
     pageSize: number;
-    /** Capped at 1001 by the API; treat that value as "over 1000". */
     total: number;
   };
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-/** Ask the search API for one page of listings. Rejects on a network error or non-2xx status. */
 export async function searchListings(
   query: SearchQuery,
   signal?: AbortSignal,
