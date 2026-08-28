@@ -8,21 +8,25 @@ import Pagination from "@/components/Pagination/Pagination";
 import content from "@/data/content/en/search-results.json";
 import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchListings";
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
-import { RESULT_CAP } from "@/utils/pagination";
+import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
 import { parseSearchQuery } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
-function resultsLabel(total: number): string {
+function resultsLabel(page: number, total: number): string {
+  const first = (page - 1) * PAGE_SIZE + 1;
+  const last = Math.min(page * PAGE_SIZE, total);
+
   if (total >= RESULT_CAP) {
-    return content.results_found_capped.replace("{{count}}", numberFormat.format(RESULT_CAP - 1));
+    return content.results_range_capped
+      .replace("{{first}}", numberFormat.format(first))
+      .replace("{{last}}", numberFormat.format(last));
   }
 
-  if (total === 1) {
-    return content.results_found_one;
-  }
-
-  return content.results_found.replace("{{count}}", numberFormat.format(total));
+  return content.results_range
+    .replace("{{first}}", numberFormat.format(first))
+    .replace("{{last}}", numberFormat.format(last))
+    .replace("{{total}}", numberFormat.format(total));
 }
 
 interface SearchResultsProps {
@@ -138,7 +142,7 @@ function SearchResults({ search }: SearchResultsProps) {
 
   return (
     <>
-      <p>{resultsLabel(total)}</p>
+      <p className="font-sans-md margin-bottom-3">{resultsLabel(page, total)}</p>
 
       <ul className="usa-card-group">
         {search.listings.map((listing) => (

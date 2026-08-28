@@ -115,20 +115,20 @@ describe("SearchResultsPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(content.error);
   });
 
-  it("reports how many results were found", async () => {
+  it("reports result range for first page of several", async () => {
     resolveWithTotal(41, 1);
 
     renderAt("/search");
 
-    expect(await screen.findByText("Found 41 results")).toBeInTheDocument();
+    expect(await screen.findByText("Results 1 - 20 of 41")).toBeInTheDocument();
   });
 
-  it("uses the singular when a lone listing matched", async () => {
+  it("reports single result", async () => {
     resolveWith([makeListing()]);
 
     renderAt("/search");
 
-    expect(await screen.findByText("Found 1 result")).toBeInTheDocument();
+    expect(await screen.findByText("Results 1 - 1 of 1")).toBeInTheDocument();
   });
 
   it("hides pagination when everything fits on one page", async () => {
@@ -136,7 +136,7 @@ describe("SearchResultsPage", () => {
 
     renderAt("/search");
 
-    expect(await screen.findByText("Found 12 results")).toBeInTheDocument();
+    expect(await screen.findByText("Results 1 - 12 of 12")).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Pagination" })).not.toBeInTheDocument();
   });
 
@@ -167,7 +167,7 @@ describe("SearchResultsPage", () => {
 
     renderAt("/search");
 
-    expect(await screen.findByText("Found over 1,000 results")).toBeInTheDocument();
+    expect(await screen.findByText("Results 1 - 20 of over 1,000")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Page 5" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Page 50" })).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Pagination" })).toHaveTextContent("…");

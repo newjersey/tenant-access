@@ -1,6 +1,6 @@
 export const RESULT_CAP = 1001;
 const MAX_PAGE = 50;
-const PAGE_SIZE = 20;
+export const PAGE_SIZE = 20;
 
 /** USWDS shows at most seven page-number slots before collapsing the middle into overflow. */
 const MAX_SLOTS = 7;
