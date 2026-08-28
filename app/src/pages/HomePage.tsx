@@ -1,5 +1,6 @@
 import { type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Icon from "@/components/Icon/Icon";
 import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
 import content from "@/data/content/en/home.json";
 
@@ -24,8 +25,9 @@ function HomePage() {
                 {content.location}
               </label>
               <LocationComboBox id="location" onChange={setLocation} />
-              <button type="submit" className="usa-button">
+              <button type="submit" className="usa-button display-inline-flex flex-align-center width-full">
                 {content.search_rentals}
+                <Icon icon="arrow_forward" class="margin-left-1" />
               </button>
             </form>
           </div>
