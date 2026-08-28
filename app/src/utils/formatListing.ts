@@ -10,10 +10,6 @@ const currency = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-/**
- * Render rent as a single figure or a range. Returns null when the scrape captured no rent at all,
- * so the caller can substitute its own wording.
- */
 export function formatRent({ rent, rentMax }: RentFields): string | null {
   if (rent === null) {
     return rentMax === null ? null : `Up to ${currency.format(rentMax)}/month`;
@@ -26,7 +22,6 @@ export function formatRent({ rent, rentMax }: RentFields): string | null {
   return `${currency.format(rent)}-${currency.format(rentMax)}/month`;
 }
 
-/** Summarise bedrooms and bathrooms, skipping whichever the scrape did not provide. */
 export function formatUnitSummary({ bedrooms, bathrooms }: UnitFields): string | null {
   const parts = [
     bedrooms === null ? null : `${bedrooms} bd`,
@@ -36,7 +31,6 @@ export function formatUnitSummary({ bedrooms, bathrooms }: UnitFields): string |
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
-/** Single-line address for display. */
 export function formatAddress({ address, city, state, zipCode }: AddressFields): string {
   return `${address}, ${city}, ${state} ${zipCode}`;
 }
