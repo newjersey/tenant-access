@@ -16,8 +16,8 @@
     "cdk:destroy": "cdk destroy"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1113.0",
-    "@aws-sdk/client-secrets-manager": "^3.1112.0",
+    "@aws-sdk/client-s3": "^3.1117.0",
+    "@aws-sdk/client-secrets-manager": "^3.1117.0",
     "@aws-sdk/lib-storage": "^3.1113.0",
     "cheerio": "^1.2.0",
     "pg": "^8.23.0"
@@ -28,8 +28,8 @@
     "@types/node": "^26.2.0",
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^4.1.9",
-    "aws-cdk": "^2.1137.0",
-    "aws-cdk-lib": "^2.265.0",
+    "aws-cdk": "^2.1138.0",
+    "aws-cdk-lib": "^2.266.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.28.1",
     "tsx": "^4.23.1",
