@@ -25,7 +25,10 @@ function HomePage() {
                 {content.location}
               </label>
               <LocationComboBox id="location" onChange={setLocation} />
-              <button type="submit" className="usa-button display-inline-flex flex-align-center width-full">
+              <button
+                type="submit"
+                className="usa-button display-inline-flex flex-align-center width-full"
+              >
                 {content.search_rentals}
                 <Icon icon="arrow_forward" class="margin-left-1" />
               </button>

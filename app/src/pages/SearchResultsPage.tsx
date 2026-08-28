@@ -101,11 +101,11 @@ function SearchControls({ location }: { location: string | null }) {
             <label className="usa-sr-only" htmlFor="search-location">
               {content.search_label}
             </label>
-             <LocationComboBox
-                id="search-location"
-                defaultValue={location ?? undefined}
-                onChange={setSelected}
-              />
+            <LocationComboBox
+              id="search-location"
+              defaultValue={location ?? undefined}
+              onChange={setSelected}
+            />
             <button className="usa-button" type="submit" aria-label={content.search_button}>
               <Icon icon="search" class="usa-search__submit-icon" />
             </button>
