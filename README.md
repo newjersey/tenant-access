@@ -182,6 +182,8 @@ Pushing to one of those branches triggers an Amplify build automatically through
 
 Both environments are currently password-protected because the application is not ready for launch. The Prod restriction should be removed at launch; Dev can keep it indefinitely. The username and password are available in `Project Info` in the `#tenant-access` Innovation Slack channel.
 
+`VITE_API_BASE_URL` is set as an Environment Variable on Amplify.
+
 ## Database Migrations
 
 ### Create Migration File
