@@ -48,7 +48,7 @@ function Pagination({ page, total }: PaginationProps) {
                 className="usa-pagination__item usa-pagination__overflow"
                 role="presentation"
               >
-                <span>…</span>
+                <span>...</span>
               </li>
             );
           }

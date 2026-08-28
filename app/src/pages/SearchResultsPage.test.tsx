@@ -170,7 +170,7 @@ describe("SearchResultsPage", () => {
     expect(await screen.findByText("Results 1 - 20 of over 1,000")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Page 5" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Page 50" })).not.toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Pagination" })).toHaveTextContent("…");
+    expect(screen.getByRole("navigation", { name: "Pagination" })).toHaveTextContent("...");
   });
 
   it("keeps the unbounded layout deep into a capped range", async () => {
