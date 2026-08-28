@@ -1,3 +1,14 @@
 {
-  "heading": "Find rental properties in"
+  "heading": "Browse Listings",
+  "home": "Home",
+  "search_label": "Search by city or town",
+  "search_button": "Search",
+  "results_range": "Results {{first}} - {{last}} of {{total}}",
+  "results_range_capped": "Results {{first}} - {{last}} of over 1,000",
+  "return_home": "Return to home",
+  "loading": "Loading listings...",
+  "error": "We couldn't load listings right now. Please try again.",
+  "no_results": "No listings matched your search.",
+  "rent_unavailable": "Contact for rent",
+  "more_information": "More information"
 }
