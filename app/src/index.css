@@ -45,13 +45,12 @@ summary {
   max-width: 30rem;
 }
 
-.search-controls .usa-search [type="submit"] {
-  height: 2.5rem;
-  margin-top: 0.5rem;
+.search-controls .usa-combo-box__input {
+  margin-top: 0;
 }
 
-.usa-combo-box__clear-input, .usa-combo-box__toggle-list {
-  top: 8px;
+.search-controls .usa-search [type="submit"] {
+  height: 2.5rem;
 }
 
 .usa-hero .usa-combo-box__list-option {
