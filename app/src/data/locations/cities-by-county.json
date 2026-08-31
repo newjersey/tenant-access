@@ -108,17 +108,8 @@
     "Voorhees",
     "West Berlin"
   ],
-  "Cape May": [
-    "Cape May",
-    "Marmora",
-    "Ocean City",
-    "Rio Grande"
-  ],
-  "Cumberland": [
-    "Bridgeton",
-    "Millville",
-    "Vineland"
-  ],
+  "Cape May": ["Cape May", "Marmora", "Ocean City", "Rio Grande"],
+  "Cumberland": ["Bridgeton", "Millville", "Vineland"],
   "Essex": [
     "Belleville",
     "Bloomfield",
@@ -332,14 +323,7 @@
     "West Milford",
     "Woodland Park"
   ],
-  "Salem": [
-    "Carneys Point",
-    "Pedricktown",
-    "Penns Grove",
-    "Pennsville",
-    "Salem",
-    "Woodstown"
-  ],
+  "Salem": ["Carneys Point", "Pedricktown", "Penns Grove", "Pennsville", "Salem", "Woodstown"],
   "Somerset": [
     "Basking Ridge",
     "Bedminster",
@@ -360,14 +344,7 @@
     "Warren",
     "Watchung"
   ],
-  "Sussex": [
-    "Andover",
-    "Franklin",
-    "Hardyston",
-    "Newton",
-    "Sparta",
-    "Vernon"
-  ],
+  "Sussex": ["Andover", "Franklin", "Hardyston", "Newton", "Sparta", "Vernon"],
   "Union": [
     "Berkeley Heights",
     "Clark",

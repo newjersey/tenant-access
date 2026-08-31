@@ -62,7 +62,7 @@ async function queryResults(pool: Pool, location: Location, pageSize: number, of
     location.city,
     location.county,
     pageSize,
-    offset
+    offset,
   ]);
   return result.rows;
 }
