@@ -28,7 +28,7 @@ const RESULTS_SQL = `
   SELECT
     ${LISTING_SELECT_COLUMNS}
   FROM listings${WHERE_SQL}
-  ORDER BY uid
+  ORDER BY last_updated DESC NULLS LAST, uid
   LIMIT $2
   OFFSET $3
 `;
