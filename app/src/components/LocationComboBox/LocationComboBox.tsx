@@ -1,8 +1,12 @@
 import { ComboBox, type ComboBoxOption } from "@trussworks/react-uswds";
 import content from "@/data/content/en/common.json";
 import cities from "@/data/locations/cities.json";
+import counties from "@/data/locations/counties.json";
 
-const options: ComboBoxOption[] = cities.map((city) => ({ value: city, label: city }));
+ const options: ComboBoxOption[] = [
+  ...counties.map((county) => ({ value: `${county} County`, label: `${county} County` })),
+  ...cities.map((city) => ({ value: city, label: city })),
+];
 
 interface LocationComboBoxProps {
   id: string;

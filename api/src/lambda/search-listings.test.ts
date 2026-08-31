@@ -61,19 +61,33 @@ describe("search-listings handler", () => {
       ([sql]) => !sql.includes("COUNT(*)"),
     ) as [string, unknown[]];
     expect(resultsSql).toContain("shown_to_public");
-    expect(resultsParams).toEqual(["Newark", 20, 40]);
+    expect(resultsParams).toEqual(["Newark", null, 20, 40]);
 
     const [, countParams] = queryMock.mock.calls.find(([sql]) => sql.includes("COUNT(*)")) as [
       string,
       unknown[],
     ];
-    expect(countParams).toEqual(["Newark"]);
+    expect(countParams).toEqual(["Newark", null]);
   });
 
   it("treats a blank location as no filter", async () => {
     await invoke({ location: "   " });
 
-    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [null, 20, 0]);
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [null, null, 20, 0]);
+  });
+
+  it("distinguishes a county from the city that shares its name", async () => {
+    await invoke({ location: "Camden" });
+    await invoke({ location: "Camden County" });
+
+    const params = queryMock.mock.calls
+      .filter(([sql]) => !sql.includes("COUNT(*)"))
+      .map(([, p]) => p);
+
+    expect(params).toEqual([
+      ["Camden", null, 20, 0],
+      [null, "Camden", 20, 0],
+    ]);
   });
 
   it("reflects an allowlisted origin and ignores an unknown one", async () => {

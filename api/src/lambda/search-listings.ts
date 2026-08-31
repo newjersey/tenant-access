@@ -19,18 +19,20 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-// TODO: expand filter options
 const WHERE_SQL = `
   WHERE shown_to_public
-    AND ($1::text IS NULL OR lower(city) = lower($1))`;
+    AND ($1::text IS NULL OR lower(city) = lower($1))
+    AND ($2::text IS NULL OR lower(city) IN (
+      SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($2)
+    ))`;
 
 const RESULTS_SQL = `
   SELECT
     ${LISTING_SELECT_COLUMNS}
   FROM listings${WHERE_SQL}
   ORDER BY last_updated DESC NULLS LAST, uid
-  LIMIT $2
-  OFFSET $3
+  LIMIT $3
+  OFFSET $4
 `;
 
 const COUNT_SQL = `
@@ -42,13 +44,31 @@ const COUNT_SQL = `
   )
 `;
 
-async function queryResults(pool: Pool, location: string | null, pageSize: number, offset: number) {
-  const result = await pool.query<Listing>(RESULTS_SQL, [location, pageSize, offset]);
+interface Location {
+  city: string | null;
+  county: string | null;
+}
+
+// "Somerset County" -> { county: "Somerset" }; anything else -> { city: <as given> }.
+function parseLocation(raw: string | undefined): Location {
+  const trimmed = raw?.trim().slice(0, MAX_PARAM_LENGTH) || null;
+  if (!trimmed) return { city: null, county: null };
+  const county = trimmed.match(/^(.+?)\s+County$/i)?.[1];
+  return county ? { city: null, county } : { city: trimmed, county: null };
+}
+
+async function queryResults(pool: Pool, location: Location, pageSize: number, offset: number) {
+  const result = await pool.query<Listing>(RESULTS_SQL, [
+    location.city,
+    location.county,
+    pageSize,
+    offset
+  ]);
   return result.rows;
 }
 
-async function queryTotalResultsCount(pool: Pool, location: string | null) {
-  const result = await pool.query<{ total: string }>(COUNT_SQL, [location]);
+async function queryTotalResultsCount(pool: Pool, location: Location) {
+  const result = await pool.query<{ total: string }>(COUNT_SQL, [location.city, location.county]);
   return Number(result.rows[0].total);
 }
 
@@ -82,7 +102,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
   const params = event.queryStringParameters ?? {};
-  const location = params.location?.trim().slice(0, MAX_PARAM_LENGTH) || null;
+  const location = parseLocation(params.location);
   const page = parseAndConstrainPage(params.page);
 
   try {
