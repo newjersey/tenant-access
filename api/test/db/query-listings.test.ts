@@ -4,10 +4,30 @@ import { handler } from "../../src/lambda/query-listings.js";
 import { makeListing, seedListing, testClient, truncateAll } from "./support.js";
 
 const EXPECTED_KEYS = [
-  "uid", "lastUpdated", "name", "address", "city", "state", "zipCode", "rent",
-  "rentMax", "bedrooms", "bathrooms", "unitType", "imageId", "imageUrl",
-  "phoneNumber", "website", "description", "isWaitlistOpen", "amenities",
-  "contactName", "contactOrganization", "fullListingUrl", "rentType", "depositRange",
+  "uid",
+  "lastUpdated",
+  "name",
+  "address",
+  "city",
+  "state",
+  "zipCode",
+  "rent",
+  "rentMax",
+  "bedrooms",
+  "bathrooms",
+  "unitType",
+  "imageId",
+  "imageUrl",
+  "phoneNumber",
+  "website",
+  "description",
+  "isWaitlistOpen",
+  "amenities",
+  "contactName",
+  "contactOrganization",
+  "fullListingUrl",
+  "rentType",
+  "depositRange",
 ];
 
 type QueryBody = {

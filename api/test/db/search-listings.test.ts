@@ -4,10 +4,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getPool } from "../../src/lambda/db.js";
 import { handler } from "../../src/lambda/search-listings.js";
 import {
-  TEST_DB_ENV,
   makeListing,
   seedListing,
   seedManyListings,
+  TEST_DB_ENV,
   testClient,
   truncateAll,
 } from "./support.js";
