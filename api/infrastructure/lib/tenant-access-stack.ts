@@ -3,8 +3,11 @@ import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigwv2int from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+import * as cwActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as destinations from "aws-cdk-lib/aws-lambda-destinations";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
@@ -12,6 +15,7 @@ import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as sns from "aws-cdk-lib/aws-sns";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
 
@@ -360,6 +364,39 @@ export class TenantAccessStack extends cdk.Stack {
       },
     });
 
+    const alertsTopic = new sns.Topic(this, "AlertsTopic", {
+      displayName: "Tenant Access alerts",
+    });
+
+    const searchErrorRate = new cloudwatch.MathExpression({
+      expression: "IF(requests >= 20, errorRate, 0)", // ignores low traffic
+      usingMetrics: {
+        requests: publicApiDistribution.metricRequests(),
+        errorRate: publicApiDistribution.metricTotalErrorRate(),
+      },
+      period: cdk.Duration.minutes(5),
+      label: "4xx+5xx rate (quiet periods ignored)",
+    });
+
+    const searchErrorRateAlarm = new cloudwatch.Alarm(this, "SearchErrorRateAlarm", {
+      alarmName: "TenantAccess-SearchApi-ErrorRate",
+      alarmDescription: "4xx+5xx rate on the public search API stayed above 25% for a half hour.",
+      metric: searchErrorRate,
+      threshold: 25,
+      evaluationPeriods: 6, // 6 x 5min: a half hour of breach before notifying to avoid noise
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+    searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
+
+    const alertsDestination = new destinations.SnsDestination(alertsTopic);
+
+    for (const fn of [scrapeLambda, parseLambda, updateLambda]) {
+      fn.configureAsyncInvoke({ onFailure: alertsDestination });
+    }
+
     dataBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(parseLambda),
@@ -437,6 +474,11 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SearchApiOriginEndpoint", {
       value: publicApi.apiEndpoint,
       description: "HTTP API origin — bypasses CloudFront and WAF, do not publish",
+    });
+
+    new cdk.CfnOutput(this, "AlertsTopicArn", {
+      value: alertsTopic.topicArn,
+      description: "SNS topic for alerts -- subscribe the Slack channel email address to it",
     });
   }
 }
