@@ -18,3 +18,5 @@ jobs:
     uses: ./.github/workflows/biome.yml
   unit-tests:
     uses: ./.github/workflows/unit_tests.yml
+  db-tests:
+    uses: ./.github/workflows/db_tests.yml

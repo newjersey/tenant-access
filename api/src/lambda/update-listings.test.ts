@@ -91,14 +91,12 @@ describe("update-listings handler", () => {
     serve(listings(500));
     shownCount(3000);
 
-    const result = await handler(event());
-
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toMatch(/below safety floor 2400/);
+    await expect(handler(event())).rejects.toThrow(/below safety floor 2400/);
     expect(queryMock).not.toHaveBeenCalledWith("BEGIN");
+    expect(endMock).toHaveBeenCalledOnce();
   });
 
-  it("rolls back and returns 500 when an insert fails", async () => {
+  it("rolls back when an insert fails", async () => {
     queryMock.mockImplementation((sql: string) => {
       if (String(sql).startsWith("SELECT COUNT(*)")) {
         return Promise.resolve({ rows: [{ count: "0" }] });
@@ -107,10 +105,8 @@ describe("update-listings handler", () => {
       return Promise.resolve({ rowCount: 0 });
     });
 
-    const result = await handler(event());
-
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body)).toEqual({ success: false, error: "boom" });
+    await expect(handler(event())).rejects.toThrow("boom");
     expect(queryMock).toHaveBeenCalledWith("ROLLBACK");
+    expect(endMock).toHaveBeenCalledOnce();
   });
 });

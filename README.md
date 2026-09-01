@@ -83,6 +83,27 @@ npm install --save-dev <package> --workspace=app
 
 Commit the updated `app/package.json` and the root `package-lock.json` together in the same change. CI runs `npm ci`, which installs strictly from the committed lockfile and fails if it is out of sync with `package.json`.
 
+### Test DB Setup
+
+To run backend tests that depend on a Postgres DB, we need containerization [as described in the Engineering Wiki](https://newjersey.github.io/innovation-engineering/tech-recommendations/infrastructure/#containerization). GitHub Actions on ubuntu will run the equivalent with a pre-installed docker so you can skip this if you want to just rely on GitHub Actions.
+
+If you want to also be able to run the db tests locally:
+
+```
+brew install colima docker docker-compose
+
+# you may need to explicitly link docker compose on your local machine like in these two lines
+mkdir -p ~/.docker/cli-plugins
+ln -sfn "$(brew --prefix)/lib/docker/cli-plugins/docker-compose" ~/.docker/cli-plugins/docker-compose
+
+colima start --vm-type=vz --vz-rosetta --mount-type=virtiofs
+
+# optional: this makes colima run in background, even persisting across reboots
+brew services start colima
+```
+
+If any new file imports a DB connection, it will be automatically added to the DB tests for coverage purposes. If you definitely don't need DB tests for this file, you can add it to `EXEMPT` in `vitest.db.config.ts`.
+
 ## Infrastructure
 
 This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
