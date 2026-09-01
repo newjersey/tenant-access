@@ -100,6 +100,8 @@ colima start --vm-type=vz --vz-rosetta --mount-type=virtiofs
 brew services start colima
 ```
 
+If any new file involves SQL syntax, you must add it to `test/coverage/include` in `vitest.db.config.ts` to make sure the test coverage stays strong going forward.
+
 ## Infrastructure
 
 This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.

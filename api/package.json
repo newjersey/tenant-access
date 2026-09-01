@@ -16,7 +16,7 @@
     "cdk:destroy": "cdk destroy",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down -v",
-    "test:db": "npm run db:up && vitest --config vitest.db.config.ts --run"
+    "test:db": "npm run db:up && vitest --config vitest.db.config.ts --coverage --run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1117.0",
