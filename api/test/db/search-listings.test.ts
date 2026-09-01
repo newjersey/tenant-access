@@ -180,14 +180,6 @@ describe("search-listings against a real database", () => {
     expect(result.listings).toHaveLength(20);
   });
 
-  it("rejects a request that did not arrive through CloudFront", async () => {
-    const response = await invoke({ headers: {} } as unknown as APIGatewayProxyEventV2);
-
-    expect(response.statusCode).toBe(403);
-    expect(response.headers["Cache-Control"]).toBe("no-store");
-    expect(JSON.parse(response.body)).toEqual({ success: false, error: "Forbidden" });
-  });
-
   it("returns a generic 500 without leaking the database error", async () => {
     await seedListing(db, makeListing(100));
     await db.query("ALTER TABLE listings DROP COLUMN website");

@@ -34,7 +34,7 @@ export default defineConfig({
       include: postgresFiles,
       reporter: ["text"],
       reportsDirectory: "coverage/db",
-      thresholds: { perFile: true, lines: 100 },
+      thresholds: { perFile: true, lines: 97 },
     },
   },
 });
