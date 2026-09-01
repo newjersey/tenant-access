@@ -100,7 +100,7 @@ colima start --vm-type=vz --vz-rosetta --mount-type=virtiofs
 brew services start colima
 ```
 
-If any new file involves SQL syntax, you must add it to `test/coverage/include` in `vitest.db.config.ts` to make sure the test coverage stays strong going forward.
+If any new file imports a DB connection, it will be automatically added to the DB tests for coverage purposes. If you definitely don't need DB tests for this file, you can add it to `EXEMPT` in `vitest.db.config.ts`.
 
 ## Infrastructure
 
