@@ -6,10 +6,7 @@ import { defineConfig } from "vitest/config";
 const TOUCHES_POSTGRES = /from ["'][^"']*db\.js["']|from ["']pg["']/;
 
 // deliberate exemptions from the above pattern that definitely don't need DB testing
-const EXEMPT = new Set([
-  "src/lambda/db.ts",
-  "src/lambda/migration-runner.ts",
-]);
+const EXEMPT = new Set(["src/lambda/db.ts", "src/lambda/migration-runner.ts"]);
 
 const postgresFiles = readdirSync("src", { recursive: true, encoding: "utf8" })
   .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
