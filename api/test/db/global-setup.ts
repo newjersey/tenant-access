@@ -6,7 +6,9 @@ import { TEST_DB } from "./support.js";
 const MIGRATIONS_DIR = join(import.meta.dirname, "../../migrations");
 
 async function connect(attempts = 30): Promise<Client> {
-  for (let attempt = 1; ; attempt++) {
+  let attempt = 0;
+  while (true) {
+    attempt++;
     const client = new Client(TEST_DB);
     try {
       await client.connect();

@@ -85,12 +85,14 @@ Commit the updated `app/package.json` and the root `package-lock.json` together 
 
 ### Test DB Setup
 
-To run backend tests that depend on a Postgres DB, we need containerization [as described in the Engineering Wiki](https://newjersey.github.io/innovation-engineering/tech-recommendations/infrastructure/#containerization) on your local machine (and GitHub Actions on ubuntu will run the equivalent with their pre-installed docker).
+To run backend tests that depend on a Postgres DB, we need containerization [as described in the Engineering Wiki](https://newjersey.github.io/innovation-engineering/tech-recommendations/infrastructure/#containerization). GitHub Actions on ubuntu will run the equivalent with a pre-installed docker so you can skip this if you want to just rely on GitHub Actions.
+
+If you want to also be able to run the db tests locally:
 
 ```
 brew install colima docker docker-compose
 
-# you may need to explicitly link docker compose on your local machine like this
+# you may need to explicitly link docker compose on your local machine like in these two lines
 mkdir -p ~/.docker/cli-plugins
 ln -sfn "$(brew --prefix)/lib/docker/cli-plugins/docker-compose" ~/.docker/cli-plugins/docker-compose
 
