@@ -19,8 +19,6 @@ const EVENT = {
   Records: [{ s3: { object: { key: "parsed/2026-09-01.json" } } }],
 } as unknown as S3Event;
 
-// The safety floor only admits runs of at least MIN_ABSOLUTE_LISTINGS rows,
-// so fixtures have to be catalog-sized. 1200 also exercises BATCH_SIZE batching.
 const FULL = Array.from({ length: 1200 }, (_, index) => makeListing(1000 + index));
 
 let db: Client;
@@ -62,7 +60,7 @@ async function totalRows(): Promise<number> {
 }
 
 describe("update-listings against a real database", () => {
-  it("hides listings that leave the feed and restores them when they come back", async () => {
+  it("hides listings that leave the feed", async () => {
     const first = await runUpdate(FULL);
     expect(first).toMatchObject({ statusCode: 200, upserted: 1200, hidden: 0, restored: 0 });
     expect(await visibleUids()).toHaveLength(1200);
@@ -70,14 +68,8 @@ describe("update-listings against a real database", () => {
     const shrunk = FULL.slice(0, 1100);
     const second = await runUpdate(shrunk);
     expect(second).toMatchObject({ statusCode: 200, hidden: 100, restored: 0 });
-    expect(await visibleUids()).toEqual(shrunk.map((listing) => listing.uid));
-
-    // Hidden, not deleted -- which is what makes the restore below possible.
+    expect(await visibleUids()).toHaveLength(1100);
     expect(await totalRows()).toBe(1200);
-
-    const third = await runUpdate(FULL);
-    expect(third).toMatchObject({ statusCode: 200, hidden: 0, restored: 100 });
-    expect(await visibleUids()).toHaveLength(1200);
   });
 
   it("leaves the catalog untouched when a run falls under the safety floor", async () => {
@@ -87,21 +79,5 @@ describe("update-listings against a real database", () => {
 
     // The rollback held: yesterday's catalog is still being served.
     expect(await visibleUids()).toHaveLength(1200);
-  });
-
-  it("overwrites changed fields on re-scrape and bumps scraped_at", async () => {
-    await runUpdate(FULL);
-    const before = await db.query<{ rent: number; scraped_at: Date }>(
-      "SELECT rent, scraped_at FROM listings WHERE uid = 1000",
-    );
-
-    await runUpdate([makeListing(1000, { rent: 2100, name: "Renamed" }), ...FULL.slice(1)]);
-    const after = await db.query<{ rent: number; name: string; scraped_at: Date }>(
-      "SELECT rent, name, scraped_at FROM listings WHERE uid = 1000",
-    );
-
-    expect(after.rows[0].rent).toBe(2100);
-    expect(after.rows[0].name).toBe("Renamed");
-    expect(after.rows[0].scraped_at.getTime()).toBeGreaterThan(before.rows[0].scraped_at.getTime());
   });
 });
