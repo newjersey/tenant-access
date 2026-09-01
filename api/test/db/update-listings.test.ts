@@ -45,7 +45,6 @@ async function runUpdate(listings: Listing[]) {
     upserted?: number;
     hidden?: number;
     restored?: number;
-    error?: string | false;
   };
   return { statusCode: response.statusCode, ...body };
 }
@@ -84,9 +83,7 @@ describe("update-listings against a real database", () => {
   it("leaves the catalog untouched when a run falls under the safety floor", async () => {
     await runUpdate(FULL);
 
-    const truncated = await runUpdate(FULL.slice(0, 500));
-    expect(truncated.statusCode).toBe(500);
-    expect(String(truncated.error)).toContain("below safety floor");
+    await expect(runUpdate(FULL.slice(0, 500))).rejects.toThrow("below safety floor");
 
     // The rollback held: yesterday's catalog is still being served.
     expect(await visibleUids()).toHaveLength(1200);

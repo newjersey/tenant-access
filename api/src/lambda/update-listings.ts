@@ -177,14 +177,7 @@ export const handler = async (event: S3Event) => {
     };
   } catch (error) {
     await client?.query("ROLLBACK").catch(() => {});
-    console.error("Update failed:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        success: false,
-        error: error instanceof Error && error.message,
-      }),
-    };
+    throw error;
   } finally {
     await client?.end();
   }
