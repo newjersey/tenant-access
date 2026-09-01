@@ -113,6 +113,30 @@ describe("getClient", () => {
     await expect(getClient()).resolves.toHaveProperty("query");
     expect(sendMock).toHaveBeenCalledTimes(2);
   });
+
+  it("takes credentials from the environment and skips SSL for local databases", async () => {
+    process.env.DB_USER = "tenantadmin";
+    process.env.DB_PASSWORD = "localtestonly";
+    process.env.DB_PORT = "55432";
+    process.env.DB_NAME = "tenantaccess";
+    process.env.DB_SSL = "disable";
+
+    await getClient();
+
+    expect(sendMock).not.toHaveBeenCalled();
+    expect(clientConfigMock).toHaveBeenCalledWith({
+      host: "db.example.com",
+      port: 55432,
+      database: "tenantaccess",
+      user: "tenantadmin",
+      password: "localtestonly",
+      ssl: false,
+    });
+
+    for (const key of ["DB_USER", "DB_PASSWORD", "DB_PORT", "DB_NAME", "DB_SSL"]) {
+      delete process.env[key];
+    }
+  });
 });
 
 describe("getPool", () => {

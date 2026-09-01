@@ -11,15 +11,21 @@ const secretsClient = new SecretsManagerClient();
 function connectionConfig(credentials: DbCredentials) {
   return {
     host: process.env.DB_HOST,
-    port: 5432,
-    database: "tenantaccess",
+    port: Number(process.env.DB_PORT ?? 5432),
+    database: process.env.DB_NAME ?? "tenantaccess",
     user: credentials.username,
     password: credentials.password,
-    ssl: { rejectUnauthorized: false }, // TODO when going to prod
+    ssl: process.env.DB_SSL === "disable" ? false : { rejectUnauthorized: false }, // TODO when going to prod
   };
 }
 
 function getCredentials(): Promise<DbCredentials> {
+  // For tests, not dev or production
+  const { DB_USER, DB_PASSWORD } = process.env;
+  if (DB_USER && DB_PASSWORD) {
+    return Promise.resolve({ username: DB_USER, password: DB_PASSWORD });
+  }
+
   if (!cachedCredentials) {
     cachedCredentials = (async () => {
       const response = await secretsClient.send(
