@@ -18,6 +18,7 @@ import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
+import { SEARCH_QUERY_PARAMS } from "../../src/lambda/search-params.js";
 
 export class TenantAccessStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -340,8 +341,7 @@ export class TenantAccessStack extends cdk.Stack {
       defaultTtl: cdk.Duration.seconds(300),
       minTtl: cdk.Duration.seconds(0),
       maxTtl: cdk.Duration.seconds(300),
-      // Add more query parameters below -- others are ignored to protect cache
-      queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList("location", "page"),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(...SEARCH_QUERY_PARAMS),
       // Origin must be in the key: the Access Control Allow Origin header varies by it.
       headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Origin"),
       cookieBehavior: cloudfront.CacheCookieBehavior.none(),

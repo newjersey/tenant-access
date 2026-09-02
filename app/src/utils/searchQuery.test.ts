@@ -9,7 +9,11 @@ describe("parseSearchQuery", () => {
   });
 
   it("reads the location and page", () => {
-    expect(parse("location=Newark&page=3")).toEqual({ location: "Newark", page: 3, sort: "updated" });
+    expect(parse("location=Newark&page=3")).toEqual({
+      location: "Newark",
+      page: 3,
+      sort: "updated",
+    });
   });
 
   it("trims the location and treats a blank one as no filter", () => {

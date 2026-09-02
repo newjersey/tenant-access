@@ -4,6 +4,7 @@ import type { Listing } from "../scraper/parser.js";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
 import { isFromCloudFront } from "./require-cloudfront.js";
+import type { SearchParams } from "./search-params.js";
 
 const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;
@@ -113,7 +114,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   if (!isFromCloudFront(event)) {
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
-  const params = event.queryStringParameters ?? {};
+  const params: SearchParams = event.queryStringParameters ?? {};
   const location = parseLocation(params.location);
   const page = parseAndConstrainPage(params.page);
   const sort = parseSort(params.sort);
