@@ -292,6 +292,11 @@ npm run test:ui
 
 # Run tests with coverage report
 npm run test:coverage
+
+# run Playwright tests
+# first time requires installing chromium dependency
+npx playwright install --with-deps chromium
+npm run test:e2e:ui
 ```
 
 ## Code Quality
