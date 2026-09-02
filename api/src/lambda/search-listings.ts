@@ -4,6 +4,7 @@ import type { Listing } from "../scraper/parser.js";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
 import { isFromCloudFront } from "./require-cloudfront.js";
+import type { SearchParams } from "./search-params.js";
 
 const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;
@@ -19,6 +20,18 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const SORT_ORDERS = {
+  updated: "last_updated DESC NULLS LAST, uid",
+  price_asc: "rent ASC NULLS LAST, uid",
+  price_desc: "rent DESC NULLS LAST, uid",
+} as const;
+type SortKey = keyof typeof SORT_ORDERS;
+const DEFAULT_SORT: SortKey = "updated";
+
+function parseSort(raw: string | undefined): SortKey {
+  return raw !== undefined && raw in SORT_ORDERS ? (raw as SortKey) : DEFAULT_SORT;
+}
+
 const WHERE_SQL = `
   WHERE shown_to_public
     AND ($1::text IS NULL OR lower(city) = lower($1))
@@ -26,11 +39,11 @@ const WHERE_SQL = `
       SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($2)
     ))`;
 
-const RESULTS_SQL = `
+const resultsSql = (sort: SortKey) => `
   SELECT
     ${LISTING_SELECT_COLUMNS}
   FROM listings${WHERE_SQL}
-  ORDER BY last_updated DESC NULLS LAST, uid
+  ORDER BY ${SORT_ORDERS[sort]}
   LIMIT $3
   OFFSET $4
 `;
@@ -57,11 +70,11 @@ function parseLocation(raw: string | undefined): Location {
   return county ? { city: null, county } : { city: trimmed, county: null };
 }
 
-async function queryResults(pool: Pool, location: Location, pageSize: number, offset: number) {
-  const result = await pool.query<Listing>(RESULTS_SQL, [
+async function queryResults(pool: Pool, location: Location, sort: SortKey, offset: number) {
+  const result = await pool.query<Listing>(resultsSql(sort), [
     location.city,
     location.county,
-    pageSize,
+    PAGE_SIZE,
     offset,
   ]);
   return result.rows;
@@ -101,14 +114,15 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   if (!isFromCloudFront(event)) {
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
-  const params = event.queryStringParameters ?? {};
+  const params: SearchParams = event.queryStringParameters ?? {};
   const location = parseLocation(params.location);
   const page = parseAndConstrainPage(params.page);
+  const sort = parseSort(params.sort);
 
   try {
     const pool = await getPool();
     const [listings, rawCount] = await Promise.all([
-      queryResults(pool, location, PAGE_SIZE, (page - 1) * PAGE_SIZE),
+      queryResults(pool, location, sort, (page - 1) * PAGE_SIZE),
       queryTotalResultsCount(pool, location),
     ]);
 

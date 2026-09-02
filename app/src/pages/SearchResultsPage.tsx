@@ -1,4 +1,4 @@
-import { type SubmitEvent, useState } from "react";
+import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
@@ -9,7 +9,7 @@ import content from "@/data/content/en/search-results.json";
 import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchListings";
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
-import { parseSearchQuery } from "@/utils/searchQuery";
+import { parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
@@ -120,6 +120,37 @@ function SearchControls({ location }: { location: string | null }) {
   );
 }
 
+function SortSelect() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = parseSort(searchParams.get("sort"));
+
+  const changeSort = (event: ChangeEvent<HTMLSelectElement>) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("sort", event.target.value);
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  return (
+    <>
+      <label className="usa-sr-only" htmlFor="sort-listings">
+        {content.sort_label}
+      </label>
+      <select
+        className="usa-select margin-bottom-2"
+        id="sort-listings"
+        name="sort"
+        value={sort}
+        onChange={changeSort}
+      >
+        <option value="updated">{content.sort_updated}</option>
+        <option value="price_asc">{content.sort_price_asc}</option>
+        <option value="price_desc">{content.sort_price_desc}</option>
+      </select>
+    </>
+  );
+}
+
 function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
     return (
@@ -142,6 +173,7 @@ function SearchResults({ search }: SearchResultsProps) {
 
   return (
     <>
+      <SortSelect />
       <p className="font-sans-md margin-bottom-3">{resultsLabel(page, total)}</p>
 
       <ul className="usa-card-group">
@@ -157,8 +189,8 @@ function SearchResults({ search }: SearchResultsProps) {
 
 function SearchResultsPage() {
   const [searchParams] = useSearchParams();
-  const { location, page } = parseSearchQuery(searchParams);
-  const search = useSearchListings({ location, page });
+  const { location, page, sort } = parseSearchQuery(searchParams);
+  const search = useSearchListings({ location, page, sort });
 
   return (
     <div>

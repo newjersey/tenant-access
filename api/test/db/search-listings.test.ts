@@ -165,4 +165,27 @@ describe("search-listings against a real database", () => {
       await db.query("ALTER TABLE listings ADD COLUMN website TEXT");
     }
   });
+
+  it("sorts by price ascending with unpriced listings last", async () => {
+    await seedListing(db, makeListing(100, { rent: 2000 }));
+    await seedListing(db, makeListing(200, { rent: null }));
+    await seedListing(db, makeListing(300, { rent: 900 }));
+
+    expect(uids(await search({ sort: "price_asc" }))).toEqual([300, 100, 200]);
+  });
+
+  it("sorts by price descending with unpriced listings still last", async () => {
+    await seedListing(db, makeListing(100, { rent: 2000 }));
+    await seedListing(db, makeListing(200, { rent: null }));
+    await seedListing(db, makeListing(300, { rent: 900 }));
+
+    expect(uids(await search({ sort: "price_desc" }))).toEqual([100, 300, 200]);
+  });
+
+  it("falls back to last updated for an unknown sort", async () => {
+    await seedListing(db, makeListing(100, { lastUpdated: "2026-01-01" }));
+    await seedListing(db, makeListing(200, { lastUpdated: "2026-06-01" }));
+
+    expect(uids(await search())).toEqual([200, 100]);
+  });
 });

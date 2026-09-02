@@ -70,7 +70,7 @@ describe("SearchResultsPage", () => {
 
     expect(await screen.findByText(content.no_results)).toBeInTheDocument();
     expect(searchListingsMock).toHaveBeenCalledWith(
-      { location: "Newark", page: 3 },
+      { location: "Newark", page: 3, sort: "updated" },
       expect.any(AbortSignal),
     );
   });
@@ -264,7 +264,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: "Trenton", page: 1 },
+      { location: "Trenton", page: 1, sort: "updated" },
       expect.any(AbortSignal),
     );
   });
@@ -277,7 +277,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1 },
+      { location: null, page: 1, sort: "updated" },
       expect.any(AbortSignal),
     );
   });
@@ -291,7 +291,22 @@ describe("SearchResultsPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1 },
+      { location: null, page: 1, sort: "updated" },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("requests a price sort when one is chosen", async () => {
+    resolveWithTotal(41, 3);
+    renderAt("/search?location=Newark&page=3");
+
+    const select = await screen.findByLabelText(content.sort_label);
+    expect(select).toHaveValue("updated");
+
+    await userEvent.selectOptions(select, content.sort_price_asc);
+
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: "Newark", page: 1, sort: "price_asc" },
       expect.any(AbortSignal),
     );
   });

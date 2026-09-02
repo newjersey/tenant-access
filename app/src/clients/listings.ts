@@ -56,6 +56,9 @@ export async function searchListings(
   if (query.location) {
     params.push(`location=${encodeURIComponent(query.location)}`);
   }
+  if (query.sort) {
+    params.push(`sort=${encodeURIComponent(query.sort)}`);
+  }
 
   const response = await fetch(`${API_BASE_URL}/listings/search?${params.join("&")}`, { signal });
   if (!response.ok) {
