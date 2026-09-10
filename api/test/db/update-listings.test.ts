@@ -19,9 +19,7 @@ const EVENT = {
   Records: [{ s3: { object: { key: "parsed/2026-09-01.json" } } }],
 } as unknown as S3Event;
 
-const FULL = Array.from({ length: 1200 }, (_, index) =>
-  makeListing(1000 + index, { lastUpdated: "2026-08-30T00:00:00.000Z" }),
-);
+const FULL = Array.from({ length: 1200 }, (_, index) => makeListing(1000 + index));
 
 let db: Client;
 
@@ -37,8 +35,8 @@ beforeEach(async () => {
   await truncateAll(db);
 });
 
-async function runUpdate(listings: Listing[]) {
-  s3Body.json = JSON.stringify(listings);
+async function runUpdate(listings: Listing[], toRefresh: Listing[] = listings) {
+  s3Body.json = JSON.stringify({ uids: listings.map((l) => l.uid), listings: toRefresh });
   const response = await handler(EVENT);
   const body = JSON.parse(response.body) as {
     success: boolean;
@@ -84,12 +82,12 @@ describe("update-listings against a real database", () => {
     expect(await visibleUids()).toHaveLength(1200);
   });
 
-  it("skips unlabelled listings on a second run but still reconciles all of them", async () => {
-    expect(await runUpdate(FULL)).toMatchObject({ seen: 1200, upserted: 1200 });
+  it("upserts only the refresh set while reconciling the whole feed", async () => {
+    await runUpdate(FULL);
 
-    const stale = FULL.map((l) => ({ ...l, lastUpdated: "2026-07-01T00:00:00.000Z" }));
-    const second = await runUpdate(stale);
-    expect(second).toMatchObject({ seen: 1200, upserted: 0, hidden: 0, restored: 0 });
+    // Same feed, but parse says only the first 10 changed.
+    const result = await runUpdate(FULL, FULL.slice(0, 10));
+    expect(result).toMatchObject({ seen: 1200, upserted: 10, hidden: 0, restored: 0 });
     expect(await visibleUids()).toHaveLength(1200);
   });
 });

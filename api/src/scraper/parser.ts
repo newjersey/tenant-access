@@ -27,6 +27,11 @@ export interface Listing {
   depositRange: string | null;
 }
 
+export interface ParsedListings {
+  uids: number[];
+  listings: Listing[];
+}
+
 interface RowInfo {
   uid: number;
   image_id: number | null;

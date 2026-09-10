@@ -1,9 +1,7 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { S3Event } from "aws-lambda";
-import type { Listing } from "../scraper/parser.js";
-import { decodeOnlyRecent, isRecentlyUpdated } from "../scraper/recency.js";
+import type { Listing, ParsedListings } from "../scraper/parser.js";
 import { getClient } from "./db.js";
-import { scrapeDateFromKey } from "./s3-keys.js";
 
 const s3 = new S3Client();
 
@@ -70,7 +68,7 @@ function toValues(listing: Listing): unknown[] {
   ];
 }
 
-// On conflict, refresh every column except the PK and created_at, and bump scraped_at.
+// On conflict, refresh every column except the PK and created_at.
 // scraped_at tracks when we last refreshed a listing's attributes
 const UPDATE_SET = COLUMNS.filter((c) => c !== "uid")
   .map((c) => `${c} = EXCLUDED.${c}`)
@@ -94,15 +92,6 @@ function buildBatchInsert(batch: Listing[]): { sql: string; values: unknown[] } 
   };
 }
 
-/**
- * Postgres rejects an ON CONFLICT DO UPDATE that touches the same row twice in
- * one statement, so a uid repeated inside a batch would fail the whole insert.
- * Last occurrence wins.
- */
-function dedupeByUid(listings: Listing[]): Listing[] {
-  return [...new Map(listings.map((listing) => [listing.uid, listing])).values()];
-}
-
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;
   if (!bucket) throw new Error("BUCKET_NAME is not set");
@@ -118,27 +107,14 @@ export const handler = async (event: S3Event) => {
   const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!object.Body) throw new Error(`Empty body for ${key}`);
 
-  const onlyRecent = decodeOnlyRecent(object.Metadata);
-  const scrapeDate = scrapeDateFromKey(key);
-
-  const listings = dedupeByUid(JSON.parse(await object.Body.transformToString()) as Listing[]);
-  const uids = listings.map((listing) => listing.uid);
-
-  const toRefresh = onlyRecent
-    ? listings.filter((listing) => isRecentlyUpdated(listing.lastUpdated, scrapeDate))
-    : listings;
-
-  console.log(
-    `Loaded ${listings.length} unique listing(s), refreshing ${toRefresh.length} ` +
-      `(onlyRecent=${onlyRecent})`,
-  );
+  const { uids, listings } = JSON.parse(await object.Body.transformToString()) as ParsedListings;
+  console.log(`Loaded ${uids.length} uid(s), ${listings.length} to refresh`);
 
   let client: Awaited<ReturnType<typeof getClient>> | undefined;
 
   try {
     client = await getClient();
 
-    // Sanity-check against what we are already serving before touching anything.
     const previous = await client.query<{ count: string }>(
       "SELECT COUNT(*) AS count FROM listings WHERE shown_to_public",
     );
@@ -148,26 +124,24 @@ export const handler = async (event: S3Event) => {
       Math.floor(previousCount * MIN_FRACTION_OF_PREVIOUS),
     );
 
-    if (previousCount > 0 && listings.length < floor) {
+    if (previousCount > 0 && uids.length < floor) {
       // Leave the table untouched: yesterday's listings are better than none.
       console.error(
-        `Refusing to apply ${listings.length} listing(s); floor is ${floor} ` +
+        `Refusing to apply ${uids.length} listing(s); floor is ${floor} ` +
           `(previously showing ${previousCount})`,
       );
-      throw new Error(`Listing count ${listings.length} below safety floor ${floor}`);
+      throw new Error(`Listing count ${uids.length} below safety floor ${floor}`);
     }
 
     await client.query("BEGIN");
 
-    for (let i = 0; i < toRefresh.length; i += BATCH_SIZE) {
-      const batch = toRefresh.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < listings.length; i += BATCH_SIZE) {
+      const batch = listings.slice(i, i + BATCH_SIZE);
       const { sql, values } = buildBatchInsert(batch);
       await client.query(sql, values);
-      console.log(`Upserted ${i + batch.length}/${toRefresh.length}`);
+      console.log(`Upserted ${i + batch.length}/${listings.length}`);
     }
 
-    // Reconcile visibility from the authoritative uid list. Idempotent, and
-    // independent of clock skew or of which rows this run happened to touch.
     const hidden = await client.query(
       "UPDATE listings SET shown_to_public = false WHERE uid <> ALL($1::int[]) AND shown_to_public",
       [uids],
@@ -180,15 +154,17 @@ export const handler = async (event: S3Event) => {
     await client.query("COMMIT");
 
     console.log(
-      `Refreshed ${toRefresh.length} of ${listings.length} seen, ` +
+      `Refreshed ${listings.length} of ${uids.length} seen, ` +
         `hid ${hidden.rowCount}, restored ${shown.rowCount}`,
     );
+
+    // TODO: trigger jobs to fetch photos and details for the listings
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        seen: listings.length,
-        upserted: toRefresh.length,
+        seen: uids.length,
+        upserted: listings.length,
         hidden: hidden.rowCount,
         restored: shown.rowCount,
       }),

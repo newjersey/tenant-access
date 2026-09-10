@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { S3Event } from "aws-lambda";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ParsedListings } from "../scraper/parser.js";
 import { handler } from "./parse-listings.js";
 
 const { s3SendMock } = vi.hoisted(() => ({ s3SendMock: vi.fn() }));
@@ -31,11 +32,10 @@ function event(key = "raw/2026-07-24/listings.html"): S3Event {
   return { Records: [{ s3: { object: { key } } }] } as unknown as S3Event;
 }
 
-/** Answer GetObject with html; accept the PutObject. */
 function serve(html: string, metadata?: Record<string, string>) {
   s3SendMock.mockImplementation((command: { type: string }) =>
     command.type === "get"
-      ? Promise.resolve({ Body: { transformToString: async () => html }, Metadata: metadata  })
+      ? Promise.resolve({ Body: { transformToString: async () => html }, Metadata: metadata })
       : Promise.resolve({}),
   );
 }
@@ -68,7 +68,9 @@ describe("parse-listings handler", () => {
 
     const [listingsPut] = puts();
     expect(listingsPut.input.Key).toBe("parsed/2026-07-24/listings.json");
-    expect(result.parsed).toEqual([{ key: "parsed/2026-07-24/listings.json", count: 4, onlyRecent: true }]);
+    expect(result.parsed).toEqual([
+      { key: "parsed/2026-07-24/listings.json", count: 4, refresh: 3 },
+    ]);
   });
 
   it("throws when the key has no date", async () => {
@@ -82,12 +84,24 @@ describe("parse-listings handler", () => {
     expect(puts()).toHaveLength(0);
   });
 
-  it("carries the raw object's onlyRecent flag onto the parsed json", async () => {
+  it("carries every uid but only the recently labelled listings", async () => {
+    await handler(event());
+
+    const envelope = JSON.parse(puts()[0].input.Body) as ParsedListings;
+    expect(envelope.uids).toEqual([1207170, 1002997, 1388803, 1388536]);
+    // 1388536 is "Updated This Month", which resolves to 2026-07-01 — outside the window.
+    expect(envelope.listings.map((l) => l.uid)).toEqual([1207170, 1002997, 1388803]);
+  });
+
+  it("carries every listing when the scrape asked for a full sweep", async () => {
     serve(sampleHtml, { "only-recent": "false" });
 
     const result = await handler(event());
 
-    expect(puts()[0].input.Metadata).toEqual({ "only-recent": "false" });
-    expect(result.parsed[0].onlyRecent).toBe(false);
+    const envelope = JSON.parse(puts()[0].input.Body) as ParsedListings;
+    expect(envelope.uids).toHaveLength(4);
+    // 1388536 is "Updated This Month", which resolves to 2026-07-01 — outside the window.
+    expect(envelope.listings).toHaveLength(4);
+    expect(result.parsed[0].refresh).toBe(4);
   });
 });

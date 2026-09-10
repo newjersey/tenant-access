@@ -1,10 +1,25 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { S3Event } from "aws-lambda";
-import { parseListings } from "../scraper/parser.js";
-import { decodeOnlyRecent, encodeOnlyRecent } from "../scraper/recency.js";
-import { dateFromKey } from "./s3-keys.js";
+import { type Listing, type ParsedListings, parseListings } from "../scraper/parser.js";
+import { decodeOnlyRecent, isRecentlyUpdated } from "../scraper/recency.js";
 
 const s3 = new S3Client();
+
+function dateFromKey(key: string): string {
+  const match = key.match(/(\d{4}-\d{2}-\d{2})/);
+  if (!match) throw new Error(`No date found in key: ${key}`);
+  return match[1];
+}
+
+// put together ALL uids and only the listings to actually update
+function toEnvelope(listings: Listing[], scrapeDate: Date, onlyRecent: boolean): ParsedListings {
+  return {
+    uids: listings.map((listing) => listing.uid),
+    listings: onlyRecent
+      ? listings.filter((listing) => isRecentlyUpdated(listing.lastUpdated, scrapeDate))
+      : listings,
+  };
+}
 
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;
@@ -25,18 +40,18 @@ export const handler = async (event: S3Event) => {
     const onlyRecent = decodeOnlyRecent(object.Metadata);
     const html = await object.Body.transformToString();
 
-    // Relative timestamps ("just updated", "updated this week") resolve against
-    // the scrape date, so use the date in the key rather than today. Reparsing
-    // an older raw file then yields the same output it did originally.
-    const listings = parseListings(html, new Date(`${date}T00:00:00Z`));
+    const scrapeDate = new Date(`${date}T00:00:00Z`);
+    const parsed = parseListings(html, scrapeDate);
 
-    if (listings.length === 0) {
+    if (parsed.length === 0) {
       throw new Error(`Parsed 0 listings from ${rawKey}; refusing to write an empty result`);
     }
 
+    const envelope = toEnvelope(parsed, scrapeDate, onlyRecent);
+
     console.log(
-      `Parsed ${listings.length} listing(s) from ${(html.length / 1e6).toFixed(1)}MB ` +
-        `(onlyRecent=${onlyRecent})`,
+      `Parsed ${envelope.uids.length} listing(s) from ${(html.length / 1e6).toFixed(1)}MB, ` +
+        `${envelope.listings.length} to refresh (onlyRecent=${onlyRecent})`,
     );
 
     const listingsKey = `${parsedPrefix}${date}/listings.json`;
@@ -44,14 +59,17 @@ export const handler = async (event: S3Event) => {
       new PutObjectCommand({
         Bucket: bucket,
         Key: listingsKey,
-        Body: JSON.stringify(listings),
+        Body: JSON.stringify(envelope),
         ContentType: "application/json",
-        Metadata: encodeOnlyRecent(onlyRecent),
       }),
     );
 
     console.log(`Wrote s3://${bucket}/${listingsKey}`);
-    results.push({ key: listingsKey, count: listings.length, onlyRecent });
+    results.push({
+      key: listingsKey,
+      count: envelope.uids.length,
+      refresh: envelope.listings.length,
+    });
   }
 
   return { parsed: results };

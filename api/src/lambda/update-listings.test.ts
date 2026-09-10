@@ -22,11 +22,8 @@ vi.mock("@aws-sdk/client-s3", () => ({
 }));
 
 // Only uid is read by the assertions; the rest bind as undefined against a mock.
-function listings(count: number, lastUpdated = "2026-08-18T00:00:00.000Z"): Listing[] {
-  return Array.from(
-    { length: count },
-    (_, i) => ({ uid: 10_000 + i, lastUpdated }) as unknown as Listing,
-  );
+function listings(count: number): Listing[] {
+  return Array.from({ length: count }, (_, i) => ({ uid: 10_000 + i }) as unknown as Listing);
 }
 
 function event(): S3Event {
@@ -35,10 +32,13 @@ function event(): S3Event {
   } as unknown as S3Event;
 }
 
-function serve(rows: Listing[], metadata?: Record<string, string>) {
+ function serve(seen: number, refresh = seen) {
+  const all = listings(seen);
   s3SendMock.mockResolvedValue({
-    Body: { transformToString: async () => JSON.stringify(rows) },
-    Metadata: metadata,
+    Body: {
+      transformToString: async () =>
+        JSON.stringify({ uids: all.map((l) => l.uid), listings: all.slice(0, refresh) }),
+    },
   });
 }
 
@@ -63,7 +63,7 @@ describe("update-listings handler", () => {
     getClientMock.mockResolvedValue({ query: queryMock, end: endMock });
     endMock.mockResolvedValue(undefined);
     stubQueries();
-    serve(listings(2));
+    serve(2);
   });
 
   it("throws when BUCKET_NAME is unset", async () => {
@@ -95,7 +95,7 @@ describe("update-listings handler", () => {
   });
 
   it("refuses a degraded run without writing anything", async () => {
-    serve(listings(500));
+    serve(500);
     stubQueries({ shown: 3000 });
 
     await expect(handler(event())).rejects.toThrow(/below safety floor 2400/);
@@ -111,14 +111,27 @@ describe("update-listings handler", () => {
     expect(endMock).toHaveBeenCalledOnce();
   });
 
-  it("refreshes only the listings the site labelled inside the window", async () => {
-    serve([
-      { uid: 10_000, lastUpdated: "2026-08-14T00:00:00.000Z" },
-      { uid: 10_001, lastUpdated: "2026-07-01T00:00:00.000Z" },
-    ] as unknown as Listing[]);
+  it("reconciles against every uid while upserting only the refresh set", async () => {
+    serve(2, 1);
 
     const result = await handler(event());
 
     expect(JSON.parse(result.body)).toMatchObject({ seen: 2, upserted: 1 });
+    expect(queryMock).toHaveBeenCalledWith(expect.stringContaining("shown_to_public = false"), [
+      [10_000, 10_001],
+    ]);
+  });
+
+  it("commits without an insert when nothing needs refreshing", async () => {
+    serve(2, 0);
+
+    const result = await handler(event());
+
+    expect(JSON.parse(result.body)).toMatchObject({ seen: 2, upserted: 0 });
+    expect(queryMock).not.toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO listings"),
+      expect.anything(),
+    );
+    expect(queryMock).toHaveBeenCalledWith("COMMIT");
   });
 });
