@@ -19,7 +19,9 @@ const EVENT = {
   Records: [{ s3: { object: { key: "parsed/2026-09-01.json" } } }],
 } as unknown as S3Event;
 
-const FULL = Array.from({ length: 1200 }, (_, index) => makeListing(1000 + index));
+const FULL = Array.from({ length: 1200 }, (_, index) =>
+  makeListing(1000 + index, { lastUpdated: "2026-08-30T00:00:00.000Z" }),
+);
 
 let db: Client;
 
@@ -40,6 +42,7 @@ async function runUpdate(listings: Listing[]) {
   const response = await handler(EVENT);
   const body = JSON.parse(response.body) as {
     success: boolean;
+    seen?: number;
     upserted?: number;
     hidden?: number;
     restored?: number;
@@ -78,6 +81,15 @@ describe("update-listings against a real database", () => {
     await expect(runUpdate(FULL.slice(0, 500))).rejects.toThrow("below safety floor");
 
     // The rollback held: yesterday's catalog is still being served.
+    expect(await visibleUids()).toHaveLength(1200);
+  });
+
+  it("skips unlabelled listings on a second run but still reconciles all of them", async () => {
+    expect(await runUpdate(FULL)).toMatchObject({ seen: 1200, upserted: 1200 });
+
+    const stale = FULL.map((l) => ({ ...l, lastUpdated: "2026-07-01T00:00:00.000Z" }));
+    const second = await runUpdate(stale);
+    expect(second).toMatchObject({ seen: 1200, upserted: 0, hidden: 0, restored: 0 });
     expect(await visibleUids()).toHaveLength(1200);
   });
 });

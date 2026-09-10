@@ -2,15 +2,9 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import type { S3Event } from "aws-lambda";
 import { parseListings } from "../scraper/parser.js";
 import { decodeOnlyRecent, encodeOnlyRecent } from "../scraper/recency.js";
+import { dateFromKey } from "./s3-keys.js";
 
 const s3 = new S3Client();
-
-/** Pull the YYYY-MM-DD out of `raw/2026-08-18/listings.html`. */
-function dateFromKey(key: string): string {
-  const match = key.match(/(\d{4}-\d{2}-\d{2})/);
-  if (!match) throw new Error(`No date found in key: ${key}`);
-  return match[1];
-}
 
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;

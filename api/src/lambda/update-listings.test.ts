@@ -22,8 +22,11 @@ vi.mock("@aws-sdk/client-s3", () => ({
 }));
 
 // Only uid is read by the assertions; the rest bind as undefined against a mock.
-function listings(count: number): Listing[] {
-  return Array.from({ length: count }, (_, i) => ({ uid: 10_000 + i }) as unknown as Listing);
+function listings(count: number, lastUpdated = "2026-08-18T00:00:00.000Z"): Listing[] {
+  return Array.from(
+    { length: count },
+    (_, i) => ({ uid: 10_000 + i, lastUpdated }) as unknown as Listing,
+  );
 }
 
 function event(): S3Event {
@@ -32,18 +35,22 @@ function event(): S3Event {
   } as unknown as S3Event;
 }
 
-function serve(rows: Listing[]) {
+function serve(rows: Listing[], metadata?: Record<string, string>) {
   s3SendMock.mockResolvedValue({
     Body: { transformToString: async () => JSON.stringify(rows) },
+    Metadata: metadata,
   });
 }
 
-function shownCount(count: number) {
-  queryMock.mockImplementation((sql: string) =>
-    String(sql).startsWith("SELECT COUNT(*)")
-      ? Promise.resolve({ rows: [{ count: String(count) }] })
-      : Promise.resolve({ rowCount: 0 }),
-  );
+function stubQueries({ shown = 0, failInsert = false } = {}) {
+  queryMock.mockImplementation((sql: string) => {
+    const text = String(sql);
+    if (text.startsWith("INSERT") && failInsert) return Promise.reject(new Error("boom"));
+    if (text.startsWith("SELECT COUNT(*)")) {
+      return Promise.resolve({ rows: [{ count: String(shown) }] });
+    }
+    return Promise.resolve({ rowCount: 0 });
+  });
 }
 
 describe("update-listings handler", () => {
@@ -55,7 +62,7 @@ describe("update-listings handler", () => {
     process.env.BUCKET_NAME = "test-bucket";
     getClientMock.mockResolvedValue({ query: queryMock, end: endMock });
     endMock.mockResolvedValue(undefined);
-    shownCount(0);
+    stubQueries();
     serve(listings(2));
   });
 
@@ -89,7 +96,7 @@ describe("update-listings handler", () => {
 
   it("refuses a degraded run without writing anything", async () => {
     serve(listings(500));
-    shownCount(3000);
+    stubQueries({ shown: 3000 });
 
     await expect(handler(event())).rejects.toThrow(/below safety floor 2400/);
     expect(queryMock).not.toHaveBeenCalledWith("BEGIN");
@@ -97,16 +104,21 @@ describe("update-listings handler", () => {
   });
 
   it("rolls back when an insert fails", async () => {
-    queryMock.mockImplementation((sql: string) => {
-      if (String(sql).startsWith("SELECT COUNT(*)")) {
-        return Promise.resolve({ rows: [{ count: "0" }] });
-      }
-      if (String(sql).startsWith("INSERT")) return Promise.reject(new Error("boom"));
-      return Promise.resolve({ rowCount: 0 });
-    });
+    stubQueries({ failInsert: true });
 
     await expect(handler(event())).rejects.toThrow("boom");
     expect(queryMock).toHaveBeenCalledWith("ROLLBACK");
     expect(endMock).toHaveBeenCalledOnce();
+  });
+
+  it("refreshes only the listings the site labelled inside the window", async () => {
+    serve([
+      { uid: 10_000, lastUpdated: "2026-08-14T00:00:00.000Z" },
+      { uid: 10_001, lastUpdated: "2026-07-01T00:00:00.000Z" },
+    ] as unknown as Listing[]);
+
+    const result = await handler(event());
+
+    expect(JSON.parse(result.body)).toMatchObject({ seen: 2, upserted: 1 });
   });
 });

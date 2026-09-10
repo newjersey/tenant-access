@@ -1,7 +1,9 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { S3Event } from "aws-lambda";
 import type { Listing } from "../scraper/parser.js";
+import { decodeOnlyRecent, isRecentlyUpdated } from "../scraper/recency.js";
 import { getClient } from "./db.js";
+import { scrapeDateFromKey } from "./s3-keys.js";
 
 const s3 = new S3Client();
 
@@ -69,6 +71,7 @@ function toValues(listing: Listing): unknown[] {
 }
 
 // On conflict, refresh every column except the PK and created_at, and bump scraped_at.
+// scraped_at tracks when we last refreshed a listing's attributes
 const UPDATE_SET = COLUMNS.filter((c) => c !== "uid")
   .map((c) => `${c} = EXCLUDED.${c}`)
   .concat("scraped_at = NOW()")
@@ -115,9 +118,20 @@ export const handler = async (event: S3Event) => {
   const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!object.Body) throw new Error(`Empty body for ${key}`);
 
+  const onlyRecent = decodeOnlyRecent(object.Metadata);
+  const scrapeDate = scrapeDateFromKey(key);
+
   const listings = dedupeByUid(JSON.parse(await object.Body.transformToString()) as Listing[]);
   const uids = listings.map((listing) => listing.uid);
-  console.log(`Loaded ${listings.length} unique listing(s)`);
+
+  const toRefresh = onlyRecent
+    ? listings.filter((listing) => isRecentlyUpdated(listing.lastUpdated, scrapeDate))
+    : listings;
+
+  console.log(
+    `Loaded ${listings.length} unique listing(s), refreshing ${toRefresh.length} ` +
+      `(onlyRecent=${onlyRecent})`,
+  );
 
   let client: Awaited<ReturnType<typeof getClient>> | undefined;
 
@@ -145,11 +159,11 @@ export const handler = async (event: S3Event) => {
 
     await client.query("BEGIN");
 
-    for (let i = 0; i < listings.length; i += BATCH_SIZE) {
-      const batch = listings.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < toRefresh.length; i += BATCH_SIZE) {
+      const batch = toRefresh.slice(i, i + BATCH_SIZE);
       const { sql, values } = buildBatchInsert(batch);
       await client.query(sql, values);
-      console.log(`Upserted ${i + batch.length}/${listings.length}`);
+      console.log(`Upserted ${i + batch.length}/${toRefresh.length}`);
     }
 
     // Reconcile visibility from the authoritative uid list. Idempotent, and
@@ -165,12 +179,16 @@ export const handler = async (event: S3Event) => {
 
     await client.query("COMMIT");
 
-    console.log(`Upserted ${listings.length}, hid ${hidden.rowCount}, restored ${shown.rowCount}`);
+    console.log(
+      `Refreshed ${toRefresh.length} of ${listings.length} seen, ` +
+        `hid ${hidden.rowCount}, restored ${shown.rowCount}`,
+    );
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        upserted: listings.length,
+        seen: listings.length,
+        upserted: toRefresh.length,
         hidden: hidden.rowCount,
         restored: shown.rowCount,
       }),
