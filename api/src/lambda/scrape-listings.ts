@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
 import { S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import { encodeOnlyRecent, readOnlyRecent } from "../scraper/recency.js";
 import { SEARCH_URL } from "../scraper/source.js";
 
 const s3 = new S3Client();
@@ -23,13 +24,18 @@ function easternDate(now: Date): string {
   }).format(now);
 }
 
-export const handler = async () => {
+export interface ScrapeEvent {
+  onlyRecent?: boolean;
+}
+
+export const handler = async (event: ScrapeEvent = {}) => {
   const bucket = process.env.BUCKET_NAME;
   if (!bucket) throw new Error("BUCKET_NAME is not set");
 
+  const onlyRecent = readOnlyRecent(event.onlyRecent);
   const key = `${process.env.RAW_PREFIX ?? "raw/"}${easternDate(new Date())}/listings.html`;
 
-  console.log(`Fetching ${SEARCH_URL}`);
+  console.log(`Fetching ${SEARCH_URL} (onlyRecent=${onlyRecent})`);
   const response = await fetch(SEARCH_URL, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     headers: {
@@ -59,10 +65,11 @@ export const handler = async () => {
       Key: key,
       Body: Readable.fromWeb(response.body),
       ContentType: "text/html",
+      Metadata: encodeOnlyRecent(onlyRecent),
     },
   });
 
   await upload.done();
 
-  return { bucket, key };
+  return { bucket, key, onlyRecent };
 };

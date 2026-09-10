@@ -1,6 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { S3Event } from "aws-lambda";
 import { parseListings } from "../scraper/parser.js";
+import { decodeOnlyRecent, encodeOnlyRecent } from "../scraper/recency.js";
 
 const s3 = new S3Client();
 
@@ -27,6 +28,7 @@ export const handler = async (event: S3Event) => {
     const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: rawKey }));
     if (!object.Body) throw new Error(`Empty body for ${rawKey}`);
 
+    const onlyRecent = decodeOnlyRecent(object.Metadata);
     const html = await object.Body.transformToString();
 
     // Relative timestamps ("just updated", "updated this week") resolve against
@@ -38,7 +40,10 @@ export const handler = async (event: S3Event) => {
       throw new Error(`Parsed 0 listings from ${rawKey}; refusing to write an empty result`);
     }
 
-    console.log(`Parsed ${listings.length} listing(s) from ${(html.length / 1e6).toFixed(1)}MB`);
+    console.log(
+      `Parsed ${listings.length} listing(s) from ${(html.length / 1e6).toFixed(1)}MB ` +
+        `(onlyRecent=${onlyRecent})`,
+    );
 
     const listingsKey = `${parsedPrefix}${date}/listings.json`;
     await s3.send(
@@ -47,11 +52,12 @@ export const handler = async (event: S3Event) => {
         Key: listingsKey,
         Body: JSON.stringify(listings),
         ContentType: "application/json",
+        Metadata: encodeOnlyRecent(onlyRecent),
       }),
     );
 
     console.log(`Wrote s3://${bucket}/${listingsKey}`);
-    results.push({ key: listingsKey, count: listings.length });
+    results.push({ key: listingsKey, count: listings.length, onlyRecent });
   }
 
   return { parsed: results };

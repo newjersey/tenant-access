@@ -17,7 +17,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
   },
   PutObjectCommand: class {
     readonly type = "put";
-    constructor(readonly input: { Bucket: string; Key: string; Body: string }) {}
+    constructor(readonly input: { Bucket: string; Key: string; Body: string; Metadata?: Record<string, string> }) {}
   },
 }));
 
@@ -32,10 +32,10 @@ function event(key = "raw/2026-07-24/listings.html"): S3Event {
 }
 
 /** Answer GetObject with html; accept the PutObject. */
-function serve(html: string) {
+function serve(html: string, metadata?: Record<string, string>) {
   s3SendMock.mockImplementation((command: { type: string }) =>
     command.type === "get"
-      ? Promise.resolve({ Body: { transformToString: async () => html } })
+      ? Promise.resolve({ Body: { transformToString: async () => html }, Metadata: metadata  })
       : Promise.resolve({}),
   );
 }
@@ -68,7 +68,7 @@ describe("parse-listings handler", () => {
 
     const [listingsPut] = puts();
     expect(listingsPut.input.Key).toBe("parsed/2026-07-24/listings.json");
-    expect(result.parsed).toEqual([{ key: "parsed/2026-07-24/listings.json", count: 4 }]);
+    expect(result.parsed).toEqual([{ key: "parsed/2026-07-24/listings.json", count: 4, onlyRecent: true }]);
   });
 
   it("throws when the key has no date", async () => {
@@ -80,5 +80,14 @@ describe("parse-listings handler", () => {
 
     await expect(handler(event())).rejects.toThrow("Parsed 0 listings");
     expect(puts()).toHaveLength(0);
+  });
+
+  it("carries the raw object's onlyRecent flag onto the parsed json", async () => {
+    serve(sampleHtml, { "only-recent": "false" });
+
+    const result = await handler(event());
+
+    expect(puts()[0].input.Metadata).toEqual({ "only-recent": "false" });
+    expect(result.parsed[0].onlyRecent).toBe(false);
   });
 });

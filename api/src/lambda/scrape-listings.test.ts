@@ -70,7 +70,7 @@ describe("scrape-listings handler", () => {
       }),
     );
     expect(uploadDoneMock).toHaveBeenCalledOnce();
-    expect(result).toEqual({ bucket: "test-bucket", key: "raw/2026-08-18/listings.html" });
+    expect(result).toEqual({ bucket: "test-bucket", key: "raw/2026-08-18/listings.html", onlyRecent: true });
   });
 
   it("throws without uploading when the fetch fails", async () => {
@@ -85,5 +85,26 @@ describe("scrape-listings handler", () => {
 
     await expect(handler()).rejects.toThrow("Response only 4096 bytes");
     expect(uploadCtorMock).not.toHaveBeenCalled();
+  });
+
+  it("defaults to only-recent and records that on the raw object", async () => {
+    await handler();
+
+    expect(uploadCtorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ Metadata: { "only-recent": "true" } }),
+      }),
+    );
+  });
+
+  it("records a full sweep when invoked with onlyRecent false", async () => {
+    const result = await handler({ onlyRecent: false });
+
+    expect(uploadCtorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ Metadata: { "only-recent": "false" } }),
+      }),
+    );
+    expect(result.onlyRecent).toBe(false);
   });
 });

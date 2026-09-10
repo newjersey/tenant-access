@@ -417,7 +417,9 @@ export class TenantAccessStack extends cdk.Stack {
         month: "*",
         timeZone: cdk.TimeZone.AMERICA_NEW_YORK,
       }),
-      target: new schedulerTargets.LambdaInvoke(scrapeLambda),
+      target: new schedulerTargets.LambdaInvoke(scrapeLambda, {
+        input: scheduler.ScheduleTargetInput.fromObject({ onlyRecent: true }),
+      }),
       description: "Nightly myhousingsearch.com scrape at midnight Eastern",
     });
 
