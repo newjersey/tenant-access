@@ -9,24 +9,27 @@ const FIXTURE = readFileSync(
   "utf-8",
 );
 
-const { end, getClient, storePhotos, writeListingDetails } = vi.hoisted(() => {
-  const end = vi.fn(async () => {});
-  return {
-    end,
-    getClient: vi.fn(async () => ({ end })),
-    storePhotos: vi.fn(async () => ["photos/1388803/3010129.jpg"]),
-    writeListingDetails: vi.fn(async () => {}),
-  };
-});
+const { puts, storePhotos } = vi.hoisted(() => ({
+  puts: [] as Record<string, unknown>[],
+  storePhotos: vi.fn(async () => ["photos/1388803/3010129.jpg"]),
+}));
 
-vi.mock("@aws-sdk/client-s3", () => ({ S3Client: class {} }));
-vi.mock("./db.js", () => ({ getClient }));
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: class {
+    send = async (command: { input: Record<string, unknown> }) => {
+      puts.push(command.input);
+      return {};
+    };
+  },
+  PutObjectCommand: class {
+    constructor(public input: Record<string, unknown>) {}
+  },
+}));
 vi.mock("./photo-store.js", () => ({ storePhotos }));
-vi.mock("./write-details.js", () => ({ writeListingDetails }));
 
 const { handler } = await import("./scrape-details.js");
 
-// a heading we have never seen, and no availability line at all
+// a heading we have never seen, and no availability line
 const SURPRISING = `<html><body>
   <div class="tabularSection">
     <div class="tabularHeading">Specialized Information</div>
@@ -57,7 +60,10 @@ function stubFetch(html: string, ok = true) {
 }
 
 beforeEach(() => {
+  process.env.BUCKET_NAME = "data";
   process.env.IMAGES_BUCKET_NAME = "images";
+  delete process.env.DETAILS_PREFIX;
+  puts.length = 0;
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -68,7 +74,7 @@ afterEach(() => {
 });
 
 describe("scrape-details handler", () => {
-  it("hands the parsed page to the photo store and then to the database", async () => {
+  it("uploads the photos, then leaves the details JSON in the bucket", async () => {
     stubFetch(FIXTURE);
 
     expect(await handler(event(1388803))).toEqual({ scraped: 1 });
@@ -77,12 +83,26 @@ describe("scrape-details handler", () => {
       "https://www.myhousingsearch.com/WebFile?id=3010129",
       "https://www.myhousingsearch.com/WebFile?id=3010132",
     ]);
-    expect(writeListingDetails).toHaveBeenCalledWith(
-      { end },
-      expect.objectContaining({ uid: 1388803, availability: "Available" }),
-      ["photos/1388803/3010129.jpg"],
-    );
-    expect(end).toHaveBeenCalledOnce();
+
+    expect(puts).toHaveLength(1);
+    expect(puts[0]).toMatchObject({
+      Bucket: "data",
+      Key: "details/1388803.json",
+      ContentType: "application/json",
+    });
+    expect(JSON.parse(puts[0].Body as string)).toMatchObject({
+      photoKeys: ["photos/1388803/3010129.jpg"],
+      details: { uid: 1388803, availability: "Available" },
+    });
+  });
+
+  it("honours a prefix override", async () => {
+    process.env.DETAILS_PREFIX = "elsewhere/";
+    stubFetch(FIXTURE);
+
+    await handler(event(1388803));
+
+    expect(puts[0].Key).toBe("elsewhere/1388803.json");
   });
 
   it("warns about anything on the page we did not anticipate", async () => {
@@ -95,11 +115,26 @@ describe("scrape-details handler", () => {
     expect(warn).toHaveBeenCalledWith("uid 42: no availability found");
   });
 
-  it("releases the connection even when the listing fails", async () => {
+  it("writes nothing when the origin refuses the page", async () => {
     stubFetch("", false);
 
     await expect(handler(event(1388803))).rejects.toThrow("Detail fetch failed: 503");
-    expect(end).toHaveBeenCalledOnce();
+    expect(puts).toEqual([]);
+  });
+
+  it("reports the underlying error, not just 'fetch failed'", async () => {
+    const cause = Object.assign(new Error("connect ETIMEDOUT 10.143.32.9:443"), {
+      code: "ETIMEDOUT",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("fetch failed", { cause });
+      }),
+    );
+    await expect(handler(event(1388803))).rejects.toThrow(
+      "TypeError: fetch failed <- Error(ETIMEDOUT): connect ETIMEDOUT 10.143.32.9:443",
+    );
   });
 
   it("rejects a message body that is not a uid", async () => {
@@ -111,10 +146,11 @@ describe("scrape-details handler", () => {
     await expect(handler(malformed)).rejects.toThrow('Expected {"uid": <integer>} in msg-bad');
   });
 
-  it("refuses to run before it has a bucket to upload to", async () => {
+  it("refuses to run before it knows where to put anything", async () => {
     process.env.IMAGES_BUCKET_NAME = "";
+    stubFetch(FIXTURE);
 
     await expect(handler(event(1388803))).rejects.toThrow("IMAGES_BUCKET_NAME is not set");
-    expect(getClient).not.toHaveBeenCalled();
+    expect(puts).toEqual([]);
   });
 });

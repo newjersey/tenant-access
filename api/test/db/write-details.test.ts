@@ -87,7 +87,6 @@ describe("writeListingDetails against a real database", () => {
     await writeListingDetails(db, details(401275), []);
     await writeListingDetails(db, details(1229408), PHOTO_KEYS);
 
-    // Containment is what the GIN index serves; ->> would work but scan.
     const { rows } = await db.query(
       `SELECT uid FROM listings
         WHERE legacy_details @> '{"sections":{"Parking and Entry":{"Parking Type":"On Street"}}}'`,

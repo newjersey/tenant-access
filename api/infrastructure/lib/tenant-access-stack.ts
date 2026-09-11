@@ -240,20 +240,16 @@ export class TenantAccessStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_24_X,
       entry: "src/lambda/scrape-details.ts",
       handler: "handler",
-      vpc,
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-      },
       timeout: cdk.Duration.minutes(3),
       memorySize: 512,
       environment: {
-        DB_HOST: database.instanceEndpoint.hostname,
-        DB_SECRET_ARN: dbCredentials.secretArn,
+        BUCKET_NAME: dataBucket.bucketName,
+        DETAILS_PREFIX: "details/",
         IMAGES_BUCKET_NAME: imagesBucket.bucketName,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
-        externalModules: ["aws-sdk", "pg-native"],
+        nodeModules: ["@aws-sdk/client-s3"],
+        externalModules: ["aws-sdk"],
       },
     });
 
@@ -265,8 +261,33 @@ export class TenantAccessStack extends cdk.Stack {
     );
 
     imagesBucket.grantPut(scrapeDetailsLambda, "photos/*");
-    database.connections.allowFrom(scrapeDetailsLambda, ec2.Port.tcp(5432));
-    dbCredentials.grantRead(scrapeDetailsLambda);
+    dataBucket.grantPut(scrapeDetailsLambda, "details/*");
+
+    const updateDetailsLambda = new NodejsFunction(this, "UpdateDetailsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/update-details.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(1),
+      memorySize: 512,
+      reservedConcurrentExecutions: 5,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    dataBucket.grantRead(updateDetailsLambda, "details/*");
+    database.connections.allowFrom(updateDetailsLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(updateDetailsLambda);
 
     detailsQueue.grantSendMessages(updateLambda);
     updateLambda.addEnvironment("DETAILS_QUEUE_URL", detailsQueue.queueUrl);
@@ -489,6 +510,7 @@ export class TenantAccessStack extends cdk.Stack {
 
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
+    // todo: once stable, add scrapeDetailsLambda and updateDetailsLambda
     for (const fn of [scrapeLambda, parseLambda, updateLambda]) {
       fn.configureAsyncInvoke({ onFailure: alertsDestination });
     }
@@ -503,6 +525,12 @@ export class TenantAccessStack extends cdk.Stack {
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(updateLambda),
       { prefix: "parsed/", suffix: "listings.json" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(updateDetailsLambda),
+      { prefix: "details/", suffix: ".json" },
     );
 
     new scheduler.Schedule(this, "NightlyScrapeSchedule", {

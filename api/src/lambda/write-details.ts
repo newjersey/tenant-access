@@ -1,6 +1,11 @@
 import type { Client } from "pg";
 import type { ListingDetails } from "../scraper/detail-parser.js";
 
+export interface ScrapedDetails {
+  details: ListingDetails;
+  photoKeys: string[];
+}
+
 const SQL = `UPDATE listings
   SET legacy_details = $2::jsonb,
     photo_keys = $3::text[],
