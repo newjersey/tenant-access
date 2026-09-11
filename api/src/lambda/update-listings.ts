@@ -1,8 +1,8 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { SendMessageBatchCommand, SQSClient } from "@aws-sdk/client-sqs";
 import type { S3Event } from "aws-lambda";
-import type { Listing } from "../scraper/parser.js";
 import type { Client } from "pg";
+import type { Listing } from "../scraper/parser.js";
 import { getClient } from "./db.js";
 
 const s3 = new S3Client();
@@ -126,7 +126,6 @@ async function enqueueDetailScrapes(client: Client, queueUrl: string): Promise<n
   console.log(`Enqueued ${rows.length - failed}/${rows.length} listing(s) for detail scraping`);
   return rows.length - failed;
 }
-
 
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;

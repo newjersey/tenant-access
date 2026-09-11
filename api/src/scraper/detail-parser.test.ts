@@ -197,14 +197,18 @@ describe("detail-parser", () => {
   });
 
   it("tolerates a label whose value is a string on one listing and a list on another", () => {
-    expect(parseListingDetail(AVAILABLE, 1388803).sections["Kitchen & Bath Accessibility"].Bathroom)
-      .toBe("Standard");
-    expect(parseListingDetail(SENIOR, 68240).sections["Kitchen & Bath Accessibility"].Bathroom)
-      .toEqual(["Grab Bars"]);
-    expect(parseListingDetail(NO_PHOTOS, 401275).sections["Nearby Services"]["Also Nearby"])
-      .toBe("Recreational Facilities");
-    expect(parseListingDetail(NO_UTILITIES, 1229408).sections["Nearby Services"]["Also Nearby"])
-      .toEqual(["Sidewalks", "Emergency Exits", "Work-out Room", "Clubhouse"]);
+    expect(
+      parseListingDetail(AVAILABLE, 1388803).sections["Kitchen & Bath Accessibility"].Bathroom,
+    ).toBe("Standard");
+    expect(
+      parseListingDetail(SENIOR, 68240).sections["Kitchen & Bath Accessibility"].Bathroom,
+    ).toEqual(["Grab Bars"]);
+    expect(parseListingDetail(NO_PHOTOS, 401275).sections["Nearby Services"]["Also Nearby"]).toBe(
+      "Recreational Facilities",
+    );
+    expect(
+      parseListingDetail(NO_UTILITIES, 1229408).sections["Nearby Services"]["Also Nearby"],
+    ).toEqual(["Sidewalks", "Emergency Exits", "Work-out Room", "Clubhouse"]);
   });
 
   it("reports no photos rather than the placeholder graphic", () => {

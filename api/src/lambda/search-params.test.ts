@@ -1,4 +1,4 @@
- import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { SEARCH_QUERY_PARAMS } from "./search-params.js";
 
 describe("search-params", () => {

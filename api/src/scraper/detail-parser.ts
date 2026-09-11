@@ -25,7 +25,10 @@ export interface ListingDetails {
 type Selection = ReturnType<cheerio.CheerioAPI>;
 
 function clean(text: string): string {
-  return text.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  return text
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function firstText($: cheerio.CheerioAPI, selector: string): string | null {

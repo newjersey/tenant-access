@@ -134,7 +134,10 @@ describe("update-listings handler", () => {
   });
 
   it("enqueues every listing needing details, ten to a batch", async () => {
-    shownCount(0, Array.from({ length: 25 }, (_, i) => 500 + i));
+    shownCount(
+      0,
+      Array.from({ length: 25 }, (_, i) => 500 + i),
+    );
 
     const result = await handler(event());
 
