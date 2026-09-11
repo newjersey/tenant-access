@@ -85,7 +85,7 @@ export function parseListingDetail(html: string, uid: number): ListingDetails {
   const contact = readRows($, $(".vuContact"));
 
   const lease = firstText($, ".vuLeaseLength");
-  const utilities = firstText($, ".vuIncUtil");
+  const utilities = firstText($, ".vuIncUtil")?.replace(/^Utilities Included:\s*/i, "");
   const built = clean($(".vuSqFtYr").text()).match(/Built\s+(\d{4})/);
 
   return {
@@ -93,12 +93,10 @@ export function parseListingDetail(html: string, uid: number): ListingDetails {
     email: typeof contact.Email === "string" ? contact.Email : null,
     availability: readAvailability($),
     leaseLength: lease?.replace(/\s*Lease$/i, "") ?? null,
-    utilitiesIncluded: utilities
-      ? utilities.replace(/^Utilities Included:\s*/i, "").split(/\s*,\s*/)
-      : [],
+    utilitiesIncluded: utilities && utilities !== "None" ? utilities.split(/\s*,\s*/) : [],
     applicationFee: firstText($, ".vuAppFee"),
     yearBuilt: built ? Number(built[1]) : null,
-    photoUrls: $(".vuPics img[src]")
+    photoUrls: $('.vuPics img[src*="/WebFile"]')
       .map((_, img) => new URL(String($(img).attr("src")), LEGACY_ORIGIN).toString())
       .get(),
     sections: { ...sections, Contact: contact },

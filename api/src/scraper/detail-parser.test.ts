@@ -13,6 +13,9 @@ function fixture(uid: number): string {
 const AVAILABLE = fixture(1388803);
 const WAITLISTED = fixture(1389153);
 const SENIOR = fixture(68240);
+const NO_PHOTOS = fixture(401275);
+const TOWNHOUSE = fixture(906200);
+const NO_UTILITIES = fixture(1229408);
 
 const SPARSE = `<html><body>
   <div class="tabularSection">
@@ -194,10 +197,38 @@ describe("detail-parser", () => {
   });
 
   it("tolerates a label whose value is a string on one listing and a list on another", () => {
-    // Anything promoted out of the JSONB later has to cope with both shapes.
     expect(parseListingDetail(AVAILABLE, 1388803).sections["Kitchen & Bath Accessibility"].Bathroom)
       .toBe("Standard");
     expect(parseListingDetail(SENIOR, 68240).sections["Kitchen & Bath Accessibility"].Bathroom)
       .toEqual(["Grab Bars"]);
+    expect(parseListingDetail(NO_PHOTOS, 401275).sections["Nearby Services"]["Also Nearby"])
+      .toBe("Recreational Facilities");
+    expect(parseListingDetail(NO_UTILITIES, 1229408).sections["Nearby Services"]["Also Nearby"])
+      .toEqual(["Sidewalks", "Emergency Exits", "Work-out Room", "Clubhouse"]);
+  });
+
+  it("reports no photos rather than the placeholder graphic", () => {
+    expect(parseListingDetail(NO_PHOTOS, 401275).photoUrls).toEqual([]);
+  });
+
+  it("reads a listing whose tenant pays every utility", () => {
+    expect(parseListingDetail(NO_UTILITIES, 1229408)).toMatchObject({
+      availability: "Waiting List",
+      utilitiesIncluded: [],
+      applicationFee: "Application Fee: $35 Per Adult",
+      yearBuilt: 2022,
+    });
+  });
+
+  it("reads availability phrasings other than available or waitlisted", () => {
+    expect(parseListingDetail(NO_PHOTOS, 401275)).toMatchObject({
+      availability: "Under Construction",
+      leaseLength: "Monthly",
+      email: null,
+    });
+    expect(parseListingDetail(TOWNHOUSE, 906200)).toMatchObject({
+      availability: "Available 08/03/26",
+      applicationFee: "Application Fee: $45 Per Adult, Negotiable",
+    });
   });
 });
