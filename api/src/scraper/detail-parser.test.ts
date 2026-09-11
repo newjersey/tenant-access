@@ -12,6 +12,7 @@ function fixture(uid: number): string {
 
 const AVAILABLE = fixture(1388803);
 const WAITLISTED = fixture(1389153);
+const SENIOR = fixture(68240);
 
 const SPARSE = `<html><body>
   <div class="tabularSection">
@@ -60,9 +61,10 @@ describe("detail-parser", () => {
     ]);
   });
 
-  it("takes availability rather than the income-restricted badge sharing its class", () => {
+  it("takes availability rather than a badge sharing its class", () => {
     expect(parseListingDetail(AVAILABLE, 1388803).availability).toBe("Available");
     expect(parseListingDetail(WAITLISTED, 1389153).availability).toBe("Waiting List");
+    expect(parseListingDetail(SENIOR, 68240).availability).toBe("Waiting List");
   });
 
   it("extracts every tabular section plus the contact table", () => {
@@ -165,5 +167,37 @@ describe("detail-parser", () => {
     expect(() => parseListingDetail("<html><body>503</body></html>", 1388803)).toThrow(
       "Expected detail page for uid 1388803, got undefined",
     );
+  });
+
+  it("picks up sections and rows only sometimes present", () => {
+    const { sections, ...header } = parseListingDetail(SENIOR, 68240);
+
+    expect(header).toMatchObject({
+      email: "ecirilo-gray@springpointsl.org",
+      utilitiesIncluded: ["Gas", "Water", "Heat"],
+      yearBuilt: 1991,
+      photoUrls: ["https://www.myhousingsearch.com/WebFile?id=3002998"],
+    });
+
+    expect(sections["Nearby Services"]).toEqual({
+      "Shopping Venues": "Within Two Miles",
+      "Grocery Shopping": "Within Two Miles",
+      "Senior Center": "Five or More Miles",
+      Pharmacy: "Within One Mile",
+      "Also Nearby": ["Sidewalks", "Emergency Exits", "Dumpsters", "Community Shuttle"],
+    });
+
+    expect(sections["Basic Features"].Flooring).toBe("Vinyl");
+    expect(sections["Specialized Information"]["Minimum Age"]).toBe("62 Years Old");
+    expect(sections["Parking and Entry"]["Allotted Parking Spaces"]).toBe("1");
+    expect(sections.Contact.Website).toBe("springpointsl.org/");
+  });
+
+  it("tolerates a label whose value is a string on one listing and a list on another", () => {
+    // Anything promoted out of the JSONB later has to cope with both shapes.
+    expect(parseListingDetail(AVAILABLE, 1388803).sections["Kitchen & Bath Accessibility"].Bathroom)
+      .toBe("Standard");
+    expect(parseListingDetail(SENIOR, 68240).sections["Kitchen & Bath Accessibility"].Bathroom)
+      .toEqual(["Grab Bars"]);
   });
 });

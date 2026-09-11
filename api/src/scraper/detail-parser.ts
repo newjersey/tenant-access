@@ -34,10 +34,9 @@ function firstText($: cheerio.CheerioAPI, selector: string): string | null {
   return clean(found.first().text()) || null;
 }
 
-// .vuAvail is used for more than one
+// .vuAvail class is used more than once
 function readAvailability($: cheerio.CheerioAPI): string | null {
-  const availability = $(".vuAvail").not(':has(a[href*="income_restricted"])');
-  return clean(availability.first().text()) || null;
+  return clean($(".vuAvail:not([style])").first().text()) || null;
 }
 
 function readRows($: cheerio.CheerioAPI, within: Selection): Record<string, DetailValue> {
