@@ -1,0 +1,3770 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	
+		
+	<title>MyHousingSearch.com - Property Details</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<meta name="keywords" content="Find or list rental housing, search site for tenants and landlord, housing locator service, find housing, add property, renter tools" />
+	<meta name="author" content="myhousingsearch.com" />
+	<meta name="description" content="Affordable housing, accessible housing - We develop and support affordable housing database listings in multiple states - bilingual site and call center" />
+	<meta name="generator" content="Pippin" /> <!-- and did it in 0.150713920593, so there! -->
+	<meta name="language" content="en" />
+
+
+
+		<link rel="shortcut icon" type="image/x-icon" href="/graphics/favicons/default.ico" />
+
+
+
+	<link rel="stylesheet" type="text/css" href="https://www.myhousingsearch.com/css/Universal1.css" media="all" />
+
+		<link rel="stylesheet" type="text/css" href="/css/SkinUniversal.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Montserrat:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic" media="all" />
+		<link rel="stylesheet" type="text/css" href="/css/Borders.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="/css/SSCNavTab.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="/css/SSCDefault.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="/global-js/jquery-ui/1.10.4/themes/redmond/jquery-ui.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="/css/ViewUnit2017_2.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="/js/pgwslideshow/pgwslideshow.min.css" media="all" />
+
+
+		<script type="text/javascript" src="/global-js/jquery/jquery-1.10.2.js"></script>
+		<script type="text/javascript" src="/global-js/jquery-ui/1.10.4/jquery-ui-1.10.4.js"></script>
+		<script type="text/javascript" src="/global-js/deferred.min.js"></script>
+		<script type="text/javascript" src="/global-js/json2.js"></script>
+		<script type="text/javascript" src="/global-js/json-rpc-st.js"></script>
+		<script type="text/javascript" src="/js/pgwslideshow/pgwslideshow.min.js"></script>
+		<script type="text/javascript" src="/js/height_equalizer.js"></script>
+
+
+		<script nonce="bbdce1942bce4bddac4f283eb597343f" type="text/javascript">//<![CDATA[
+
+
+		$(document).ready(function() {
+			var myhousingsearch_header = $(".myhousingsearch-header");
+			var myhousingsearchHeight = myhousingsearch_header.height();
+			var fixed = false;
+
+			$(window).scroll(function() {
+				var scrollTop = $(window).scrollTop();
+
+				if (scrollTop > myhousingsearchHeight) {
+					if (!fixed) {
+      					myhousingsearch_header.addClass("myhousingsearch-scroll");
+						fixed = true;
+					}
+				} else {
+					if (fixed) {
+      					myhousingsearch_header.removeClass("myhousingsearch-scroll");
+						fixed = false;
+					}
+				}
+			});
+		});
+	
+
+
+						$(document).ready(function() {
+							$('.hamNav').click(function() {
+								$('.ctnavcontainer ul li').not(this).slideToggle('fast');
+							});
+						});
+					
+
+
+		document.addEventListener("DOMContentLoaded", function() {
+			var trigger = document.querySelector(".enableRecite-static");
+			if (trigger) {
+				trigger.addEventListener("click", function(e) {
+					e.preventDefault();
+					loadService();
+				});
+			}
+
+			var hostname = window.location.hostname.toLowerCase().replace(/^www\./, "");
+
+			var allowedAccessibilityDomains = [
+				"myhousingsearch.com",
+				"lahousingsearch.org",
+				"indianahousingnow.org",
+				"dchousingsearch.org",
+				"georgiahousingsearch.org",
+				"floridahousingsearch.org",
+				"tnhousingsearch.org",
+				"nchousingsearch.org",
+				"pahousingsearch.com",
+				"mdhousingsearch.org",
+				"ilhousingsearch.org",
+				"coloradohousingsearch.com",
+				"housing.lacounty.gov"
+			];
+
+			var showAccessibilityTools = allowedAccessibilityDomains.some(function(domain) {
+				return hostname === domain || hostname.endsWith("." + domain);
+			});
+
+			if (!showAccessibilityTools) {
+				var accLink = document.querySelector(".accessibility-link");
+
+				if (accLink) {
+					var previousElement = accLink.previousElementSibling;
+					var nextElement = accLink.nextElementSibling;
+
+					if (
+						previousElement &&
+						previousElement.classList.contains("langPipe")
+					) {
+						previousElement.remove();
+					} else if (
+						nextElement &&
+						nextElement.classList.contains("langPipe")
+					) {
+						nextElement.remove();
+					}
+
+					accLink.remove();
+				}
+			}
+
+			function isVisibleLanguageItem(element) {
+				if (!element) {
+					return false;
+				}
+
+				if (element.classList.contains("langPipe")) {
+					return false;
+				}
+
+				return (
+					element.offsetWidth > 0 ||
+					element.offsetHeight > 0 ||
+					element.getClientRects().length > 0
+				);
+			}
+
+			function cleanLanguagePipes() {
+				var langNavs = document.querySelectorAll(".langNav");
+
+				for (var navIndex = 0; navIndex < langNavs.length; navIndex += 1) {
+					var langNav = langNavs[navIndex];
+					var pipes = langNav.querySelectorAll(".langPipe");
+
+					for (var pipeIndex = 0; pipeIndex < pipes.length; pipeIndex += 1) {
+						var pipe = pipes[pipeIndex];
+						var previous = pipe.previousElementSibling;
+						var next = pipe.nextElementSibling;
+
+						while (
+							previous &&
+							!isVisibleLanguageItem(previous)
+						) {
+							previous = previous.previousElementSibling;
+						}
+
+						while (
+							next &&
+							!isVisibleLanguageItem(next)
+						) {
+							next = next.nextElementSibling;
+						}
+
+						var immediateNext = pipe.nextElementSibling;
+						var visibleItemCount = 0;
+						var navChildren = langNav.children;
+
+						for (
+							var childIndex = 0;
+							childIndex < navChildren.length;
+							childIndex += 1
+						) {
+							if (isVisibleLanguageItem(navChildren[childIndex])) {
+								visibleItemCount += 1;
+							}
+						}
+
+						var isGoogleTranslateSeparator =
+							immediateNext &&
+							immediateNext.classList.contains("langHam") &&
+							document.querySelector(
+								"[data-google-translate-container]"
+							) &&
+							visibleItemCount > 1;
+
+						if (
+							!previous ||
+							(!next && !isGoogleTranslateSeparator)
+						) {
+							pipe.remove();
+						}
+					}
+				}
+			}
+
+			cleanLanguagePipes();
+
+		});
+
+		var serviceUrl = "//api.reciteme.com/asset/js?key=";
+		var serviceKey = "1c6844d70dac46ec387943f18ede5e413722072c";
+		var options = {};
+		var autoLoad = false;
+		var enableFragment = "#reciteEnable";
+		var loaded = [];
+		var frag = (window.location.hash === enableFragment);
+
+		function loadScript(src, callback) {
+			var s = document.createElement("script");
+			s.type = "text/javascript";
+			if (s.readyState) {
+				s.onreadystatechange = function() {
+					if (s.readyState === "loaded" || s.readyState === "complete") {
+						s.onreadystatechange = null;
+						if (callback) callback();
+					}
+				};
+			} else if (callback) {
+				s.onload = callback;
+			}
+			s.src = src;
+			document.getElementsByTagName("head")[0].appendChild(s);
+		}
+
+		function _rc(name) {
+			name += "=";
+			var ca = document.cookie.split(";");
+			for (var i = 0; i < ca.length; i++) {
+				var c = ca[i].trim();
+				if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+			}
+			return null;
+		}
+
+		function loadService(cb) {
+			var src = serviceUrl + serviceKey;
+			for (var i = 0; i < loaded.length; i++) {
+				if (loaded[i] === src) return;
+			}
+			loaded.push(src);
+			loadScript(src, function() {
+				if (typeof _reciteLoaded === "function") _reciteLoaded();
+				if (typeof cb === "function") cb();
+				Recite.load(options);
+				Recite.Event.subscribe("Recite:load", function() {
+					Recite.enable();
+				});
+			});
+		}
+
+		if (_rc("Recite.Persist") === "true") loadService();
+		if ((autoLoad && _rc("Recite.Persist") !== "false") || frag) {
+			if (document.addEventListener)
+				document.addEventListener("DOMContentLoaded", function() { loadService(); });
+			else
+				loadService();
+		}
+
+		function _reciteLoaded() {
+			Recite.Event.subscribe("Controls:loaded", function() {
+				function ignoreOverlay() {
+					var el = document.querySelector("[data-id='1']");
+					if (el) {
+						el.classList.add("recite-ignore-styles-background");
+					} else {
+						setTimeout(ignoreOverlay, 100);
+					}
+				}
+				ignoreOverlay();
+			});
+
+			Recite.Event.subscribe("Preferences:load", function() {
+				Recite.Preferences.set("player.autoplay", false);
+			});
+
+			Recite.Event.subscribe("Preferences:reset", function() {
+				Recite.Preferences.set("player.autoplay", false);
+			});
+		}
+	
+
+
+			document.addEventListener("DOMContentLoaded", function () {
+				var langNav = document.querySelector(".langNav");
+				var googleTranslate = document.querySelector(
+					"[data-google-translate-container]"
+				);
+
+				if (!googleTranslate) {
+					return;
+				}
+
+				var hasVisibleLanguageLinks = false;
+
+				if (langNav) {
+					var possibleLinks = langNav.querySelectorAll(
+						"a:not(.langHam), .noLink, .accessibility-link, .ib"
+					);
+
+					for (var i = 0; i < possibleLinks.length; i += 1) {
+						if (possibleLinks[i].offsetParent !== null) {
+							hasVisibleLanguageLinks = true;
+							break;
+						}
+					}
+				}
+
+				if (!hasVisibleLanguageLinks) {
+					googleTranslate.classList.add(
+						"gTrans-standalone"
+					);
+				}
+			});
+		
+
+
+				$(document).ready(function() {
+					$('.langHam').click(function() {
+						$('.langNav a, .langNav .ib, .gTrans').not(this).slideToggle('fast');
+						$('.langHam').toggleClass('langHamNoBorder');
+					});
+
+					$(".langNav .langHam").each(function() {
+						var previousElement =
+							this.previousElementSibling;
+
+						var hasGoogleTranslate =
+							document.querySelector(
+								"[data-google-translate-container]"
+							);
+
+						if (
+							previousElement &&
+							previousElement.classList.contains(
+								"langPipe"
+							)
+						) {
+							if (hasGoogleTranslate) {
+								previousElement.classList.remove(
+									"noshow"
+								);
+							} else {
+								previousElement.classList.add(
+									"noshow"
+								);
+							}
+						}
+					});
+
+				});
+			
+
+
+		$(document).ready(function() {
+			var cur_url = window.location.href;
+			var pg_url = window.location.href.split("/").pop();
+			var path = window.location.href.split("/");
+			var urlNext = path[3];
+			var nextName = path[path.length - 3];
+			var name = path[path.length - 2];
+			var loginLink = $('.languageLinkPadding span.langNav a');
+			var breadcrumbDiv = document.querySelector("#toptable > ul.breadcrumbs");
+			var secondBreadcrumbList = document.querySelector("#toptable > ul > li:nth-child(2)");
+			var secondBreadcrumbLink = document.querySelector("#toptable > ul > li:nth-child(2) > a");			
+			var lastBreadcrumbList = document.querySelector("#toptable > ul.breadcrumbs > li:last-child");
+			var lastBreadcrumbLink = document.querySelector("#toptable > ul.breadcrumbs > li:last-child > a");
+
+			if ((name == 'login') || (name.search('login') == 0) || (pg_url.search('login') == 0)){
+				breadcrumbDiv.remove();
+			}
+			if ((pg_url != 'Logout.html') && (name.search('login') != 0) && (pg_url.search('login') != 0)){
+				console.log("next page");
+				secondBreadcrumbLink.classList.add('lastBread');
+				secondBreadcrumbLink.href = cur_url;
+				if(name == "admin"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Administrator Home Page";
+				}
+				if(name == "realtor"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Manage Listings";
+				}
+				if(name == "la_county"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Agency User Review";
+					secondBreadcrumbLink.href = "/la_county/AgencyUserList.html";
+					if(pg_url == "AgencyUserForm.html"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Registration";
+					}
+				}
+				if((name == "az_prescreening") || (nextName == "az_prescreening")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.href = "/reporting/az_prescreening/";
+					secondBreadcrumbLink.innerHTML = "AZ Prescreening Reports";
+					if(nextName == "az_prescreening"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Report";
+					}
+				}
+				if((nextName == "prescreening") || (name == "prescreening")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.href = "/reporting/pima_county/prescreening/";
+					secondBreadcrumbLink.innerHTML = "Pima Prescreening Reports";
+					if(nextName == "prescreening"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Report";
+					}
+				}
+				if(name == "outcomes"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Outcomes Survey";
+				}
+				if((name == "rentcomp") || (pg_url == "rentcomp")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "RentComp";
+				}
+				if((nextName == "reports") || (name == "reports")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.href = "/rentcomp/audit/reports/";
+					secondBreadcrumbLink.innerHTML = "RentComp Audit Reports";
+					if(nextName == "reports"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Report";
+					}
+				}
+				if(name == "audit"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "RentComp Audit";
+				}
+				if(name == "search_notifications"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Search Notifications";
+					if(pg_url == "EditUserInfo.html"){
+						secondBreadcrumbLink.innerHTML = "Edit User Info";
+					}
+				}
+				if((nextName == "smoke_free") || (name == "smoke_free") || (name == "smoke_free_units")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.href = "/reporting/maine/smoke_free/";
+					secondBreadcrumbLink.innerHTML = "Smoke-Free Maine Reporting";
+					if(nextName == "smoke_free"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Smoke Free Units";
+						if(name == "report.html?path="){
+							lastBreadcrumbLink.innerHTML = "Report";
+						}
+					}
+					if(nextName == "report.html?path="){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Report";
+					}
+				}
+				if(name == "tracking"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Tracking";
+				}
+				if(urlNext == "sw"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Agency Database Reports";
+				}
+				if((urlNext == "tracking") || (name == "extra")){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.href = "/tracking/extra/";
+					secondBreadcrumbLink.innerHTML = "Extra Tracking Reports";
+					if(nextName == "extra"){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Socialserve";
+					}
+					if(nextName == "report.html?path="){
+						secondBreadcrumbLink.classList.remove('lastBread');
+						lastBreadcrumbList.classList.remove('noshow');
+						lastBreadcrumbLink.href = cur_url;
+						lastBreadcrumbLink.innerHTML = "Report";
+					}
+				}
+				if(pg_url == "ManageSavedSearches.html"){
+    				secondBreadcrumbList.classList.remove('noshow');
+					secondBreadcrumbLink.innerHTML = "Manage Saved Searches";
+				}
+			}
+			if(loginLink.length==1){
+				breadcrumbDiv.remove();
+			}
+		});
+	
+
+ssc_json_rpc = new JSON_RPC("https://www.myhousingsearch.com/api/JSON_RPC");
+
+
+ack_announcement = function (announcement_id) {
+    var deferred;
+    var args_as_array = Array.prototype.slice.call(arguments, 0);
+    deferred = ssc_json_rpc.call_remote(window.PIP_SYNCH_TOKEN, "ack_announcement", args_as_array, true,
+                                        true);
+
+return deferred;
+}
+
+
+
+        // Set up click handlers to dismiss each clicked-on announcement.
+        $(document).ready(function() {
+            var click_handler = function(e) {
+                e.preventDefault();
+                var a_id = $(this).parent().attr('id').split('_')[1];
+                ack_announcement(a_id);
+                $(this).parent().removeClass('displayed_admin_announcement').addClass('hidden_admin_announcement');
+                $(this).remove();
+            };
+
+            $('.unacked-csr-announcement').each(function() {
+                var link = $('<a href="javascript:void(0);">Dismiss<\/a>');
+                $(this).append(link);
+                link.bind('click', click_handler);
+                });
+        });
+
+    
+
+
+	$(document).ready(function() {
+		$(window).on('load', function() {
+			
+		$(".cc1").click(function() {
+			$(".x1").slideToggle('slow');
+			$(".xd1").toggle();
+			$(".e1").toggle();
+			$(".c1").toggle();
+			return false;
+		});
+	
+		$(".cc2").click(function() {
+			$(".x2").slideToggle('slow');
+			$(".xd2").toggle();
+			$(".e2").toggle();
+			$(".c2").toggle();
+			return false;
+		});
+	
+	$(".rbControl").click(function() {
+		if ($('#vuTopReportBox').is(':hidden')) {
+			$(".rbExpander").slideToggle('slow');
+			$("#vuTopReportBox").slideToggle('slow');
+			$('.rbDivider').delay(350).animate({width: '85%'});
+			}
+		else {
+			$('.rbDivider').animate({width: '0'});
+			$("#vuTopReportBox").delay(350).slideToggle('slow');
+			$(".rbExpander").delay(350).slideToggle('slow');
+			};
+		return false;
+		});
+
+
+		});
+	});
+
+
+
+		$(window).on("load resize",function(e) {
+			updateHeights('.ps-current ul li img');
+			});
+	
+
+
+		$(document).ready(function() {
+			var pgwSlideshow = $('.pgwSlideshow').pgwSlideshow({
+				autoSlide: true,
+				intervalDuration: 3500
+			})
+			pgwSlideshow.startSlide();
+
+		});
+	
+
+
+	$(document).ready(function() {
+		const convertLinks = ( input ) => {
+
+		let text = input;
+		const linksFound = text.match( /(?:www|https?)[^\s]+/g );
+		const aLink = [];
+
+		if ( linksFound != null ) {
+
+			for ( let i=0; i<linksFound.length; i++ ) {
+			let replace = linksFound[i];
+			if ( !( linksFound[i].match( /(http(s?)):\/\// ) ) ) { replace = 'http://' + linksFound[i] }
+			let linkText = replace.split( '/' )[2];
+			if ( linkText.substring( 0, 3 ) == 'www' ) { linkText = linkText.replace( 'www.', '' ) }
+				aLink.push( '<a href="' + replace + '" target="_blank">' + linkText + '</a>' );
+			text = text.split( linksFound[i] ).map(item => { return item } ).join( aLink[i] );
+			}
+			return text;
+
+			}
+			else {
+				return input;
+			}
+		}
+		const text = $("#propertyComments > div > table > tbody > tr > td.tbL:contains('Property Comments')").next()[0].innerText;
+
+		$("#propertyComments > div > table > tbody > tr > td.tbL:contains('Property Comments')").next()[0].innerHTML = convertLinks( text )
+	
+	});
+	
+
+
+		//]]></script>
+
+		<style type="text/css">/*<![CDATA[*/
+				
+		.primaryColor { color: #10a0cd; }
+		.primaryColorBG { background-color: #10a0cd; }
+		.secondaryColor { color: #883c00; }
+		.secondaryColorBG { background-color: #883c00; }
+	
+				
+		  @media print
+			{
+				#mhsConsentBanner,
+				#mhsConsentToast,
+				#mhsPrivacySettings,
+				#showBotAgain,
+				iframe[src*="chatbase"],
+				iframe[src*="ChatClient"],
+				div[id*="chatbase"],
+				div[class*="chatbase"],
+				div[id^="icPatronChat"],
+				.icPatronChatRoot,
+				.ic-container,
+				.ic-widget,
+				.ic-chat-container,
+				#chatbase-bubble-button {
+					display: none !important;
+					visibility: hidden !important;
+					opacity: 0 !important;
+				}
+			}
+		  
+				
+						@media all and (min-width: 601px) {
+							.ctnavcontainer ul li {
+								display:block !important;
+							}
+							.ctnavcontainer li.hamNav,
+							.ctnavcontainer li.langApp {
+								display:none !important;
+							}
+						}
+						@media all and (max-width: 1065px) {
+							.sscPlate {
+								order:3;
+							}
+						}
+						@media all and (max-width: 600px) {
+							#toptable {
+								border-top:none;
+							}
+							.ctnavcontainer {
+								width:100%;
+							}
+							.ctnavcontainer ul {
+								flex-direction:column;
+								float:none;
+								margin-right:0;
+								align-items:initial;
+								text-align: end;
+							}
+							.ctnavcontainer ul li,
+							.langNav {
+								display:none;
+								padding:0;
+								white-space:nowrap;
+							}
+							.ctnavcontainer ul li a,
+							.ctnavcontainer ul li a:hover,
+							.ctnavcontainer ul li a#active,
+							.ctnavcontainer ul li a.navButton,
+							.ctnavcontainer ul li a.navButton:hover {
+								padding:0 1%;
+								text-align:right;
+								height:40px;
+								line-height:40px;
+								font-size:170%;
+								color:#FFF !important;
+								margin-bottom:0;
+								text-decoration:none !important;
+							}
+							.ctnavcontainer li.hamNav,
+							.gTrans {
+								display:block !important;
+							}
+							.servEmph > div:last-child > div:last-child {
+								font-size:69%;
+							}
+							.languageLinkPadding {
+								display: none !important;
+							}
+							.imgShrink {				
+    							margin-bottom: 10px;
+							}
+						}
+					
+				
+				.accessibility-link {
+					height: 47px !important;
+					margin: 0 2px;
+					display: inline-flex !important;
+					align-items: center;
+					float: right;
+				}
+				.accessibility-link .enableRecite-static {
+					border: none;
+					background: transparent;
+					color: inherit;
+					font: inherit;
+					cursor: pointer;
+					padding: 0;
+				}
+				.accessibility-link .enableRecite-static:hover{
+					text-decoration: underline;
+				}
+				:lang(es) .accessibility-link .enableRecite-static {
+					padding-bottom: 10px;
+				}
+			
+				
+				.gTrans {
+					min-height: 26px;
+					margin: 1px 0 0 5px;
+					display: inline-block;
+				}
+
+				#google_translate_element {
+					display: inline-block;
+				}
+
+				#google_translate_element .goog-te-gadget {
+					display: inline-flex;
+					flex-wrap: wrap;
+					align-items: flex-start;
+					line-height: 1.2;
+					width: 14.5em;
+				}
+
+
+				#google_translate_element .goog-te-gadget > div {
+					flex: 0 0 100%;
+					margin-bottom: 2px;
+				}
+
+				
+				#google_translate_element .goog-te-gadget > span {
+					margin-left: 2px;
+				}
+
+				.gTrans-standalone {
+					float: right !important;
+					min-width: 0 !important;
+					margin: 6px 10px 6px 0;
+					padding: 0;
+				}
+
+				.gTrans-standalone
+				#google_translate_element
+				.goog-te-gadget {
+					width: 14.5em;
+				}
+
+				.mhs-translate-button {
+					border: none;
+					border-radius: 3px;
+					background: transparent;
+					color: inherit;
+					font: inherit;
+					font-size: 16px;
+					line-height: 1;
+					padding: 5px 0 0;
+					cursor: pointer;
+					text-decoration: underline;
+				}
+
+				.mhs-translate-button:hover,
+				.mhs-translate-button:focus-visible {
+					text-decoration: none;
+				}
+
+				.mhs-translate-button:disabled {
+					cursor: wait;
+					opacity: 0.7;
+				}
+				
+			
+				
+				.accessibility-link {
+					height: 47px !important;
+					margin: 0 2px;
+					display: inline-flex !important;
+					align-items: center;
+					float: right;
+				}
+				.accessibility-link .enableRecite-static {
+					border: none;
+					background: transparent;
+					color: inherit;
+					font: inherit;
+					cursor: pointer;
+					padding: 0;
+				}
+				.accessibility-link .enableRecite-static:hover{
+					text-decoration: underline;
+				}
+				:lang(es) .accessibility-link .enableRecite-static {
+					padding-bottom: 10px;
+				}
+			
+				
+					.gTrans>img {
+						margin:0px -4px 0 0;
+					}
+				@media all and (max-width: 600px) {
+					.langPipe, .noLink, .gTrans {
+						display:none;
+					}
+					.langNav {
+						margin-bottom:3px;
+
+					}
+					.langNav a,
+					.langNav .ib {
+						display:none;
+						text-decoration:none;
+						border-bottom:1px solid #444;
+						flex: 1 1 auto;
+						font-size:150%;
+						line-height:200%;
+					}
+					.langNav .ib a {
+						display:none;
+						border-bottom:none;
+					}
+					.langNav, .languageLinkPadding {
+						display:flex;
+						flex-direction:column;
+						margin-top:-4px;
+					}
+					.languageLinkPadding>div {
+						flex: 1 1 auto;
+					}
+					a.langHam {
+						display:block !important;
+						order: -1;
+						border-bottom:1px solid #444;
+						font-size:120%;
+					}
+					.langHam img {
+						vertical-align:middle;
+						margin:1px;
+					}
+					.langHamNoBorder {
+						border-bottom:none !important;
+					}
+					.gTrans {
+						order: 99;
+					}
+				}
+				@media all and (min-width:601px) {
+					.langNav a, .langNav .ib {
+						display:inline-block !important;
+					}
+					a.langHam {
+						display:none !important;
+					}
+				}
+			
+				
+				ul.breadcrumbs {
+					margin-top: 0;
+					list-style: none;
+					background-color: #eee;
+    				padding: 10px 16px;
+				}
+				ul.breadcrumbs li {
+					display: inline;
+				}
+				ul.breadcrumbs li:last-child a{
+					color: #010101;
+  					text-decoration: none;
+				}
+				ul.breadcrumbs li:last-child a:hover{
+					color: #eb7211;
+					text-decoration: none;
+					background-color: inherit;
+				}
+				ul.breadcrumbs li+li:before {
+					padding: 0 5px;
+					color: #010101;
+					content: "|";
+				}
+				.noshow {
+					display: none !important;
+				}
+				.lastBread {
+					color: #010101 !important;
+    				text-decoration: none !important;
+				}
+			
+				
+        .hidden_admin_announcement {
+            display: none;
+        }
+        .displayed_admin_announcement {
+            display: block;
+        }
+        div.csr-announcement {
+            border: 1px solid #999999;
+            margin: 2px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        div.draft {
+            background: #ffe;
+        }
+
+        div.future {
+            background: #eff;
+        }
+    
+				
+				.vuBasketLink a {
+					text-decoration:none;
+					vertical-align:super;
+				}
+			
+				
+			.reportBlurb {
+				clear:both;
+				font-size:80%;
+				padding:5px 1%;
+			}
+
+			.reportButtons {
+				display:flex;
+				align-items:center;
+			}
+
+			a.reportButton, a.reportButton:visited {
+				flex: 1 1 auto;
+				display:block;
+				text-decoration:none;
+				text-align:center;
+				color: #940000;
+				background: #f3f3f3;
+				border:1px solid #c7c7c7;
+				font-size:14px;
+				margin: 10px 2%;
+				padding: 5px 1%;
+				font-weight: bold;
+			}
+
+			a.reportButton:hover {
+				background: #FFF;
+			}
+		
+				
+			.vuApplyNow { margin-bottom: 10px; }
+			a.vuApplyNowBtn { 
+				border-radius: 0;
+				background-color: #2e41de;
+				color: #fff;
+				border: solid #2e41de 2px;
+				font-size: 17px;
+				font-weight: bold;
+				letter-spacing: 1px;
+				cursor: pointer;
+				padding: 4px 10px;
+				text-decoration: none;
+				display: inline-block; 
+			}
+			a.vuApplyNowBtn:hover{
+				background-color: #fff;
+				color: #2e41de;
+			}
+		
+				
+		.pgwSlideshow ul,
+		.pgwSlideshow li {
+			margin:0;
+			padding:0;
+		}
+		.pgwSlideshow .ps-list li .ps-item {
+			margin:4px 8px 0 8px;
+		}
+		.pgwSlideshow .ps-list li .ps-item.ps-selected {
+			border:2px solid #FFF;
+		}
+		.pgwSlideshow .ps-list li .ps-item.ps-selected img {
+			margin:-2px;
+		}
+		.pgwSlideshow .ps-current>ul>li img {
+			width:100%;
+			height:auto;
+			max-width:390px;
+			max-height:260px;
+			object-fit:contain;
+		}
+		.pgwSlideshow .ps-current {
+			min-height:0;
+			background:#000;
+		}
+		.pgwSlideshow .ps-list li img {
+			background:#000;
+			object-fit:cover;
+		}
+	
+				
+			.ps-list, .ps-caption {
+				display:none !important;
+			}
+		
+				
+			.reportBlurb {
+				clear:both;
+				font-size:80%;
+				padding:5px 1%;
+			}
+
+			.reportButtons {
+				display:flex;
+				align-items:center;
+			}
+
+			a.reportButton, a.reportButton:visited {
+				flex: 1 1 auto;
+				display:block;
+				text-decoration:none;
+				text-align:center;
+				color: #940000;
+				background: #f3f3f3;
+				border:1px solid #c7c7c7;
+				font-size:14px;
+				margin: 10px 2%;
+				padding: 5px 1%;
+				font-weight: bold;
+			}
+
+			a.reportButton:hover {
+				background: #FFF;
+			}
+		
+			/*]]>*/
+		</style>
+
+</head>
+
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	style="display:none"
+	aria-hidden="true"
+	focusable="false"
+>
+	<symbol id="icon-phone" viewBox="0 0 18.472 18.472">
+		<path
+			d="M6.715,10.994a15.546,15.546,0,0,0,6.763,6.763L15.735,15.5a1.02,1.02,0,0,1,1.047-.246,11.706,11.706,0,0,0,3.664.585,1.029,1.029,0,0,1,1.026,1.026v3.581a1.029,1.029,0,0,1-1.026,1.026A17.444,17.444,0,0,1,3,4.026,1.029,1.029,0,0,1,4.026,3H7.618A1.029,1.029,0,0,1,8.644,4.026,11.658,11.658,0,0,0,9.229,7.69a1.03,1.03,0,0,1-.257,1.047Z"
+			transform="translate(-3 -3)"
+			fill="#303eda"
+		></path>
+	</symbol>
+
+	<symbol id="icon-facebook" viewBox="0 0 18.9 18.9">
+		<g transform="translate(0)">
+			<path
+				d="M18.9,9.508A9.45,9.45,0,1,0,7.973,18.9V12.256h-2.4V9.508h2.4V7.413a3.345,3.345,0,0,1,3.569-3.7,14.452,14.452,0,0,1,2.115.186v2.34H12.467a1.37,1.37,0,0,0-1.54,1.486V9.508h2.621l-.419,2.748h-2.2V18.9A9.493,9.493,0,0,0,18.9,9.508Z"
+				transform="translate(0)"
+				fill="#2e41de"
+			></path>
+		</g>
+	</symbol>
+
+	<symbol id="icon-instagram" viewBox="0 0 18.899 18.9">
+		<path
+			d="M9.636,18.9H9.448c-1.481,0-2.85-.034-4.182-.115a5.59,5.59,0,0,1-3.222-1.22A5.172,5.172,0,0,1,.307,14.761a12.432,12.432,0,0,1-.285-2.969C.012,11.1,0,10.285,0,9.453S.012,7.8.021,7.111A12.434,12.434,0,0,1,.307,4.142,5.172,5.172,0,0,1,2.044,1.336,5.59,5.59,0,0,1,5.266.117C6.6.036,7.967,0,9.451,0s2.85.034,4.182.115a5.59,5.59,0,0,1,3.222,1.22,5.171,5.171,0,0,1,1.738,2.806,12.433,12.433,0,0,1,.285,2.969c.01.69.019,1.508.021,2.339v0c0,.831-.012,1.649-.021,2.339a12.427,12.427,0,0,1-.285,2.969,5.171,5.171,0,0,1-1.738,2.806,5.59,5.59,0,0,1-3.222,1.22C12.358,18.864,11.049,18.9,9.636,18.9Zm-.188-1.477c1.457,0,2.8-.033,4.1-.112a4.067,4.067,0,0,0,2.379-.89,3.728,3.728,0,0,0,1.24-2.026,11.311,11.311,0,0,0,.24-2.624c.009-.685.019-1.5.021-2.321s-.012-1.635-.021-2.321a11.313,11.313,0,0,0-.24-2.624,3.728,3.728,0,0,0-1.24-2.026,4.068,4.068,0,0,0-2.379-.89c-1.3-.079-2.638-.116-4.092-.112s-2.8.033-4.1.112a4.068,4.068,0,0,0-2.379.89,3.728,3.728,0,0,0-1.24,2.026A11.312,11.312,0,0,0,1.5,7.131c-.009.686-.019,1.5-.021,2.322s.012,1.633.021,2.319a11.311,11.311,0,0,0,.24,2.624,3.728,3.728,0,0,0,1.24,2.026,4.068,4.068,0,0,0,2.379.89C6.656,17.391,7.995,17.428,9.448,17.425Zm-.035-3.359a4.614,4.614,0,1,1,4.614-4.614A4.62,4.62,0,0,1,9.413,14.066Zm0-7.752A3.138,3.138,0,1,0,12.55,9.451,3.141,3.141,0,0,0,9.413,6.314Zm5.131-2.953a1.107,1.107,0,1,0,1.107,1.107A1.107,1.107,0,0,0,14.544,3.361Zm0,0"
+			transform="translate(0 -0.001)"
+			fill="#2e41de"
+		></path>
+	</symbol>
+
+	<symbol id="icon-threads" viewBox="0 0 16.306 18.9">
+		<path
+			d="M583.021,510.516q-.122-.059-.249-.113c-.146-2.688-1.619-4.227-4.092-4.243h-.034a4,4,0,0,0-3.467,1.775l1.36.93a2.413,2.413,0,0,1,2.107-1.038h.023a2.315,2.315,0,0,1,1.826.7,2.762,2.762,0,0,1,.579,1.383,10.43,10.43,0,0,0-2.338-.112c-2.351.135-3.863,1.5-3.761,3.4a2.929,2.929,0,0,0,1.356,2.335,4.194,4.194,0,0,0,2.523.631,3.729,3.729,0,0,0,2.867-1.391,5.139,5.139,0,0,0,.977-2.552,3.014,3.014,0,0,1,1.26,1.375,3.425,3.425,0,0,1-.844,3.778,5.873,5.873,0,0,1-4.49,1.61,6.14,6.14,0,0,1-5.062-2.14,10.791,10.791,0,0,1,0-11.284,6.14,6.14,0,0,1,5.062-2.14,6.345,6.345,0,0,1,5.15,2.151,6.985,6.985,0,0,1,1.269,2.575l1.594-.424a8.6,8.6,0,0,0-1.6-3.216,7.9,7.9,0,0,0-6.406-2.754h-.011a7.687,7.687,0,0,0-6.334,2.764,10.7,10.7,0,0,0-1.953,6.679v.013a10.7,10.7,0,0,0,1.953,6.679,7.686,7.686,0,0,0,6.334,2.764h.011a7.449,7.449,0,0,0,5.631-2.086,5.1,5.1,0,0,0,1.2-5.638A4.836,4.836,0,0,0,583.021,510.516Zm-4.254,3.989c-1.031.058-2.1-.4-2.154-1.391-.039-.733.523-1.55,2.217-1.648q.291-.017.571-.017a8.079,8.079,0,0,1,1.715.174C580.921,514.054,579.776,514.449,578.767,514.5Z"
+			transform="translate(-570.333 -501.756)"
+			fill="#303eda"
+		></path>
+	</symbol>
+
+	<symbol id="icon-bluesky" viewBox="0 0 21.244 18.9">
+		<g transform="translate(-12.474 471.779)">
+			<path
+				d="M13.631-471.728a1.4,1.4,0,0,0-1.077,1.138,11.5,11.5,0,0,0,0,2.814c.009.083.031.31.044.5s.039.419.048.5.026.31.044.5c.026.366.1,1.06.131,1.243.009.061.026.227.044.371a6.661,6.661,0,0,0,.126.746,4.021,4.021,0,0,0,.484,1.047,4.14,4.14,0,0,0,2.05,1.61c.122.039.257.092.305.113a7.672,7.672,0,0,0,1.091.24c.144.017.493.035.772.035a2.212,2.212,0,0,1,.48.031,8.514,8.514,0,0,1-.859.188c-.048.009-.205.048-.349.092s-.318.087-.393.1a7.567,7.567,0,0,0-1.069.449,2.751,2.751,0,0,0-.955.82,1.541,1.541,0,0,0-.3.947,4.756,4.756,0,0,0,1.352,2.971A6.6,6.6,0,0,0,18.5-452.98a2.53,2.53,0,0,0,1.348.017,4.043,4.043,0,0,0,2.063-2.229,19.719,19.719,0,0,0,1.077-2.9c.083-.292.126-.332.17-.148s.118.436.4,1.383c.646,2.155,1.33,3.289,2.251,3.708a1.782,1.782,0,0,0,.955.17,2.958,2.958,0,0,0,1.418-.4,8.579,8.579,0,0,0,1.287-.838c.013-.013.109-.092.218-.179a8.1,8.1,0,0,0,.894-.912c.087-.109.192-.236.231-.284a6.581,6.581,0,0,0,.532-.824.215.215,0,0,1,.061-.109,2.683,2.683,0,0,0,.2-.462c.471-1.348-.057-2.434-1.549-3.171a7.46,7.46,0,0,0-1.9-.628c-.318-.061-.236-.083.3-.087a5.789,5.789,0,0,0,2.879-.7,3.9,3.9,0,0,0,1.95-2.831,2.774,2.774,0,0,1,.044-.327c.009-.022.022-.122.087-.733.013-.1.031-.266.044-.371s.031-.323.048-.489.031-.375.039-.458.031-.332.044-.545.035-.462.044-.545a14.659,14.659,0,0,0,.057-2.434,1.6,1.6,0,0,0-.733-1.274c-.885-.454-1.972-.174-3.564.912a10.959,10.959,0,0,0-1.082.811,25.105,25.105,0,0,0-4.218,4.82,14.347,14.347,0,0,0-.951,1.57c0,.1-.079.031-.17-.157a15.728,15.728,0,0,0-.916-1.479c-.279-.406-.92-1.287-.986-1.357-.022-.026-.092-.113-.153-.192s-.131-.166-.153-.192-.17-.2-.323-.393a26.389,26.389,0,0,0-2.229-2.338l-.24-.214a9.827,9.827,0,0,0-3.324-1.945A3.18,3.18,0,0,0,13.631-471.728Z"
+				fill="#2e41de"
+			></path>
+		</g>
+	</symbol>
+
+	<symbol id="icon-x" viewBox="0 0 20.934 19.4">
+		<path
+			d="M6.336,21.905l7.672,10.427L6.287,40.805H8.025l6.76-7.42,5.461,7.42H26.16l-8.1-11.011,7.187-7.889H23.5l-6.225,6.833-5.03-6.833Zm2.555,1.3h2.717l12,16.3H20.887Z"
+			transform="translate(-5.721 -21.655)"
+			fill="#2e41de"
+			stroke="#2e41de"
+			stroke-width="0.5"
+		></path>
+	</symbol>
+
+	<symbol id="icon-tiktok" viewBox="0 0 16.564 18.9">
+		<path
+			d="M1133.671,953.9c-.265,3.308.677,7.3-1,9.871-3.689,5.662-12.891,1.732-10.839-4.99a6.051,6.051,0,0,1,2.292-3.146c.712-.488,3.191-1.579,4.172-1l.133,3.24c-7.084-.318-2.112,8.765,1.386,4.3,1.141-1.456.545-11.885.562-14.588l3.275-.006c.028,2.3,2.015,4.913,4.413,4.485l.037,3.206Z"
+			transform="translate(-1121.539 -947.589)"
+			fill="#2e41de"
+			fill-rule="evenodd"
+		></path>
+	</symbol>
+
+	<symbol id="icon-youtube" viewBox="0 0 22.001 15.46">
+		<g transform="translate(-0.999 -4)">
+			<path
+				d="M22.54,6.42a2.78,2.78,0,0,0-1.94-2C18.88,4,12,4,12,4s-6.88,0-8.6.46a2.78,2.78,0,0,0-1.94,2A29,29,0,0,0,1,11.75a29,29,0,0,0,.46,5.33A2.78,2.78,0,0,0,3.4,19c1.72.46,8.6.46,8.6.46s6.88,0,8.6-.46a2.78,2.78,0,0,0,1.94-2A29,29,0,0,0,23,11.75a29,29,0,0,0-.46-5.33Z"
+				fill="#2e41de"
+			></path>
+			<path
+				d="M9.75,15.02l5.75-3.27L9.75,8.48Z"
+				fill="#fff"
+			></path>
+		</g>
+	</symbol>
+</svg>
+
+
+		<header class="myhousingsearch-header">
+			<div class="left-side">
+				<a href="https://www.myhousingsearch.com/" title="MyHousingSearch"><img alt="MyHousingSearch" src="https://www.myhousingsearch.com/images/MHSlogo.svg" /></a>
+			</div>
+			<div class="right-side">
+				<div class="contact-us-grid">
+					<a
+						href="tel:+18774288844"
+						title="Toll-Free: 1.877.428.8844"
+						aria-label="Toll-Free: 1.877.428.8844"
+					>
+						<svg
+							class="mhs-phone-icon"
+							width="18.472"
+							height="18.472"
+							viewBox="0 0 18.472 18.472"
+							aria-hidden="true"
+							focusable="false"
+						>
+							<use
+								href="#icon-phone"
+								xlink:href="#icon-phone"
+							></use>
+						</svg>
+					</a>
+				</div>
+				<div class="social-media-grid">
+					<div class="social-media-images">
+						<a
+							href="https://www.facebook.com/people/My-Housing-Search/61551706457138/"
+							title="Facebook"
+							aria-label="Facebook"
+						>
+							<svg
+								class="social-icon"
+								width="18.9"
+								height="18.9"
+								viewBox="0 0 18.9 18.9"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-facebook"
+									xlink:href="#icon-facebook"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://www.instagram.com/myhousingsearch/"
+							title="Instagram"
+							aria-label="Instagram"
+						>
+							<svg
+								class="social-icon"
+								width="18.899"
+								height="18.9"
+								viewBox="0 0 18.899 18.9"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-instagram"
+									xlink:href="#icon-instagram"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://www.threads.net/@myhousingsearch"
+							title="Threads"
+							aria-label="Threads"
+						>
+							<svg
+								class="social-icon"
+								width="16.306"
+								height="18.9"
+								viewBox="0 0 16.306 18.9"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-threads"
+									xlink:href="#icon-threads"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://bsky.app/profile/myhousingsearch.com"
+							title="Bluesky"
+							aria-label="Bluesky"
+						>
+							<svg
+								class="social-icon"
+								width="21.244"
+								height="18.9"
+								viewBox="0 0 21.244 18.9"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-bluesky"
+									xlink:href="#icon-bluesky"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://twitter.com/myhousingsearch"
+							title="Twitter"
+							aria-label="Twitter"
+						>
+							<svg
+								class="social-icon"
+								width="20.934"
+								height="19.4"
+								viewBox="0 0 20.934 19.4"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-x"
+									xlink:href="#icon-x"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://www.tiktok.com/@myhousingsearch"
+							title="TikTok"
+							aria-label="TikTok"
+						>
+							<svg
+								class="social-icon"
+								width="16.564"
+								height="18.9"
+								viewBox="0 0 16.564 18.9"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-tiktok"
+									xlink:href="#icon-tiktok"
+								></use>
+							</svg>
+						</a>
+					</div>
+					<div class="social-media-images">
+						<a
+							href="https://www.youtube.com/@MyHousingSearch"
+							title="YouTube"
+							aria-label="YouTube"
+						>
+							<svg
+								class="social-icon"
+								width="22.001"
+								height="15.46"
+								viewBox="0 0 22.001 15.46"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<use
+									href="#icon-youtube"
+									xlink:href="#icon-youtube"
+								></use>
+							</svg>
+						</a>
+					</div>
+				</div>
+			</div>
+		</header>
+
+
+		<main id="mastertable">	
+			<a name="top" title="top of page marker"></a>
+
+
+
+
+		
+	
+
+
+
+		<div class="mainHeader">
+			<div class="ctnavcontainer">
+				<ul>
+					<li class="hamNav"><span><a>Menu&nbsp;&#9776;</a></span></li>
+
+					
+
+
+	<li>
+		<a href="https://www.myhousingsearch.com/housing_search.html">Find Housing</a>
+		<span class="noshow">&nbsp;|&nbsp;</span>
+	</li>
+
+					
+
+
+	<li>
+		<a href="/dbh/realtor/">List a Property</a>
+		<span class="noshow">&nbsp;|&nbsp;</span>
+	</li>
+
+					
+
+
+	<li>
+		<a href="https://www.myhousingsearch.com/about.html">About Us</a>
+		<span class="noshow">&nbsp;|&nbsp;</span>
+	</li>
+
+					
+
+
+	<li>
+		<a href="https://www.myhousingsearch.com/contact.html">Contact Us</a>
+		<span class="noshow">&nbsp;|&nbsp;</span>
+	</li>
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+			<li class="langApp"><a href="/dbh/ViewUnit.html?print=t&amp;id=1389153" title="Printer Friendly">Printer Friendly</a></li>
+			<li class="langApp"><a href="/dbh/ViewUnit.html.ESP?id=1389153">Espa&ntilde;ol</a></li>
+
+
+
+						<li class="languageLinkPadding">
+							
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+			
+				<div
+					class="gTrans"
+					style="float:right;min-width:11.75em;"
+					data-google-translate-container
+				>
+					<button
+						type="button"
+						id="mhsGoogleTranslateButton"
+						class="mhs-translate-button"
+						aria-controls="google_translate_element"
+						aria-expanded="false"
+					>
+						More Languages
+					</button>
+
+					<div
+						id="google_translate_element"
+						aria-live="polite"
+					></div>
+				</div>
+
+				<script nonce="bbdce1942bce4bddac4f283eb597343f" type="text/javascript">
+					(function () {
+						var translateButton =
+							document.getElementById("mhsGoogleTranslateButton");
+
+						var translateContainer =
+							document.getElementById("google_translate_element");
+
+						if (!translateButton || !translateContainer) {
+							return;
+						}
+
+						var hostname = window.location.hostname
+							.toLowerCase()
+							.replace(/^www\./, "");
+
+						var isMyHousingSearch =
+							hostname === "myhousingsearch.com" ||
+							hostname.endsWith(".myhousingsearch.com");
+
+						var TRANSLATE_OPEN_DURATION =
+							24 * 60 * 60 * 1000; // 24 hours
+							//60 * 1000; // 1 min for testing
+
+						var translateOpenedAt = parseInt(
+							localStorage.getItem("mhsGoogleTranslateOpenedAt"),
+							10
+						);
+
+						var translateWasOpened =
+							!isNaN(translateOpenedAt) &&
+							Date.now() - translateOpenedAt < TRANSLATE_OPEN_DURATION;
+
+						if (!translateWasOpened) {
+							localStorage.removeItem("mhsGoogleTranslateOpenedAt");
+						}
+
+						function finishTranslateSetup() {
+							var attempts = 0;
+							var maxAttempts = 20;
+
+							function updateTranslateMarkup() {
+								attempts += 1;
+
+								var googleDiv = $(
+									"#google_translate_element .skiptranslate"
+								);
+
+								if (googleDiv.length) {
+
+									/*
+									 * Google creates hidden voting-form inputs.
+									 * Add labels after the widget exists.
+									 */
+									$("#goog-gt-votingForm input").each(function () {
+										var id = $(this).attr("id");
+
+										if (
+											id &&
+											!$("label[for='" + id + "']").length
+										) {
+											var labelText = id
+												.replace("goog-gt-votingInput", "")
+												.replace(/([A-Z])/g, " $1")
+												.trim();
+
+											var label = $(
+												'<label class="sr-only" for="' +
+												id +
+												'"> ' +
+												labelText +
+												"</label>"
+											);
+
+											$(this).before(label);
+										}
+									});
+
+									var select = translateContainer.querySelector(
+										"select"
+									);
+
+									if (select) {
+										select.focus();
+									}
+
+									return;
+								}
+
+								if (attempts < maxAttempts) {
+									setTimeout(updateTranslateMarkup, 100);
+								}
+							}
+
+							updateTranslateMarkup();
+						}
+
+						window.googleTranslateElementInit = function () {
+							if (
+								!window.google ||
+								!google.translate ||
+								!google.translate.TranslateElement
+							) {
+								return;
+							}
+
+							if (window.__mhsGoogleTranslateInitialized) {
+								return;
+							}
+
+							window.__mhsGoogleTranslateInitialized = true;
+
+							new google.translate.TranslateElement(
+								{
+									pageLanguage: "en",
+									layout:
+										google.translate.TranslateElement
+											.InlineLayout.VERTICAL,
+									autoDisplay: false
+								},
+								"google_translate_element"
+							);
+
+							translateButton.hidden = true;
+							translateButton.setAttribute(
+								"aria-expanded",
+								"true"
+							);
+
+							finishTranslateSetup();
+						};
+
+						function loadGoogleTranslate() {
+							localStorage.setItem(
+								"mhsGoogleTranslateOpenedAt",
+								String(Date.now())
+							);
+
+							translateButton.hidden = true;
+							translateButton.setAttribute(
+								"aria-expanded",
+								"true"
+							);
+
+							if (window.__mhsGoogleTranslateInitialized) {
+								return;
+							}
+
+							if (window.__mhsGoogleTranslateLoading) {
+								return;
+							}
+
+							window.__mhsGoogleTranslateLoading = true;
+
+							translateButton.disabled = true;
+							translateButton.textContent = "Loading...";
+
+							var existingScript = document.querySelector(
+								'script[src*="translate.google.com/translate_a/element.js"]'
+							);
+
+							if (existingScript) {
+								if (
+									window.google &&
+									google.translate &&
+									google.translate.TranslateElement
+								) {
+									window.googleTranslateElementInit();
+								}
+
+								return;
+							}
+
+							var googleTranslateScript =
+								document.createElement("script");
+
+							googleTranslateScript.type = "text/javascript";
+							googleTranslateScript.async = true;
+							googleTranslateScript.src =
+								"https://translate.google.com/translate_a/element.js" +
+								"?cb=googleTranslateElementInit";
+
+							googleTranslateScript.onerror = function () {
+								window.__mhsGoogleTranslateLoading = false;
+
+								translateButton.hidden = false;
+								translateButton.disabled = false;
+								translateButton.setAttribute(
+									"aria-expanded",
+									"false"
+								);
+								translateButton.textContent =
+									"Translate unavailable — try again";
+							};
+
+							document.head.appendChild(
+								googleTranslateScript
+							);
+						}
+
+						translateButton.addEventListener(
+							"click",
+							loadGoogleTranslate
+						);
+
+						/*
+						* Browsers may restore a page from the back-forward cache.
+						* Reinitialize Google Translate if its dropdown is missing.
+						*/
+						window.addEventListener("pageshow", function (event) {
+							if (!event.persisted) {
+								return;
+							}
+
+							var translateSelect =
+								translateContainer.querySelector("select");
+
+							if (translateSelect) {
+								translateButton.hidden = true;
+								return;
+							}
+
+							window.__mhsGoogleTranslateInitialized = false;
+							window.__mhsGoogleTranslateLoading = false;
+
+							translateButton.disabled = false;
+							translateContainer.innerHTML = "";
+
+							if (
+								window.google &&
+								google.translate &&
+								google.translate.TranslateElement
+							) {
+								window.googleTranslateElementInit();
+							} else {
+								loadGoogleTranslate();
+							}
+						});
+
+						if (
+							isMyHousingSearch ||
+							translateWasOpened
+						) {
+							loadGoogleTranslate();
+						}
+					})();
+				</script>
+			
+
+
+			<div class="langCont rt imgRt" style="padding-top:4px">
+
+
+
+
+
+		<span class="langNav"><span class="accessibility-link">
+		<button type="button" class="enableRecite-static">Accessibility Tools</button>
+	</span><span class="langPipe">&nbsp;|&nbsp;</span><a href="/dbh/ViewUnit.html.ESP?id=1389153">Espa&ntilde;ol</a><span class="langPipe">&nbsp;|&nbsp;</span><a href="/dbh/ViewUnit.html?print=t&amp;id=1389153" title="Printer Friendly">Printer Friendly</a><span class="langPipe">&nbsp;|&nbsp;</span><a class="noshow langHam langHamNoBorder"><img src="https://www.myhousingsearch.com/graphics/icons/account_translate.png" alt="Account/Translate" />&#9776;</a></span>
+
+
+
+		</div>
+
+
+
+							<div class="clearboth"></div>
+						</li>
+				</ul>
+			</div>
+		</div>
+		<div class="clearboth"></div>
+	
+	<div id="toptable"> 
+
+
+			<ul class="breadcrumbs">
+				<li><a href="/login">Homepage</a></li>
+				<li class="noshow"><a href="">Test</a></li>
+				<li class="noshow"><a href="">Test</a></li>
+			</ul>
+
+
+
+		
+
+
+
+		
+			
+
+
+
+
+
+
+
+<script nonce="bbdce1942bce4bddac4f283eb597343f">
+	(function () {
+		var style = document.createElement("style");
+		style.textContent = `
+			body.handoff-active iframe[src*="chatbase"],
+			body.handoff-active [id*="chatbase"],
+			body.handoff-active [class*="chatbase"],
+			body.handoff-active [class*="cb-"],
+			body.handoff-active [id*="cb-"],
+			body.handoff-active #chatbase-message-bubbles,
+			body.handoff-active #chatbase-bubble-button,
+			body.handoff-active #chatbase-bubble-window {
+				display: none !important;
+				visibility: hidden !important;
+				opacity: 0 !important;
+				pointer-events: none !important;
+			}
+		`;
+		document.head.appendChild(style);
+	
+		var host = window.location.hostname.toLowerCase().replace(/^www\./, "");
+
+		/********************************************************************
+		* FEATURE FLAG (easy on/off switch)
+		********************************************************************/
+		var ENABLE_AI_CHATBOT = true;
+
+		if (ENABLE_AI_CHATBOT) {
+			localStorage.removeItem("liveChatActive");
+		}
+
+		/* SKIN DECIDER: Chatbase on MHS + KC + MT */
+		/*
+		var USE_CHATBASE =
+			host.includes("myhousingsearch") ||
+			host.endsWith("kchousinglocator.com") ||
+			host.endsWith("mthousingsearch.com");
+		*/
+		/* All skins use Chatbase */
+		var USE_CHATBASE = ENABLE_AI_CHATBOT;
+
+		/********************************************************************
+		* SHARED STATE
+		********************************************************************/
+		var CHAT_TIMEOUT_MS = 10 * 60 * 1000;   // 10 minutes
+		var activityTimeout = null;
+		var lastIssue = "";
+
+		function markLiveChatActive()   { localStorage.setItem("liveChatActive", "true"); }
+		function markLiveChatInactive() { localStorage.removeItem("liveChatActive"); }
+		function isLiveChatActive()     { return localStorage.getItem("liveChatActive") === "true"; }
+
+
+		function hasChatConsent() {
+			try {
+				var saved = localStorage.getItem("mhs_consent_preferences");
+				var prefs = saved ? JSON.parse(saved) : null;
+				return !!(prefs && prefs.chat);
+			} catch (e) {
+				return false;
+			}
+		}
+
+		function loadChatbaseAfterConsent() {
+			if (!hasChatConsent()) return;
+
+			if (document.querySelector('script[src*="chatbase.co/embed.min.js"]')) {
+				return;
+			}
+
+			var s = document.createElement("script");
+			s.src = "https://www.chatbase.co/embed.min.js";
+			s.id = "8TxXhfz0PRBxu2pxb-Nt_";
+			s.domain = "www.chatbase.co";
+			s.nonce = "bbdce1942bce4bddac4f283eb597343f";
+			document.body.appendChild(s);
+		}
+
+		window.mhsLoadChatServices = function () {
+			if (!hasChatConsent()) return;
+
+			if (ENABLE_AI_CHATBOT) {
+				loadChatbaseAfterConsent();
+			} else {
+				startLiveChat("Website visitor");
+			}
+		};
+
+
+		/********************************************************************
+		* DOM HELPERS
+		********************************************************************/
+		function hideChatbase() {
+			document.body.classList.add("handoff-active");
+			var btn = document.getElementById("showBotAgain");
+			if (btn) btn.style.display = "block";
+		}
+		function showChatbase() {
+  			if (!hasChatConsent()) return;
+			removeCXone();
+			document.body.classList.remove("handoff-active");
+			var btn = document.getElementById("showBotAgain");
+			if (btn) btn.style.display = "none";
+  			loadChatbaseAfterConsent();
+		}
+		function removeCXone() {
+			var selectors = [
+				"#icPatronChat",
+				"div[id^='icPatronChat']",
+				".icPatronChatRoot",
+				".ic-container",
+				".ic-widget",
+				".ic-chat-container",
+				"iframe[src*='ChatClient']"
+			];
+			document.querySelectorAll(selectors.join(",")).forEach(function(el) {
+				el.remove();
+			});
+		}
+
+		/********************************************************************
+		* TIMER RESET
+		********************************************************************/
+		function resetChatTimeout() {
+    		if (!ENABLE_AI_CHATBOT) return;
+			
+			if (activityTimeout) clearTimeout(activityTimeout);
+			activityTimeout = setTimeout(function () {
+				markLiveChatInactive();
+				showChatbase();
+			}, CHAT_TIMEOUT_MS);
+		}
+
+		/********************************************************************
+		* CXONE LOADER + START
+		********************************************************************/
+		var CXONE_CONFIG = {
+			serverHost: "https://home-c11.incontact.com",
+			bus_no: 4594254,
+			poc: "27a3cfee-1e5b-4743-a2c8-3d867d8f0fa7"
+		};
+
+		function loadCXoneScript() {
+			return new Promise(function(resolve, reject) {
+				var s = document.createElement("script");
+				s.src = "https://home-c11.incontact.com/inContact/ChatClient/js/embed.min.js";
+				s.onload = resolve;
+				s.onerror = reject;
+				document.body.appendChild(s);
+			});
+		}
+
+		function startLiveChat(issue) {
+			markLiveChatActive();
+			resetChatTimeout();
+
+			loadCXoneScript().then(function() {
+				hideChatbase();
+				if (window.icPatronChat && window.icPatronChat.init) {
+					window.icPatronChat.init({
+						serverHost: CXONE_CONFIG.serverHost,
+						bus_no: CXONE_CONFIG.bus_no,
+						poc: CXONE_CONFIG.poc,
+						params: [{ name: "issue_summary", value: issue || "" }]
+					});
+				}
+			});
+		}
+
+		/********************************************************************
+		* CHATBASE MESSAGE CAPTURE + HANDOFF
+		********************************************************************/
+		function isFromChatbase(origin) {
+			try {
+				var h = new URL(origin).hostname;
+				return h === "chatbase.co" || h.endsWith(".chatbase.co");
+			} catch { return false; }
+		}
+
+		/* Listen for assistant messages containing handoff instructions */
+		var HANDOFF_TRIGGERS = [
+			"your request has been sent to a live agent",
+			"request has been sent to a live agent",
+			"i'm connecting you to a live agent",
+			"we're connecting you to a live agent",
+			"i will forward this to a live agent",
+			"forwarded to a live agent",
+			"connecting you to a live agent"
+		];
+
+		window.addEventListener("message", function(event) {
+			if (!isFromChatbase(event.origin)) return;
+
+			var payload = event.data;
+			if (!payload) return;
+
+			// extract text in either Chatbase message format
+			var text = null;
+			if (payload.type === "assistant-message") {
+				text = payload.data?.content || "";
+			}
+			if (payload.event === "assistant_response") {
+				text = payload.response?.text || "";
+			}
+			if (!text) return;
+
+			var lower = text.toLowerCase();
+
+			// Extract issue summary for CXone params
+			var match = text.match(/send this to a live agent:\s*[“'"](.+?)[”'"]/i);
+			if (match) lastIssue = match[1].trim();
+
+			// Handoff triggers
+			if (HANDOFF_TRIGGERS.some(t => lower.includes(t))) {
+				setTimeout(() => startLiveChat(lastIssue || "General issue"), 800);
+			}
+		});
+
+		/********************************************************************
+		* CXONE events (resize/minimize) reset inactivity timer
+		********************************************************************/
+		window.addEventListener("message", function(event) {
+			if (event.origin !== "https://home-c11.incontact.com") return;
+			var payload = event.data;
+
+			if (payload?.messageType === "resize") {
+				if (ENABLE_AI_CHATBOT) {
+					resetChatTimeout();
+				}
+				var minimized = payload.data?.minimize;
+				var btn = document.getElementById("showBotAgain");
+
+				if (btn) {
+					if (minimized === true) btn.style.display = "block";
+					else if (minimized === false) btn.style.display = "none";
+				}
+			}
+		});
+
+		/********************************************************************
+		* INITIAL LOAD: prepare chatbot, but do NOT load it before consent
+		********************************************************************/
+		window.addEventListener("DOMContentLoaded", function () {
+			if (!ENABLE_AI_CHATBOT) {
+        		if (activityTimeout) clearTimeout(activityTimeout);
+				document.body.classList.add("handoff-active");
+			}
+			/* Add the “back to chatbot” button if missing */
+			if (USE_CHATBASE) {
+				if (!document.getElementById("showBotAgain")) {
+					var btn = document.createElement("button");
+					btn.id = "showBotAgain";
+					btn.innerText = "Back to AI Chatbot";
+					btn.style.cssText = "display:none;position:fixed;bottom:80px;right:20px;z-index:9999999999;padding:10px 18px;background:#4b0082;color:#fff;border-radius:6px;cursor:pointer;";
+					btn.addEventListener('click', function() { markLiveChatInactive(); showChatbase(); });
+					document.body.appendChild(btn);
+				}
+			}
+		});
+	})();
+	</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="vuWrapper">
+	
+
+	<div class="clearboth"></div> 
+
+						<div style="text-align: justify;">
+		NJHRC Disclaimer: The property listings provided in the New Jersey Housing Resource Center [NJHRC] have NOT been inspected by NJHRC. For more information see the <a href="/Disclaimer.html?listing_id=1389153&amp;ch=NJ" title="Disclaimer">disclaimer</a>.&nbsp;
+		It is imperative that persons searching for housing speak with the landlord and/or property management company and thoroughly inspect the property and surroundings prior to signing any contracts to verify the current status and condition of any property.
+
+		 Visit these links for tips on <a href="http://www.state.nj.us/dca/hmfa/media/download/renters/" rel="noopener noreferrer" target="_blank" title="tips">renting&nbsp;<img alt="Opens new browser" src="https://www.myhousingsearch.com/graphics/images/newWindow.png" title="Opens new browser window" /></a> and <a href="http://www.state.nj.us/dca/hmfa/homeownership/buyers/" rel="noopener noreferrer" target="_blank" title="tips">buying&nbsp;<img alt="Opens new browser" src="https://www.myhousingsearch.com/graphics/images/newWindow.png" title="Opens new browser window" /></a> properties.
+
+		
+
+		<br />
+		&nbsp;<br />
+	</div>
+
+	<div>&nbsp;</div>
+
+
+
+	
+	<div class="vuAddressBar row2 stdRC">
+		<div class="vuAddressTop"> 
+		<div class="vuAddress">
+			<h1 class="secondaryColor ib" style="margin: 0;">
+
+				The Overlook at Van Emburgh<br />
+
+
+
+					3BR Low and Moderate Income</h1> - 
+					781 Van Emburgh Avenue - 
+
+
+			Township of Washington, NJ 07676
+
+				<div class="vuPromo">
+					If interested in applying for this affordable housing location, please visit our website at www.affordablehomesnewjersey.com.
+				</div>
+
+
+
+		</div> 
+
+			
+		<div class="favInterface">
+
+			<form action="" method="get">
+				<div>
+
+						<input type="hidden" name='id' value="1389153" />
+					<input type="hidden" name="addToBasket" value="single" />
+					<input type="hidden" name="addition" value="1389153" />
+					<input type="hidden" name="ch" value="default" />
+					<label class="noshow">Add to Favorites</label>
+					<input class='favSub stdRC' type="image" name="submit" src="/graphics/icons/favStarEmpty.png" alt="Add to Favorites" title="Add to Favorites" />
+				</div>
+			</form>
+
+
+            <div class="rbControl rbExpander"><a href="javascript:void(0);">&darr;&nbsp;Report an Issue&nbsp;&darr;</a></div>
+		</div> 
+	</div> 
+	<div id="vuTopReportBox" class="vuReportBox">
+		<div class="rbDivider"></div>
+		
+	<div class="reportBox">
+		<div class="reportBlurb">
+				<img src="/graphics/icons/reportFlag.png" alt="flag" class="flagIcon" />
+
+			<span>We monitor listings, but if you see an issue, we want to hear from you!</span>
+		</div>
+		<div class="reportButtons">
+			<a class="reportButton" href="/tenant/FraudAlert.html?listing_id=1389153&amp;type=Unit">Read Scam Alert</a>
+			<a class="reportButton" href="/SendEmail.html?listing_id=1389153&amp;type=Unit">Report Listing</a>
+		</div>
+		<div class="clearboth"></div>
+	</div>
+
+		<div class="rbControl rbCollapser"><a href="javascript:void(0);">&uarr;&nbsp;Close&nbsp;&uarr;</a></div>
+	</div>
+
+
+		<div class="clearboth"></div>
+	</div>
+
+
+
+
+
+	<div id="vuCard"> 
+		<div class="vuCardLeft">
+				<div class="vuCardTop">
+								<div class="vuAvail" style="padding-top:0">
+				Income Restricted 	<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#income_restricted" rel="noopener noreferrer" target="_blank" title="Income Restricted - More Info"><img alt="Income Restricted - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+			</div>
+
+					
+
+		<div class="secondaryColor vuCost">
+					$1,338 - $1,675
+
+				<div class="secondaryColor vuCostLabel">
+							Income&nbsp;Based Rent
+				<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#income_sliding" rel="noopener noreferrer" target="_blank" title="More about income based rent"><img alt="More about income based rent" src="/graphics/icons/helpQ.png" /></a>
+
+				</div>
+		</div>
+
+		<div class="clearboth">
+		</div>
+
+							<div class="vuSecDepDown secondaryColor">
+			
+
+
+
+
+		<span class="shsDepositLab qtDepositLab">Deposit</span> $2,513
+
+		</div>
+
+					
+					
+					
+
+							<div class="vuAvail">		Waiting List 
+
+				<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#dateavailable" rel="noopener noreferrer" target="_blank" title="Date Available - More Info"><img alt="Date Available - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+		</div>
+
+
+					
+
+
+					<div class="vuSecondaryCosts">
+								<div class="vuLeaseLength">
+				One Year
+			Lease
+		</div>
+
+									<div class="vuIncUtil">
+				Utilities Included:
+				Sewer
+			</div>
+
+						
+
+		<div class="vuAppFee">
+			No&nbsp;Application Fee&nbsp;	<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#applicationfee" rel="noopener noreferrer" target="_blank" title="Application Fee - More Info"><img alt="Application Fee - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+		</div>
+
+
+
+					</div>
+
+					<div class="vuBasicInfo">
+						<div class="vuChecks">
+							
+		<div class="vuCredit">
+			Background Check Policy 	<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#nj_checks" rel="noopener noreferrer" target="_blank" title="Background Check Policy - More Info"><img alt="Background Check Policy - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+		</div>
+
+
+						</div>
+						<div class="vuSize">
+							
+	<div class="vuBBT">
+			3&nbsp;Bed &bull; 1&nbsp;Bath
+		&bull; Apartments
+
+	</div>
+
+
+								<div class="vuSqFtYr">
+
+			Built&nbsp;2026
+			<span style="font-size:smaller">(approx.)</span>
+	</div>
+
+							
+							
+						</div>
+							<div class="vuApplyNow">
+								<a class="stdRC vuApplyNowBtn"
+								href="https://www.affordablehomesnewjersey.com/rental-opportunities/developments/?did=a0J3m00001nFjfMEAS"
+								target="_blank"
+								rel="noopener noreferrer">
+									Apply Now
+								</a>
+							</div>
+					</div>
+				</div>
+
+
+			<div class="vuContact">
+				
+
+
+
+
+
+
+
+
+		<table class="tabularDetails">
+			
+
+
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Contact
+					</td>
+					<td class="tbC"> 
+							CGP&amp;H, 
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Phone
+					</td>
+					<td class="tbC"> 
+							<a href="callto://6096642769">609-664-2769 (5)</a>
+			&nbsp;<img src="/graphics/icons/lang_es.png" alt="Hablamos Espa&ntilde;ol" title="Landlord can accept Spanish-language phone calls" />
+			
+					</td>
+					<td class="tbI"> 
+															<a href="callto://6096642769" title="Phone"><img alt="Phone" src="/graphics/icons/contact18.png" /></a>
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Fax
+					</td>
+					<td class="tbC"> 
+							609-664-2786
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Email
+					</td>
+					<td class="tbC"> 
+							<a href="mailto:homes@cgph.net">homes@cgph.net</a>
+					</td>
+					<td class="tbI"> 
+															<a href="mailto:homes@cgph.net" title="Email"><img alt="Email" src="/graphics/icons/SSCemail20px.png" /></a>
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Address
+					</td>
+					<td class="tbC"> 
+							1249 South River Road, Suite 301<br />Cranbury,&nbsp;NJ&nbsp;&nbsp;08512-3633
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+		</table>
+
+			</div>
+		</div>
+		<div class="vuCardRight">
+			<div class="vuPicFloater">
+				<div class="vuPics">
+					
+
+
+
+
+	<ul class="pgwSlideshow">
+		
+			<li>
+				<img alt="Front" src="/WebFile?id=3011121"
+					title="Front" id="image_link_3011121"
+					/>
+			</li>
+	</ul>
+
+				</div>
+			</div>
+			<div class="vuMap">
+				
+
+
+
+
+		<a href="https://www.google.com/maps/place/Township%20of%20Washington%20New%20Jersey%203%20Br%20Low%20And%20Moderate%20Income%2007676" rel="noopener noreferrer" target="_blank" title="Google Map of Township of Washington New Jersey 3 Br Low And Moderate Income 07676"><img alt="Google Map of Township of Washington New Jersey 3 Br Low And Moderate Income 07676" src="https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyBul-D0FB2XikNvBDuednbyrWPbF2YrkTc&amp;scale=false&amp;maptype=roadmap&amp;visual_refresh=true&amp;format=png&amp;zoom=13&amp;markers=size%3Amid%7Ccolor%3A0xff5e55%7Clabel%3A1%7CTownship+of+Washington+New+Jersey+3+Br+Low+And+Moderate+Income+07676&amp;size=500x333&amp;signature=rSkB0uztgX1fvDHQ4LEBdq00G-k=" /></a>
+
+			</div>
+		</div>
+		<div class="clearboth"></div>
+	</div>
+
+	<div class="vuHR secondaryColorBG"></div> 
+
+	<div class="vuTabular">
+
+		<div class="vuSectionRow vuColumnize">
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_general.png" alt="Basic Features" />
+			Basic Features
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Pets
+					</td>
+					<td class="tbC"> 
+							Allowed
+								<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#pets" rel="noopener noreferrer" target="_blank" title="Pets - More Info"><img alt="Pets - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+					</td>
+					<td class="tbI"> 
+															<img src="/graphics/icons/SSCpetsok20px.png" alt="Pets" />
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Smoking
+					</td>
+					<td class="tbC"> 
+														No <span class="defWrap">Smoking
+								<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#smoking" rel="noopener noreferrer" target="_blank" title="Smoking - More Info"><img alt="Smoking - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+								</span>
+					</td>
+					<td class="tbI"> 
+															<img src="/graphics/icons/SSCnosmoking20px.png" alt="Smoking" />
+					</td>
+				</tr>
+
+		
+		
+		
+			</table>
+	</div>
+
+
+
+			
+
+
+
+
+
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_appliance.png" alt="Appliances" />
+			Appliances
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Microwave
+					</td>
+					<td class="tbC"> 
+							Unknown
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Refrigerator / Freezer
+					</td>
+					<td class="tbC"> 
+							Freezer On Top
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Clothes Washer
+					</td>
+					<td class="tbC"> 
+							Top Loading
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Clothes Dryer
+					</td>
+					<td class="tbC"> 
+							Front Loading
+					</td>
+					<td class="tbI"> 
+															<img src="/graphics/icons/SSCaccess20px.png" alt="Clothes Dryer" />
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Laundry Room / Facility
+					</td>
+					<td class="tbC"> 
+							In Unit
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Other Appliances
+					</td>
+					<td class="tbC"> 
+							Dishwasher
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+		</div>
+		<div class="vuSectionRow vuColumnize">
+			
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_utility.png" alt="Utilities" />
+			Utilities
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Air Conditioner
+					</td>
+					<td class="tbC"> 
+							Central
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Heating Type
+					</td>
+					<td class="tbC"> 
+							Gas
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Water Heater
+					</td>
+					<td class="tbC"> 
+							Electric
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+			
+
+
+
+
+
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_special.png" alt="Specialized Information" />
+			Specialized Information
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Listing ID
+					</td>
+					<td class="tbC"> 
+							1389153
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Tax Credit (LIHTC) Housing
+					</td>
+					<td class="tbC"> 
+							No
+								<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#taxcredit" rel="noopener noreferrer" target="_blank" title="Tax Credit (LIHTC) Housing - More Info"><img alt="Tax Credit (LIHTC) Housing - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Seniors Only
+					</td>
+					<td class="tbC"> 
+							No
+								<a href="/dbh/ViewUnitHelp.html?listing_id=1389153#senioronly" rel="noopener noreferrer" target="_blank" title="Seniors Only - More Info"><img alt="Seniors Only - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+		</div>
+		<div class="vuSectionRow vuColumnize">
+			
+
+
+
+       		<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_accessibility.png" alt="Accessibility" />
+			Accessibility
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Counter/Vanity
+					</td>
+					<td class="tbC"> 
+							Standard Height Counters and Vanity
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Door/Faucet Handles
+					</td>
+					<td class="tbC"> 
+							Non-lever handles On Doors And Faucets
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_kitchen_bath.png" alt="Kitchen &amp; Bath Accessibility&nbsp;" />
+			Kitchen &amp; Bath Accessibility&nbsp;
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Kitchen
+					</td>
+					<td class="tbC"> 
+							Standard
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+													<tr><td colspan='3' class="expandedDivider xd1"></td></tr>
+				
+
+
+
+									<tr class="row1">
+						<td colspan='3' class="cg_td"><div class="expandable x1"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Non-digital Kitchen Appliances
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row2">
+						<td colspan='3' class="cg_td"><div class="expandable x1"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Front Controls on Stove/Cook-top
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+ 
+
+				<tr>
+					<td colspan='3' class="rt primaryColor collapseControl cc1">
+						<div class="expander e1"><a href="javascript:void(0);">&darr;&nbsp;Comprehensive List&nbsp;&darr;</a></div>
+						<div class="collapser c1"><a href="javascript:void(0);">&uarr;&nbsp;Close&nbsp;&uarr;</a></div>
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Bathroom
+					</td>
+					<td class="tbC"> 
+							Standard
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+													<tr><td colspan='3' class="expandedDivider xd2"></td></tr>
+				
+
+
+
+									<tr class="row1">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Toilet Grab Bars or Reinforcements
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row2">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Bath Grab Bars or Reinforcements
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row1">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Roll-in Shower
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row2">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Walk-in Shower
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row1">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						Accessible Height Toilet
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+
+									<tr class="row2">
+						<td colspan='3' class="cg_td"><div class="expandable x2"><table class="tabularDetails"><tr>
+					<td class="tbL"> 
+						'T' Turn or 60&quot; Turning Circle in Bathrooms
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+						</tr></table></div></td>
+				</tr>
+ 
+
+				<tr>
+					<td colspan='3' class="rt primaryColor collapseControl cc2">
+						<div class="expander e2"><a href="javascript:void(0);">&darr;&nbsp;Comprehensive List&nbsp;&darr;</a></div>
+						<div class="collapser c2"><a href="javascript:void(0);">&uarr;&nbsp;Close&nbsp;&uarr;</a></div>
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+		</div>
+		<div class="vuSectionRow vuColumnize">
+			
+
+
+
+
+
+
+
+
+
+
+	
+
+	
+
+
+
+
+
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_safety.png" alt="Safety" />
+			Safety
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						New Jersey Lead-safety Level
+					</td>
+					<td class="tbC"> 
+														My unit was constructed after 1977 and is therefore presumed to be Lead <span class="defWrap">Free.
+								<a href="/dbh/LeadpaintDefinitions.html?listing_id=1389153&amp;lp_id=1#_1" rel="noopener noreferrer" target="_blank" title="New Jersey Lead-safety Level - More Info"><img alt="New Jersey Lead-safety Level - More Info" class="defIcon" src="/graphics/icons/helpQ.png" /></a>
+
+								</span>
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						<div class="pl20"><img src="/graphics/icons/indent_arrow.png" alt="indention" />&nbsp;Learn More</div>
+					</td>
+					<td class="tbC"> 
+							<div class="vuLeadInfoLinks"><a href="https://www.hud.gov/program_offices/healthy_homes/lbp/hudguidelines" rel="noopener noreferrer" target="_blank">HUD Lead Paint Guidelines</a><br /><a href="https://www.hud.gov/program_offices/healthy_homes/enforcement/disclosure" rel="noopener noreferrer" target="_blank">Lead Paint Disclosure Rule</a></div>
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Fire Safety
+					</td>
+					<td class="tbC"> 
+								<ul class="tabularULContent">
+			<li>Smoke Detector</li>
+			<li>Carbon Monoxide Detector</li>
+	</ul>
+
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+
+
+				<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_parking_entry.png" alt="Parking and Entry" />
+			Parking and Entry
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Parking Type
+					</td>
+					<td class="tbC"> 
+							Unknown
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+		
+									<tr class="row2">
+					<td class="tbL"> 
+						Parking in Front of Entrance
+					</td>
+					<td class="tbC"> 
+							No
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+		
+		
+									<tr class="row1">
+					<td class="tbL"> 
+						Entry Location
+					</td>
+					<td class="tbC"> 
+							Unknown
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Unit Entry
+					</td>
+					<td class="tbC"> 
+							Step(s)
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Unit Minimum Door Width
+					</td>
+					<td class="tbC"> 
+							Unknown
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+		
+			</table>
+	</div>
+
+
+
+		</div>
+		<div class="vuSectionRow vuColumnize">
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		</div>
+		<div class="vuSectionRow">
+			
+	
+
+
+
+
+
+			<a id="slidingQualifiers"></a>
+
+
+
+
+
+
+
+
+
+	
+		<div class="vuCommentsSection" id="propertyComments">
+					<div class="tabularSection">
+		<div class="tabularHeading">
+			<img src="/graphics/icons/vu/u_comments.png" alt="Comments" />
+			Comments
+		</div>
+		<div class="clearboth"></div>
+		<table class="tabularDetails">
+
+	
+
+
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Qualifiers For Income Based Rent or Income Restriction
+					</td>
+					<td class="tbC"> 
+							This is an income-restricted property. Income is calculated by gross and cannot exceed the following: VERY LOW: $27,210 for a 1 person household; $31,080 for a 2 person household; $34,980 for a 3 person household; $38,850 for a 4 person household; $41,970 for a 5 person household; $45,090 for a 6 person household. LOW: $45,350 for a 1 person household; $51,800 for a 2 person household; $58,300 for a 3 person household; $64,750 for a 4 person household; $69,950 for a 5 person household; $75,150 for a 6 person household. MODERATE: $72,560 for a 1 person household; $82,880 for a 2 person household; $93,280 for a 3 person household; $103,600 for a 4 person household; $111,920 for a 5 person household; $120,240 for a 6 person household.
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row2">
+					<td class="tbL"> 
+						Property Comments
+					</td>
+					<td class="tbC"> 
+							Join the Washington Township (Bergen County) rental waiting list by 9/28/2026 to be included in the next lottery. 1 low-income three-bedroom apartment for $1,473, and 1 moderate-income three-bedroom apartment for $1,849 per month will be available. The maximum application fee is 5% of the rent of the apartment you are applying for.
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+									<tr class="row1">
+					<td class="tbL"> 
+						Owner/Manager Comments
+					</td>
+					<td class="tbC"> 
+							Please complete preliminary application on-line at www.affordablehomesnewjersey.com. If you cannot apply on-line, please call us at the number on this listing.  Please leave a detailed message with your name, phone number, address and why you are calling so we may assist you. CGP&amp;H administers the Affordable Housing Opportunities on behalf of municipalities throughout the state. Please note that interested applicants must submit a pre-application.  There may be a waiting list for units listed as available now. The application process takes several weeks even if there is no waiting list.
+					</td>
+					<td class="tbI"> 
+					</td>
+				</tr>
+
+			</table>
+	</div>
+
+
+		</div>
+
+		</div>
+
+
+
+		<div id="vuBottomReportBox" class="vuReportBox row2">
+			
+	<div class="reportBox">
+		<div class="reportBlurb">
+				<img src="/graphics/icons/reportFlag.png" alt="flag" class="flagIcon" />
+
+			<span>We monitor listings, but if you see an issue, we want to hear from you!</span>
+		</div>
+		<div class="reportButtons">
+			<a class="reportButton" href="/tenant/FraudAlert.html?listing_id=1389153&amp;type=Unit">Read Scam Alert</a>
+			<a class="reportButton" href="/SendEmail.html?listing_id=1389153&amp;type=Unit">Report Listing</a>
+		</div>
+		<div class="clearboth"></div>
+	</div>
+
+
+			<div class="vuLegal">		<div>
+			Under the <a class="underlineLink" href="https://www.hud.gov/program_offices/fair_housing_equal_opp/fair_housing_act_overview" rel="noopener noreferrer" target="_blank" title="Federal Fair Housing Act of 1968. More Info ..."><img alt="Opens new browser" src="https://www.myhousingsearch.com/graphics/images/newWindow.png" title="Opens new browser window" />&nbsp;Federal Fair Housing Act of 1968</a>, as amended in 1988, it is illegal to engage in discriminatory advertising based on race, color, religion, sex, familial status, disability, and national origin.
+		</div>
+</div>
+		</div>
+		<div class="clearboth"></div>
+	</div>
+
+
+</div> 
+
+
+
+
+
+
+	</main> 
+
+		
+</div> 
+
+
+
+	<div class="ctr">
+		<div class="needHelp">
+			<strong>	Need Help? Call 1.877.428.8844
+</strong>
+		</div>
+		
+		<div class="sssSocialMedia">
+		</div>
+	</div>
+
+<div class="fsection">
+	<div class="w-layout-grid footer">
+        <div class="footer-block">
+			<a href="/" title="Emphasys Housing Locator - MyHousingSearch"><img alt="Emphasys Housing Locator - MyHousingSearch" class="footer-logo" src="/images/MHSlogowhitewebsite.svg" /></a>
+            <div class="text-block-3">
+            	<p id="pheader">Have questions?</p>
+				<div class="f-row">
+					<p>Call <a class="link-2" href="tel:18774288844">1-877-428-8844</a></p>
+				</div>
+				<div class="f-row">
+					<p>Email <a class="link-2" href="mailto:info@myhousingsearch.com">info@myhousingsearch.com</a></p>  
+				</div>          
+            </div>
+            <div class="text-block-3">
+            	<p>Our Call Center is available Monday - Friday 9am - 8pm EST </p>
+            	<p>Dial 7-1-1 for TTY</p>            
+            </div>
+        </div>
+        <div class="footer-block">
+            <div class="label">
+				Housing
+            </div>
+            <div class="links-section-footer">
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/housing_search.html">Find Housing</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="/dbh/realtor/">List a Property</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="/login">Login</a></p>
+				</div>
+            </div>
+        </div>
+        <div class="footer-block">
+            <div class="label">
+				Service
+            </div>
+            <div class="links-section-footer">
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/about.html">About Us</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/contact.html">Contact Us</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/housing_search.html">Services</a></p>
+				</div>
+            </div>
+        </div>
+        <div class="footer-block">
+            <div class="label">
+				Site Info
+            </div>
+            <div class="links-section-footer">
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/disclaimer.html">Disclaimer</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/privacy.html">Privacy</a></p>
+				</div>
+				<div class="f-row">
+					<p><a class="footer-link" href="https://www.myhousingsearch.com/terms.html">Terms</a></p>
+				</div>
+				<div class="f-row">
+					<p>
+						<a href="javascript:void(0);" id="mhsPrivacySettings" class="footer-link">
+							Privacy Settings
+						</a>
+					</p>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+	<div class="sscPlate light ctr">
+		<div class="sscNP">
+		</div>
+
+		Copyright &copy; 2026&nbsp;-&nbsp;<a href="http://emphasyshls.com">Emphasys Software</a>&nbsp;-&nbsp;All rights reserved<br />
+
+				Toll-Free: 1.877.428.8844
+
+			<br />
+
+		
+	<a href="https://www.hud.gov/stat/fheo/rights-obligations" rel="noopener noreferrer" target="_blank" title="Fair Housing Act of 1968"><img alt="Fair Housing Logo" class="imgBottom" src="/graphics/icons/HUD_icon.svg" /></a>
+
+
+		
+	<a href="https://www.dol.gov/agencies/odep" rel="noopener noreferrer" target="_blank" title="Universally Accessible"><img alt="Universally Accessible" class="imgBottom" src="/graphics/icons/ADA_icon.svg" /></a>
+
+
+		<div>
+				Page Loaded: 09/11/26 00:28 (Eastern Time)&nbsp;-&nbsp;Version 4.0<br />
+
+		</div>
+	</div>
+
+
+
+			
+
+	<div class="light ctr validationTags">
+		&nbsp;<br />[
+		<a href="http://validator.w3.org/" title="Valid XHTML 1.0">XHTML</a>
+
+			&nbsp;|&nbsp;&nbsp;<a href="http://jigsaw.w3.org/css-validator/" title="Valid CSS">CSS</a>
+
+				&nbsp;|&nbsp;&nbsp;<a href="http://www.cynthiasays.com/"
+				
+					title="Section 508 Compliant and WCAG AAA">508 / AA / AAA
+
+				</a>
+		]
+		<br />This specific page meets the above validation levels.
+	</div>
+			
+
+
+
+
+	
+
+	<div id="mhsConsentBanner" class="mhs-consent-banner" role="dialog" aria-modal="true" aria-label="Privacy and cookie consent">
+		<div class="mhs-banner-inner">
+
+			<div class="mhs-blocking-notice" id="mhsConsentStatus">
+				No optional tools active — waiting for your choice
+			</div>
+
+			<div class="mhs-banner-main">
+				<div class="mhs-banner-content">
+					<p class="mhs-banner-title">We don’t track anything until you say so</p>
+					<p class="mhs-banner-body">
+						We use optional analytics and chat tools to improve site performance and support services.
+						These tools do not load unless you choose to allow them. Essential cookies required for
+						site functionality are always active. You can change or withdraw your consent at any time
+						through Privacy Settings.
+					<br><br>
+						<a href="https://www.myhousingsearch.com/privacy.html">Privacy Policy</a>
+					</p>
+				</div>
+				<div class="mhs-banner-actions">
+					<button type="button" class="mhs-btn mhs-btn-primary" id="mhsAcceptAllConsent">
+						Accept all
+					</button>
+
+					<button type="button" class="mhs-btn mhs-btn-secondary" id="mhsRejectAllConsent">
+						Reject all
+					</button>
+
+					<button type="button" class="mhs-btn mhs-btn-ghost" id="mhsPrefsToggle">
+						Manage preferences ↓
+					</button>
+				</div>
+			</div>
+
+			<div class="mhs-prefs-panel" id="mhsPrefsPanel">
+				<hr class="mhs-prefs-divider">
+
+				<div class="mhs-prefs-grid">
+					<div class="mhs-pref-card" id="mhs-card-essential">
+						<div class="mhs-pref-card-header">
+							<span class="mhs-pref-label">
+								Essential
+								<span class="mhs-badge-required">Always on</span>
+							</span>
+
+							<label class="mhs-toggle" aria-label="Essential cookies — always on">
+								<input type="checkbox" checked disabled>
+								<span class="mhs-toggle-track"></span>
+								<span class="mhs-toggle-thumb"></span>
+							</label>
+						</div>
+
+						<p class="mhs-pref-desc">
+							Required for the site to function, including security, login/session behavior, and basic site operations.
+						</p>
+
+						<div class="mhs-pref-tools">
+							<span>session cookies</span>
+							<span>security</span>
+						</div>
+					</div>
+
+					<div class="mhs-pref-card" id="mhs-card-analytics">
+						<div class="mhs-pref-card-header">
+							<span class="mhs-pref-label">Analytics</span>
+
+							<label class="mhs-toggle" aria-label="Enable analytics">
+								<input type="checkbox" id="mhsToggleAnalytics">
+								<span class="mhs-toggle-track"></span>
+								<span class="mhs-toggle-thumb"></span>
+							</label>
+						</div>
+
+						<p class="mhs-pref-desc">
+							Measures page traffic and performance to help us improve the site. Off by default.
+						</p>
+
+						<div class="mhs-pref-tools">
+							<span>google-analytics.com</span>
+							<span>googletagmanager.com</span>
+						</div>
+					</div>
+
+					<div class="mhs-pref-card" id="mhs-card-chat">
+						<div class="mhs-pref-card-header">
+							<span class="mhs-pref-label">Chat & support</span>
+
+							<label class="mhs-toggle" aria-label="Enable chat and support tools">
+								<input type="checkbox" id="mhsToggleChat">
+								<span class="mhs-toggle-track"></span>
+								<span class="mhs-toggle-thumb"></span>
+							</label>
+						</div>
+
+						<p class="mhs-pref-desc">
+							Enables chat and support tools. Off by default; turn on only if you want to use chat support.
+						</p>
+
+						<div class="mhs-pref-tools">
+							<span>Chatbase</span>
+							<span>NICE CXone</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="mhs-rights-row">
+					<p class="mhs-rights-text">
+						<strong>Your privacy choices:</strong>
+						You may accept all, reject all, or choose which optional tools may load.
+					</p>
+
+					<div class="mhs-save-row">
+
+						<button type="button" class="mhs-btn mhs-btn-primary" id="mhsSavePrefs">
+							Save my choices
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="mhsConsentToast">
+		<p>Preferences saved</p>
+	</div>
+
+	<script nonce="bbdce1942bce4bddac4f283eb597343f">
+		(function () {
+		var CONSENT_KEY = "mhs_consent_preferences";
+		var GA_ID = "G-9KSG7MZ5NQ";
+
+		var prefsOpen = false;
+		var openedFromSettings = false;
+
+		function getPrefs() {
+			try {
+			var saved = localStorage.getItem(CONSENT_KEY);
+			return saved ? JSON.parse(saved) : null;
+			} catch (e) {
+			return null;
+			}
+		}
+
+		function savePrefsObject(prefs) {
+			localStorage.setItem(CONSENT_KEY, JSON.stringify({
+			essential: true,
+			analytics: !!prefs.analytics,
+			chat: !!prefs.chat,
+			savedAt: new Date().toISOString()
+			}));
+		}
+
+		function loadGoogleAnalytics() {
+			if (!GA_ID || window.__mhsAnalyticsLoaded) return;
+
+			window.__mhsAnalyticsLoaded = true;
+			window.dataLayer = window.dataLayer || [];
+
+			var script = document.createElement("script");
+			script.async = true;
+			script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA_ID);
+			script.nonce = "bbdce1942bce4bddac4f283eb597343f";
+			document.head.appendChild(script);
+
+			window.gtag = function () {
+			window.dataLayer.push(arguments);
+			};
+
+			gtag("js", new Date());
+			gtag("config", GA_ID);
+		}
+
+		function loadEnabledServices(prefs) {
+			if (prefs.analytics) {
+			loadGoogleAnalytics();
+			}
+
+			if (prefs.chat && typeof window.mhsLoadChatServices === "function") {
+			window.mhsLoadChatServices();
+			}
+		}
+
+		function showBanner() {
+			var banner = document.getElementById("mhsConsentBanner");
+			if (banner) {
+			banner.classList.add("is-visible");
+			banner.classList.remove("is-hidden");
+			}
+		}
+
+		function hideBanner() {
+			var banner = document.getElementById("mhsConsentBanner");
+			if (banner) {
+			banner.classList.add("is-hidden");
+			banner.classList.remove("is-visible");
+			}
+		}
+
+		function syncCard(name, checked) {
+			var card = document.getElementById("mhs-card-" + name);
+			if (card) {
+			card.classList.toggle("active", checked);
+			}
+		}
+
+		function setToggle(name, checked) {
+			var toggle = document.getElementById("mhsToggle" + name.charAt(0).toUpperCase() + name.slice(1));
+			if (toggle) {
+			toggle.checked = checked;
+			}
+
+			syncCard(name, checked);
+		}
+
+		function updateConsentStatus(prefs) {
+			var status = document.getElementById("mhsConsentStatus");
+			if (!status) return;
+
+			if (!prefs) {
+			status.textContent = "No optional tools active — waiting for your choice";
+			status.className = "mhs-blocking-notice";
+			return;
+			}
+
+			if (prefs.analytics && prefs.chat) {
+			status.textContent = "Analytics and chat are currently enabled";
+			status.className = "mhs-blocking-notice is-active";
+			return;
+			}
+
+			if (prefs.analytics) {
+			status.textContent = "Analytics is currently enabled — chat is blocked";
+			status.className = "mhs-blocking-notice is-partial";
+			return;
+			}
+
+			if (prefs.chat) {
+			status.textContent = "Chat is currently enabled — analytics is blocked";
+			status.className = "mhs-blocking-notice is-partial";
+			return;
+			}
+
+			status.textContent = "Only essential tools are active — analytics and chat are blocked";
+			status.className = "mhs-blocking-notice";
+		}
+
+		function togglePrefs() {
+			prefsOpen = !prefsOpen;
+
+			var panel = document.getElementById("mhsPrefsPanel");
+			var button = document.getElementById("mhsPrefsToggle");
+
+			if (panel) {
+			panel.classList.toggle("open", prefsOpen);
+			}
+
+			if (button) {
+			button.textContent = prefsOpen ? "Hide preferences ↑" : "Manage preferences ↓";
+			}
+		}
+
+		function openPreferences() {
+			openedFromSettings = true;
+
+			var savedPrefs = getPrefs();
+
+			if (savedPrefs) {
+			setToggle("analytics", !!savedPrefs.analytics);
+			setToggle("chat", !!savedPrefs.chat);
+			}
+
+			updateConsentStatus(savedPrefs);
+			showBanner();
+
+			prefsOpen = true;
+
+			var panel = document.getElementById("mhsPrefsPanel");
+			var button = document.getElementById("mhsPrefsToggle");
+
+			if (panel) {
+			panel.classList.add("open");
+			}
+
+			if (button) {
+			button.textContent = "Hide preferences ↑";
+			}
+		}
+
+		function showToast(message) {
+			var toast = document.getElementById("mhsConsentToast");
+			if (!toast) return;
+
+			toast.textContent = message;
+			toast.classList.add("show");
+
+			setTimeout(function () {
+			toast.classList.remove("show");
+			}, 4500);
+		}
+
+		function commitPrefs(prefs, message, shouldReload) {
+			savePrefsObject(prefs);
+			hideBanner();
+			showToast(message);
+
+			if (shouldReload) {
+			setTimeout(function () {
+				window.location.reload();
+			}, 700);
+			return;
+			}
+
+			updateConsentStatus(prefs);
+			loadEnabledServices(prefs);
+		}
+
+		function acceptAll() {
+			var prefs = {
+			analytics: true,
+			chat: true
+			};
+
+			setToggle("analytics", true);
+			setToggle("chat", true);
+
+			commitPrefs(
+			prefs,
+			"All optional tools enabled. You can change this at any time.",
+			openedFromSettings
+			);
+		}
+
+		function rejectAll() {
+			var prefs = {
+			analytics: false,
+			chat: false
+			};
+
+			setToggle("analytics", false);
+			setToggle("chat", false);
+
+			commitPrefs(
+			prefs,
+			"Only essential cookies active. No optional third-party tools loaded.",
+			openedFromSettings
+			);
+		}
+
+		function saveSelectedPrefs() {
+			var analyticsToggle = document.getElementById("mhsToggleAnalytics");
+			var chatToggle = document.getElementById("mhsToggleChat");
+
+			var prefs = {
+			analytics: !!(analyticsToggle && analyticsToggle.checked),
+			chat: !!(chatToggle && chatToggle.checked)
+			};
+
+			var enabled = [];
+
+			if (prefs.analytics) enabled.push("analytics");
+			if (prefs.chat) enabled.push("chat");
+
+			var message = enabled.length
+			? "Enabled: " + enabled.join(", ") + ". Other tools remain blocked."
+			: "Only essential cookies active. No optional third-party tools loaded.";
+
+			commitPrefs(prefs, message, openedFromSettings);
+		}
+
+		document.addEventListener("DOMContentLoaded", function () {
+			var savedPrefs = getPrefs();
+
+			var analyticsToggle = document.getElementById("mhsToggleAnalytics");
+			var chatToggle = document.getElementById("mhsToggleChat");
+
+			if (analyticsToggle) {
+			analyticsToggle.addEventListener("change", function () {
+				syncCard("analytics", this.checked);
+			});
+			}
+
+			if (chatToggle) {
+			chatToggle.addEventListener("change", function () {
+				syncCard("chat", this.checked);
+			});
+			}
+
+			var acceptButton = document.getElementById("mhsAcceptAllConsent");
+			var rejectButton = document.getElementById("mhsRejectAllConsent");
+			var saveButton = document.getElementById("mhsSavePrefs");
+			var prefsButton = document.getElementById("mhsPrefsToggle");
+			var settingsLink = document.getElementById("mhsPrivacySettings");
+
+			if (acceptButton) acceptButton.addEventListener("click", acceptAll);
+			if (rejectButton) rejectButton.addEventListener("click", rejectAll);
+			if (saveButton) saveButton.addEventListener("click", saveSelectedPrefs);
+			if (prefsButton) prefsButton.addEventListener("click", togglePrefs);
+
+			if (settingsLink) {
+			settingsLink.addEventListener("click", function (e) {
+				e.preventDefault();
+				openPreferences();
+			});
+			}
+
+			if (savedPrefs) {
+			setToggle("analytics", !!savedPrefs.analytics);
+			setToggle("chat", !!savedPrefs.chat);
+			updateConsentStatus(savedPrefs);
+			loadEnabledServices(savedPrefs);
+			return;
+			}
+
+			updateConsentStatus(null);
+			showBanner();
+		});
+		})();
+	</script>
+
+	</body>
+</html> 
