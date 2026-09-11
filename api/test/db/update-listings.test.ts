@@ -13,6 +13,25 @@ vi.mock("@aws-sdk/client-s3", () => ({
   GetObjectCommand: class {},
 }));
 
+const { sent, sqsFailures } = vi.hoisted(() => ({
+  sent: [] as number[],
+  sqsFailures: { ids: [] as string[] },
+}));
+
+vi.mock("@aws-sdk/client-sqs", () => ({
+  SQSClient: class {
+    send = async (command: { input: { Entries: { Id: string; MessageBody: string }[] } }) => {
+      for (const entry of command.input.Entries) {
+        sent.push(JSON.parse(entry.MessageBody).uid as number);
+      }
+      return { Failed: sqsFailures.ids.map((Id) => ({ Id })) };
+    };
+  },
+  SendMessageBatchCommand: class {
+    constructor(public input: { Entries: { Id: string; MessageBody: string }[] }) {}
+  },
+}));
+
 const { handler } = await import("../../src/lambda/update-listings.js");
 
 const EVENT = {
@@ -32,6 +51,9 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  process.env.DETAILS_QUEUE_URL = "https://sqs.test/details";
+  sent.length = 0;
+  sqsFailures.ids = [];
   await truncateAll(db);
 });
 
@@ -43,6 +65,7 @@ async function runUpdate(listings: Listing[]) {
     upserted?: number;
     hidden?: number;
     restored?: number;
+    enqueued?: number;
   };
   return { statusCode: response.statusCode, ...body };
 }
@@ -79,5 +102,37 @@ describe("update-listings against a real database", () => {
 
     // The rollback held: yesterday's catalog is still being served.
     expect(await visibleUids()).toHaveLength(1200);
+  });
+
+  it("enqueues only the listings whose details are missing or out of date", async () => {
+    // A first-ever run: nothing has details yet, so every listing needs a detail scrape.
+    expect((await runUpdate(FULL)).enqueued).toBe(1200);
+    expect(sent).toHaveLength(1200);
+
+    // Pretend the detail scraper has now been right through the catalog, except one listing.
+    await db.query("UPDATE listings SET details_scraped_at = NOW()");
+    await db.query("UPDATE listings SET details_scraped_at = NULL WHERE uid = 1500");
+    sent.length = 0;
+
+    // The site bumps last_updated on three of them today.
+    const today = new Date().toISOString().slice(0, 10);
+    const touched = FULL.map((listing, index) =>
+      index < 3 ? { ...listing, lastUpdated: today } : listing,
+    );
+
+    // Now it queues the 3 updated, plus the 1 never scraped, so 4 total
+    expect((await runUpdate(touched)).enqueued).toBe(4);
+    expect(sent[0]).toBe(1500); // never scraped, so it goes to the front of the queue
+    expect([...sent].sort()).toEqual([1000, 1001, 1002, 1500]);
+  });
+
+  it("counts only the uids the queue actually accepted", async () => {
+    sqsFailures.ids = ["1000"];
+
+    const result = await runUpdate(FULL);
+
+    expect(result).toMatchObject({ statusCode: 200, upserted: 1200 });
+    // 120 batches, each reporting one rejection.
+    expect(result.enqueued).toBe(1080);
   });
 });

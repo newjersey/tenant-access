@@ -8,6 +8,7 @@ import * as cwActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as destinations from "aws-cdk-lib/aws-lambda-destinations";
+import * as eventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
@@ -16,6 +17,7 @@ import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
 import { SEARCH_QUERY_PARAMS } from "../../src/lambda/search-params.js";
@@ -33,6 +35,20 @@ export class TenantAccessStack extends cdk.Stack {
       lifecycleRules: [
         { id: "expire-raw-html", prefix: "raw/", expiration: cdk.Duration.days(7) },
         { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
+        {
+          id: "abort-incomplete-uploads",
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
+      ],
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const imagesBucket = new s3.Bucket(this, "ListingImagesBucket", {
+      versioned: false,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      lifecycleRules: [
         {
           id: "abort-incomplete-uploads",
           abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
@@ -188,7 +204,12 @@ export class TenantAccessStack extends cdk.Stack {
         DB_SECRET_ARN: dbCredentials.secretArn,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        nodeModules: [
+          "pg",
+          "@aws-sdk/client-s3",
+          "@aws-sdk/client-sqs",
+          "@aws-sdk/client-secrets-manager",
+        ],
         externalModules: ["aws-sdk", "pg-native"],
       },
     });
@@ -197,6 +218,53 @@ export class TenantAccessStack extends cdk.Stack {
     updateLambda.addEnvironment("BUCKET_NAME", dataBucket.bucketName);
     database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(updateLambda);
+
+    const detailsDlq = new sqs.Queue(this, "ScrapeDetailsDlq", {
+      enforceSSL: true,
+      retentionPeriod: cdk.Duration.days(14),
+    });
+
+    const detailsQueue = new sqs.Queue(this, "ScrapeDetailsQueue", {
+      enforceSSL: true,
+      visibilityTimeout: cdk.Duration.minutes(18),
+      retentionPeriod: cdk.Duration.days(4),
+      deadLetterQueue: { queue: detailsDlq, maxReceiveCount: 3 },
+    });
+
+    const scrapeDetailsLambda = new NodejsFunction(this, "ScrapeDetailsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/scrape-details.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(3),
+      memorySize: 512,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+        IMAGES_BUCKET_NAME: imagesBucket.bucketName,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    scrapeDetailsLambda.addEventSource(
+      new eventSources.SqsEventSource(detailsQueue, {
+        batchSize: 1,
+        maxConcurrency: 5,
+      }),
+    );
+
+    imagesBucket.grantPut(scrapeDetailsLambda, "photos/*");
+    database.connections.allowFrom(scrapeDetailsLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(scrapeDetailsLambda);
+
+    detailsQueue.grantSendMessages(updateLambda);
+    updateLambda.addEnvironment("DETAILS_QUEUE_URL", detailsQueue.queueUrl);
 
     const queryLambda = new NodejsFunction(this, "QueryListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
@@ -289,7 +357,7 @@ export class TenantAccessStack extends cdk.Stack {
           action: { block: {} },
           statement: {
             rateBasedStatement: {
-              limit: 1000,
+              limit: 5000,
               evaluationWindowSec: 300,
               aggregateKeyType: "IP",
             },
@@ -362,6 +430,14 @@ export class TenantAccessStack extends cdk.Stack {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: searchCachePolicy,
       },
+      additionalBehaviors: {
+        "/photos/*": {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(imagesBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
+      },
     });
 
     const alertsTopic = new sns.Topic(this, "AlertsTopic", {
@@ -390,6 +466,21 @@ export class TenantAccessStack extends cdk.Stack {
 
     searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
     searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
+
+    const detailsDlqAlarm = new cloudwatch.Alarm(this, "ScrapeDetailsDlqAlarm", {
+      alarmName: "TenantAccess-ScrapeDetails-DeadLetters",
+      alarmDescription: "A detail page failed three times. The message body names the uid.",
+      metric: detailsDlq.metricApproximateNumberOfMessagesVisible({
+        period: cdk.Duration.minutes(5),
+        statistic: "Maximum",
+      }),
+      threshold: 0,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    detailsDlqAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
 
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
@@ -479,6 +570,16 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AlertsTopicArn", {
       value: alertsTopic.topicArn,
       description: "SNS topic for alerts -- subscribe the Slack channel email address to it",
+    });
+
+    new cdk.CfnOutput(this, "ImagesBaseUrl", {
+      value: `https://${publicApiDistribution.distributionDomainName}`,
+      description: "Prefix for photo_keys: <base>/photos/<uid>/<id>.jpg",
+    });
+
+    new cdk.CfnOutput(this, "ScrapeDetailsQueueUrl", {
+      value: detailsQueue.queueUrl,
+      description: 'Detail-scrape work queue -- send {"uid": N} to re-scrape one listing',
     });
   }
 }

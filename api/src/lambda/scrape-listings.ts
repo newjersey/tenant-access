@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import { S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { SEARCH_URL } from "../scraper/source.js";
+import { SEARCH_URL, USER_AGENT } from "../scraper/source.js";
 
 const s3 = new S3Client();
 
@@ -33,8 +33,7 @@ export const handler = async () => {
   const response = await fetch(SEARCH_URL, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     headers: {
-      // Identify ourselves rather than looking like an anonymous scraper.
-      "User-Agent": "NJ-TenantAccess/1.0 (+https://nj.gov)",
+      "User-Agent": USER_AGENT,
       Accept: "text/html",
     },
   });

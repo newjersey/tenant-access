@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Listing } from "../scraper/parser.js";
 import { handler } from "./update-listings.js";
 
-const { getClientMock, queryMock, endMock, s3SendMock } = vi.hoisted(() => ({
+const { getClientMock, queryMock, endMock, s3SendMock, sqsSendMock } = vi.hoisted(() => ({
   getClientMock: vi.fn(),
   queryMock: vi.fn(),
   endMock: vi.fn(),
   s3SendMock: vi.fn(),
+  sqsSendMock: vi.fn(),
 }));
 
 vi.mock("./db.js", () => ({ getClient: getClientMock }));
@@ -18,6 +19,15 @@ vi.mock("@aws-sdk/client-s3", () => ({
   },
   GetObjectCommand: class {
     constructor(readonly input: { Bucket: string; Key: string }) {}
+  },
+}));
+
+vi.mock("@aws-sdk/client-sqs", () => ({
+  SQSClient: class {
+    send = sqsSendMock;
+  },
+  SendMessageBatchCommand: class {
+    constructor(readonly input: { QueueUrl: string; Entries: { Id: string }[] }) {}
   },
 }));
 
@@ -38,12 +48,16 @@ function serve(rows: Listing[]) {
   });
 }
 
-function shownCount(count: number) {
-  queryMock.mockImplementation((sql: string) =>
-    String(sql).startsWith("SELECT COUNT(*)")
-      ? Promise.resolve({ rows: [{ count: String(count) }] })
-      : Promise.resolve({ rowCount: 0 }),
-  );
+function shownCount(count: number, needsDetails: number[] = []) {
+  queryMock.mockImplementation((sql: string) => {
+    if (String(sql).startsWith("SELECT COUNT(*)")) {
+      return Promise.resolve({ rows: [{ count: String(count) }] });
+    }
+    if (String(sql).startsWith("SELECT uid")) {
+      return Promise.resolve({ rows: needsDetails.map((uid) => ({ uid })) });
+    }
+    return Promise.resolve({ rowCount: 0, rows: [] });
+  });
 }
 
 describe("update-listings handler", () => {
@@ -53,6 +67,8 @@ describe("update-listings handler", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     process.env.BUCKET_NAME = "test-bucket";
+    process.env.DETAILS_QUEUE_URL = "https://sqs.test/details";
+    sqsSendMock.mockResolvedValue({});
     getClientMock.mockResolvedValue({ query: queryMock, end: endMock });
     endMock.mockResolvedValue(undefined);
     shownCount(0);
@@ -108,5 +124,35 @@ describe("update-listings handler", () => {
     await expect(handler(event())).rejects.toThrow("boom");
     expect(queryMock).toHaveBeenCalledWith("ROLLBACK");
     expect(endMock).toHaveBeenCalledOnce();
+  });
+
+  it("throws when DETAILS_QUEUE_URL is unset", async () => {
+    delete process.env.DETAILS_QUEUE_URL;
+
+    await expect(handler(event())).rejects.toThrow("DETAILS_QUEUE_URL is not set");
+    expect(getClientMock).not.toHaveBeenCalled();
+  });
+
+  it("enqueues every listing needing details, ten to a batch", async () => {
+    shownCount(0, Array.from({ length: 25 }, (_, i) => 500 + i));
+
+    const result = await handler(event());
+
+    expect(JSON.parse(result.body)).toMatchObject({ enqueued: 25 });
+    expect(sqsSendMock).toHaveBeenCalledTimes(3);
+    expect(sqsSendMock.mock.calls[0][0].input.QueueUrl).toBe("https://sqs.test/details");
+    expect(sqsSendMock.mock.calls[0][0].input.Entries).toHaveLength(10);
+    expect(sqsSendMock.mock.calls[2][0].input.Entries).toHaveLength(5);
+    expect(sqsSendMock.mock.calls[0][0].input.Entries[0]).toEqual({
+      Id: "500",
+      MessageBody: '{"uid":500}',
+    });
+  });
+
+  it("discounts entries the queue rejected instead of failing the run", async () => {
+    shownCount(0, [500, 501]);
+    sqsSendMock.mockResolvedValue({ Failed: [{ Id: "500" }] });
+
+    expect(JSON.parse((await handler(event())).body)).toMatchObject({ enqueued: 1 });
   });
 });
