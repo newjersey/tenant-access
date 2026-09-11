@@ -66,6 +66,11 @@ export class TenantAccessStack extends cdk.Stack {
       service: ec2.GatewayVpcEndpointAwsService.S3,
     });
 
+    vpc.addInterfaceEndpoint("SqsEndpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.SQS,
+      privateDnsEnabled: true,
+    });
+
     vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
       service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
       privateDnsEnabled: true,
