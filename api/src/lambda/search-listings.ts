@@ -1,8 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import type { Pool } from "pg";
-import type { Listing } from "../scraper/parser.js";
 import { getPool } from "./db.js";
-import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
+import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 import { isFromCloudFront } from "./require-cloudfront.js";
 import type { SearchParams } from "./search-params.js";
 
@@ -71,7 +70,7 @@ function parseLocation(raw: string | undefined): Location {
 }
 
 async function queryResults(pool: Pool, location: Location, sort: SortKey, offset: number) {
-  const result = await pool.query<Listing>(resultsSql(sort), [
+  const result = await pool.query<ListingRow>(resultsSql(sort), [
     location.city,
     location.county,
     PAGE_SIZE,

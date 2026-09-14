@@ -188,4 +188,25 @@ describe("search-listings against a real database", () => {
 
     expect(uids(await search())).toEqual([200, 100]);
   });
+
+  it("returns our photo keys and details once a listing has been detail-scraped", async () => {
+    await seedListing(db, makeListing(100));
+    await seedListing(db, makeListing(200));
+    await db.query(
+      "UPDATE listings SET photo_keys = $1::text[], legacy_details = $2::jsonb WHERE uid = 100",
+      [
+        ["photos/100/900.jpg", "photos/100/901.png"],
+        JSON.stringify({ yearBuilt: 2022, sections: {} }),
+      ],
+    );
+
+    const result = await search();
+
+    expect(result.listings?.[0]).toMatchObject({
+      uid: 100,
+      photoKeys: ["photos/100/900.jpg", "photos/100/901.png"],
+      legacyDetails: { yearBuilt: 2022, sections: {} },
+    });
+    expect(result.listings?.[1]).toMatchObject({ uid: 200, photoKeys: [], legacyDetails: null });
+  });
 });

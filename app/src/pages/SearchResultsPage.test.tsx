@@ -24,6 +24,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   unitType: null,
   imageId: null,
   imageUrl: null,
+  photoKeys: [],
   phoneNumber: "914-693-6613",
   website: null,
   description: null,
@@ -35,6 +36,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   fullListingUrl: "https://www.myhousingsearch.com/listing/1",
   rentType: null,
   depositRange: null,
+  legacyDetails: null,
   ...overrides,
 });
 
@@ -62,6 +64,7 @@ const renderAt = (url: string) =>
 describe("SearchResultsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     resolveWith([]);
   });
 
@@ -204,13 +207,31 @@ describe("SearchResultsPage", () => {
     expect(links[0]).toHaveAccessibleName("$1,200/month, 221 King Street, Clifton, NJ 08608");
   });
 
-  it("shows the photo when there is one", async () => {
+  it("for now, falls back to the legacy photo when s3 not available yet", async () => {
     resolveWith([makeListing({ imageUrl: "https://example.gov/photo.jpg" })]);
 
     renderAt("/search");
 
     expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
     expect(document.querySelector("img")).toHaveAttribute("src", "https://example.gov/photo.jpg");
+  });
+
+  it("serves the photo from our own bucket once the detail scrape has stored one", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "https://cdn.example.test");
+    resolveWith([
+      makeListing({
+        photoKeys: ["photos/1/900.jpg"],
+        imageUrl: "https://www.myhousingsearch.com/WebFile?id=900",
+      }),
+    ]);
+
+    renderAt("/search");
+
+    expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
+    expect(document.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://cdn.example.test/photos/1/900.jpg",
+    );
   });
 
   it("substitutes a placeholder for the listings with no photo", async () => {
