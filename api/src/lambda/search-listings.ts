@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import type { Pool } from "pg";
 import { getPool } from "./db.js";
- import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
+import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 import { isFromCloudFront } from "./require-cloudfront.js";
 import type { SearchParams } from "./search-params.js";
 
