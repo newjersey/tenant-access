@@ -122,5 +122,39 @@
     "fullListingUrl": "https://www.myhousingsearch.com/dbh/ViewUnit/1388536?ch=NJ&hm=6vLEERO4",
     "rentType": "Standard Rent",
     "depositRange": "$2,004"
+  },
+  {
+    "address": "117 E. Atlantic Ave",
+    "amenities": [
+      "Some Pets OK",
+      "Accessibility features. Inspect the property for your requirements",
+      "Seniors Housing",
+      "Washer/Dryer",
+      "Income Restricted",
+      "Listing is in an opportunity area",
+      "No Smoking"
+    ],
+    "bathrooms": 1,
+    "bedrooms": 1,
+    "city": "Haddon Heights",
+    "contactName": "Carole Rowell",
+    "contactOrganization": "Stanfill Towers",
+    "depositRange": "$25 - $1,060",
+    "description": null,
+    "fullListingUrl": "https://www.myhousingsearch.com/dbh/ViewUnit/1095021?ch=NJ&hm=k1GRM9nf",
+    "imageId": 1915701,
+    "imageUrl": "https://www.myhousingsearch.com/WebFile?id=1915701",
+    "isWaitlistOpen": true,
+    "lastUpdated": null,
+    "name": "",
+    "phoneNumber": "856-546-4844",
+    "rent": 25,
+    "rentMax": 1060,
+    "rentType": "Income Based Rent",
+    "state": "NJ",
+    "uid": 1095021,
+    "unitType": "Apartments",
+    "website": null,
+    "zipCode": "08035"
   }
 ]
