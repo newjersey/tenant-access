@@ -63,11 +63,16 @@ function parseListingElement(
 ): Listing {
   const { uid, image_id: imageId } = row;
 
-  const addressLink = element.find(".shsAddress a").first();
-  const addressLinkText = addressLink.html() || "";
-  const addressParts = addressLinkText.split("<br>").map((part) => part.trim());
-  const name = addressParts[0] || "";
-  const address = addressParts[1] || "";
+  const addressLink = element.find(".shsAddress a").first().clone();
+  addressLink.find("br").replaceWith("\n");
+  const addressLines = addressLink
+    .text()
+    .split("\n")
+    .map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const name = addressLines.length > 1 ? addressLines[0] : "";
+  const address = (addressLines.length > 1 ? addressLines[1] : addressLines[0]) ?? "";
 
   const cityStateZip = element.find(".shsCityStateZIP").first().text().trim();
   const cityMatch = cityStateZip.match(/(.*?),\s*([A-Z]{2})\s*(\d{5})?/);

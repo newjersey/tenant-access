@@ -32,5 +32,6 @@ export function formatUnitSummary({ bedrooms, bathrooms }: UnitFields): string |
 }
 
 export function formatAddress({ address, city, state, zipCode }: AddressFields): string {
-  return `${address}, ${city}, ${state} ${zipCode}`;
+  const region = [state, zipCode].filter(Boolean).join(" ");
+  return [address, city, region].filter(Boolean).join(", ");
 }
