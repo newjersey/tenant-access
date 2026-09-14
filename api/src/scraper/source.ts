@@ -1,3 +1,5 @@
+export const USER_AGENT = "NJ-TenantAccess/1.0 (+https://nj.gov)";
+
 const SEARCH_PARAMS = {
   direction: "desc",
   ch: "NJ",

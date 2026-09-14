@@ -126,13 +126,24 @@ flowchart TD
     Lambda" }
     F@{ shape: cyl, label: "ListingsDatabase
     RDS Postgres" }
+    G@{ shape: docs, label: "ScrapeDetailsQueue" }
+    H@{ shape: rect, label: "ScrapeDetailsFunction" }
+    I@{ shape: rect, label: "UpdateDetailsFunction" }
+    J@{ shape: lin-cyl, label: "ListingImagesBucket" }
+    K@{ shape: sm-circ }
 
     A --> |midnight Eastern triggers| B
     B --> |writes ~14MB raw/YYYY-MM-DD/listings.html| C
-    C --> |OBJECT_CREATED in raw/ triggers| D
+    C --> |OBJECT_CREATED in raw/ triggers| K --> D
     D --> |writes ~3MB parsed/YYYY-MM-DD/listings.json| C
     C --> |OBJECT_CREATED in parsed/ triggers| E
     E --> |upserts + reconciles shown_to_public| F
+    E --> |enqueues any listings needing details| G
+    G --> |triggers| H
+    H --> |writes details/UID.json| C
+    C --> |OBJECT_CREATED in details/ triggers| I
+    I --> |uploads images| J
+    I --> |saves details| F
 ```
 
 ### Application Backend
