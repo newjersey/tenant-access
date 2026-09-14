@@ -64,10 +64,19 @@ describe("detail-parser", () => {
     ]);
   });
 
-  it("takes availability rather than a badge sharing its class", () => {
+  it("reads availability", () => {
     expect(parseListingDetail(AVAILABLE, 1388803).availability).toBe("Available");
     expect(parseListingDetail(WAITLISTED, 1389153).availability).toBe("Waiting List");
     expect(parseListingDetail(SENIOR, 68240).availability).toBe("Waiting List");
+    expect(parseListingDetail(NO_PHOTOS, 401275)).toMatchObject({
+      availability: "Under Construction",
+      leaseLength: "Monthly",
+      email: null,
+    });
+    expect(parseListingDetail(TOWNHOUSE, 906200)).toMatchObject({
+      availability: "Available 08/03/26",
+      applicationFee: "Application Fee: $45 Per Adult, Negotiable",
+    });
   });
 
   it("extracts every tabular section plus the contact table", () => {
@@ -221,18 +230,6 @@ describe("detail-parser", () => {
       utilitiesIncluded: [],
       applicationFee: "Application Fee: $35 Per Adult",
       yearBuilt: 2022,
-    });
-  });
-
-  it("reads availability phrasings other than available or waitlisted", () => {
-    expect(parseListingDetail(NO_PHOTOS, 401275)).toMatchObject({
-      availability: "Under Construction",
-      leaseLength: "Monthly",
-      email: null,
-    });
-    expect(parseListingDetail(TOWNHOUSE, 906200)).toMatchObject({
-      availability: "Available 08/03/26",
-      applicationFee: "Application Fee: $45 Per Adult, Negotiable",
     });
   });
 });

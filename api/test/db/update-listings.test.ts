@@ -109,12 +109,11 @@ describe("update-listings against a real database", () => {
     expect((await runUpdate(FULL)).enqueued).toBe(1200);
     expect(sent).toHaveLength(1200);
 
-    // Pretend the detail scraper has now been right through the catalog, except one listing.
-    await db.query("UPDATE listings SET details_scraped_at = NOW()");
-    await db.query("UPDATE listings SET details_scraped_at = NULL WHERE uid = 1500");
+    await db.query("UPDATE listings SET details_scraped_at = NOW()"); // sets the date for all 1200
+    await db.query("UPDATE listings SET details_scraped_at = NULL WHERE uid = 1500"); // pretend number 1500 wasn't scraped after all
     sent.length = 0;
 
-    // The site bumps last_updated on three of them today.
+    // Make it look like 3 of the listings were just updated today
     const today = new Date().toISOString().slice(0, 10);
     const touched = FULL.map((listing, index) =>
       index < 3 ? { ...listing, lastUpdated: today } : listing,

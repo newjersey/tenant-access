@@ -24,7 +24,6 @@ function stubFetch(...responses: Response[]) {
   return fetchMock;
 }
 
-// send needs a typed parameter, or send.mock.calls comes out as an empty tuple
 type SentCommand = { input: Record<string, unknown> };
 
 function stubS3() {

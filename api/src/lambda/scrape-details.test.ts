@@ -96,7 +96,7 @@ describe("scrape-details handler", () => {
     });
   });
 
-  it("honours a prefix override", async () => {
+  it("honors a prefix override", async () => {
     process.env.DETAILS_PREFIX = "elsewhere/";
     stubFetch(FIXTURE);
 

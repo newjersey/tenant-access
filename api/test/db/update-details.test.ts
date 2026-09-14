@@ -25,7 +25,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
 
 const { handler } = await import("../../src/lambda/update-details.js");
 
-/** Stages the same JSON that scrape-details would have written for this fixture. */
+// reproduces the parse-details and upload-to-s3 steps
 function stage(uid: number, photoKeys: string[] = []) {
   const html = readFileSync(join(FIXTURES, `legacy-listing-${uid}.html`), "utf-8");
   const details = parseListingDetail(html, uid);
