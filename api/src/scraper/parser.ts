@@ -68,7 +68,12 @@ function parseListingElement(
   const addressLines = addressLink
     .text()
     .split("\n")
-    .map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim())
+    .map((line) =>
+      line
+        .replace(/\u00a0/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
     .filter(Boolean);
 
   const name = addressLines.length > 1 ? addressLines[0] : "";
