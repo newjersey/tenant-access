@@ -233,7 +233,7 @@ export class TenantAccessStack extends cdk.Stack {
       enforceSSL: true,
       visibilityTimeout: cdk.Duration.minutes(18),
       retentionPeriod: cdk.Duration.days(4),
-      deadLetterQueue: { queue: detailsDlq, maxReceiveCount: 3 },
+      deadLetterQueue: { queue: detailsDlq, maxReceiveCount: 10 },
     });
 
     const scrapeDetailsLambda = new NodejsFunction(this, "ScrapeDetailsFunction", {
@@ -256,7 +256,7 @@ export class TenantAccessStack extends cdk.Stack {
     scrapeDetailsLambda.addEventSource(
       new eventSources.SqsEventSource(detailsQueue, {
         batchSize: 1,
-        maxConcurrency: 5,
+        maxConcurrency: 2,
       }),
     );
 
@@ -493,20 +493,21 @@ export class TenantAccessStack extends cdk.Stack {
     searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
     searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
 
-    const detailsDlqAlarm = new cloudwatch.Alarm(this, "ScrapeDetailsDlqAlarm", {
-      alarmName: "TenantAccess-ScrapeDetails-DeadLetters",
-      alarmDescription: "A detail page failed three times. The message body names the uid.",
-      metric: detailsDlq.metricApproximateNumberOfMessagesVisible({
-        period: cdk.Duration.minutes(5),
-        statistic: "Maximum",
-      }),
-      threshold: 0,
-      evaluationPeriods: 1,
-      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
-    });
+    // TODO: turn on once stable
+    // const detailsDlqAlarm = new cloudwatch.Alarm(this, "ScrapeDetailsDlqAlarm", {
+    //   alarmName: "TenantAccess-ScrapeDetails-DeadLetters",
+    //   alarmDescription: "A detail page failed three times. The message body names the uid.",
+    //   metric: detailsDlq.metricApproximateNumberOfMessagesVisible({
+    //     period: cdk.Duration.minutes(5),
+    //     statistic: "Maximum",
+    //   }),
+    //   threshold: 0,
+    //   evaluationPeriods: 1,
+    //   comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+    //   treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    // });
 
-    detailsDlqAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+    // detailsDlqAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
 
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
