@@ -1,5 +1,5 @@
 import type { Client } from "pg";
-import type { ListingDetails } from "../scraper/detail-parser.js";
+import type { LegacyDetails, ListingDetails } from "../scraper/detail-parser.js";
 
 export interface ScrapedDetails {
   details: ListingDetails;
@@ -14,7 +14,7 @@ const SQL = `UPDATE listings
 
 function toLegacyDetails(details: ListingDetails): string {
   const { uid: _uid, photoUrls: _photoUrls, ...legacy } = details;
-  return JSON.stringify(legacy);
+  return JSON.stringify(legacy satisfies LegacyDetails);
 }
 
 export async function writeListingDetails(

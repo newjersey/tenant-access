@@ -22,6 +22,8 @@ export interface ListingDetails {
   sections: DetailSections;
 }
 
+export type LegacyDetails = Omit<ListingDetails, "uid" | "photoUrls">;
+
 type Selection = ReturnType<cheerio.CheerioAPI>;
 
 function clean(text: string): string {

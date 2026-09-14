@@ -1,3 +1,6 @@
+import type { LegacyDetails } from "../scraper/detail-parser.js";
+import type { Listing } from "../scraper/parser.js";
+
 export const LISTING_SELECT_COLUMNS = `uid,
   last_updated       AS "lastUpdated",
   name,
@@ -21,4 +24,11 @@ export const LISTING_SELECT_COLUMNS = `uid,
   contact_organization AS "contactOrganization",
   full_listing_url   AS "fullListingUrl",
   rent_type          AS "rentType",
-  deposit_range      AS "depositRange"`;
+  deposit_range      AS "depositRange",
+  photo_keys         AS "photoKeys",
+  legacy_details     AS "legacyDetails"`;
+
+export interface ListingRow extends Listing {
+  photoKeys: string[];
+  legacyDetails: LegacyDetails | null;
+}

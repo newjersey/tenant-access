@@ -8,6 +8,7 @@ import Pagination from "@/components/Pagination/Pagination";
 import content from "@/data/content/en/search-results.json";
 import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchListings";
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
+import { listingImageUrl } from "@/utils/listingPhotos";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
 import { parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
@@ -37,13 +38,14 @@ function ListingCard({ listing }: { listing: Listing }) {
   const rent = formatRent(listing) ?? content.rent_unavailable;
   const unitSummary = formatUnitSummary(listing);
   const address = formatAddress(listing);
+  const photo = listingImageUrl(listing);
 
   return (
     <li className="usa-card tablet:grid-col-6 desktop:grid-col-4 listing-card">
       <div className="usa-card__container">
         <div className="usa-card__media">
-          {listing.imageUrl ? (
-            <img className="listing-card__img" src={listing.imageUrl} alt="" />
+          {photo ? (
+            <img className="listing-card__img" src={photo} alt="" />
           ) : (
             <div className="listing-card__img listing-card__img--empty">
               <Icon icon="image" size="9" />

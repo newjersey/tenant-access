@@ -1,6 +1,5 @@
-import type { Listing } from "../scraper/parser.js";
 import { getClient } from "./db.js";
-import { LISTING_SELECT_COLUMNS } from "./listing-columns.js";
+import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 
 const SELECT_SQL = `
   SELECT
@@ -13,7 +12,7 @@ export const handler = async () => {
   const client = await getClient();
 
   try {
-    const result = await client.query<Listing>(SELECT_SQL);
+    const result = await client.query<ListingRow>(SELECT_SQL);
     console.log(`Queried ${result.rowCount} listing(s)`);
 
     return {

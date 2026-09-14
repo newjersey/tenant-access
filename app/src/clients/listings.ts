@@ -1,10 +1,18 @@
 import type { SearchQuery } from "@/utils/searchQuery";
 
-/**
- * A public listing as returned by the search API. Mirrors the `Listing` interface in
- * `api/src/scraper/parser.ts` and the aliases in `api/src/lambda/listing-columns.ts` — keep the
- * three in step when a column is added.
- */
+export type DetailValue = string | string[];
+export type DetailSections = Record<string, Record<string, DetailValue>>;
+
+export interface LegacyDetails {
+  email: string | null;
+  availability: string | null;
+  leaseLength: string | null;
+  utilitiesIncluded: string[];
+  applicationFee: string | null;
+  yearBuilt: number | null;
+  sections: DetailSections;
+}
+
 export interface Listing {
   uid: number;
   name: string;
@@ -19,6 +27,7 @@ export interface Listing {
   unitType: string | null;
   imageId: number | null;
   imageUrl: string | null;
+  photoKeys: string[];
   phoneNumber: string | null;
   website: string | null;
   description: string | null;
@@ -30,6 +39,7 @@ export interface Listing {
   fullListingUrl: string | null;
   rentType: string | null;
   depositRange: string | null;
+  legacyDetails: LegacyDetails | null;
 }
 
 export interface SearchListingsResponse {
