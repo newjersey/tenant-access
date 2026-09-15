@@ -1,4 +1,11 @@
-import { type ChangeEvent, type SubmitEvent, useState } from "react";
+import {
+  type ChangeEvent,
+  type SubmitEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
@@ -89,54 +96,99 @@ function ListingCard({ listing }: { listing: Listing }) {
   );
 }
 
-function FiltersPanel({ open }: { open: boolean }) {
+function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [bedrooms, setBedrooms] = useState("any");
   const [bathrooms, setBathrooms] = useState("any");
+  const panel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    panel.current?.focus();
+    document.body.classList.add("filters-drawer-open");
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.classList.remove("filters-drawer-open");
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open, onClose]);
 
   return (
-    <div className="search-filters" id="search-filters" hidden={!open}>
-      <h2 className="font-sans-md margin-top-0 margin-bottom-1">{content.filters_label}</h2>
+    <>
+      {open && (
+        <button
+          type="button"
+          className="usa-overlay is-visible search-filters__overlay"
+          aria-label={content.filters_close}
+          onClick={onClose}
+        />
+      )}
 
-      <div className="grid-row grid-gap">
-        <div className="tablet:grid-col-6">
-          <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
-            {content.filter_bedrooms}
-          </label>
-          <select
-            className="usa-select"
-            id="filter-bedrooms"
-            name="bedrooms"
-            value={bedrooms}
-            onChange={(event) => setBedrooms(event.target.value)}
-          >
-            {BEDROOM_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+      <div
+        className={`search-filters${open ? " search-filters--open" : ""}`}
+        id="search-filters"
+        aria-labelledby="search-filters-heading"
+        tabIndex={-1}
+        ref={panel}
+      >
+        <h2 id="search-filters-heading" className="font-sans-md margin-top-0 margin-bottom-1">
+          {content.filters_label}
+        </h2>
+
+        <div className="grid-row grid-gap">
+          <div className="tablet:grid-col-6">
+            <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
+              {content.filter_bedrooms}
+            </label>
+            <select
+              className="usa-select"
+              id="filter-bedrooms"
+              name="bedrooms"
+              value={bedrooms}
+              onChange={(event) => setBedrooms(event.target.value)}
+            >
+              {BEDROOM_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="tablet:grid-col-6">
+            <label className="usa-label tablet:margin-top-0" htmlFor="filter-bathrooms">
+              {content.filter_bathrooms}
+            </label>
+            <select
+              className="usa-select"
+              id="filter-bathrooms"
+              name="bathrooms"
+              value={bathrooms}
+              onChange={(event) => setBathrooms(event.target.value)}
+            >
+              {BATHROOM_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="tablet:grid-col-6">
-          <label className="usa-label tablet:margin-top-0" htmlFor="filter-bathrooms">
-            {content.filter_bathrooms}
-          </label>
-          <select
-            className="usa-select"
-            id="filter-bathrooms"
-            name="bathrooms"
-            value={bathrooms}
-            onChange={(event) => setBathrooms(event.target.value)}
-          >
-            {BATHROOM_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          className="usa-button width-full desktop:display-none search-filters__done"
+          onClick={onClose}
+        >
+          {content.filters_done}
+        </button>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -144,10 +196,12 @@ function SearchControls({
   location,
   filtersOpen,
   onToggleFilters,
+  toggleRef,
 }: {
   location: string | null;
   filtersOpen: boolean;
   onToggleFilters: () => void;
+  toggleRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState(location ?? undefined);
@@ -189,8 +243,9 @@ function SearchControls({
             </button>
           </form>
 
-           <button
+          <button
             type="button"
+            ref={toggleRef}
             className="usa-button usa-button--outline margin-top-2 search-controls__filter-toggle"
             aria-expanded={filtersOpen}
             aria-controls="search-filters"
@@ -276,6 +331,22 @@ function SearchResultsPage() {
   const { location, page, sort } = parseSearchQuery(searchParams);
   const search = useSearchListings({ location, page, sort });
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const filterToggle = useRef<HTMLButtonElement>(null);
+
+  const closeFilters = useCallback(() => {
+    setFiltersOpen(false);
+    filterToggle.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 64em)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setFiltersOpen(false);
+    };
+
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   return (
     <div>
@@ -284,12 +355,13 @@ function SearchResultsPage() {
         location={location}
         filtersOpen={filtersOpen}
         onToggleFilters={() => setFiltersOpen((open) => !open)}
+        toggleRef={filterToggle}
       />
 
       <div className="grid-container">
         <div className="grid-row grid-gap">
           <div className="grid-col-12 desktop:grid-col-3 search-layout__filters">
-            <FiltersPanel open={filtersOpen} />
+            <FiltersPanel open={filtersOpen} onClose={closeFilters} />
           </div>
 
           <div className="grid-col-12 desktop:grid-col-9 search-layout__results">
