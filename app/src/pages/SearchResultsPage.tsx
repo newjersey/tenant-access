@@ -54,7 +54,7 @@ function ListingCard({ listing }: { listing: Listing }) {
   const photo = listingImageUrl(listing);
 
   return (
-    <li className="usa-card tablet:grid-col-6 desktop:grid-col-4 listing-card">
+    <li className="usa-card tablet:grid-col-6 listing-card">
       <div className="usa-card__container">
         <div className="usa-card__media">
           {photo ? (
