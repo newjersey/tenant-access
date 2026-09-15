@@ -221,4 +221,11 @@ describe("search-listings against a real database", () => {
     expect(uids(result)).toEqual([100]);
     expect(result.pagination?.total).toBe(1);
   });
+
+  it("matches only studios when studio is chosen", async () => {
+    await seedListing(db, makeListing(100, { bedrooms: 0 }));
+    await seedListing(db, makeListing(200, { bedrooms: 1 }));
+
+    expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
+  });
 });
