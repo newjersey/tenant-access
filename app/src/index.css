@@ -57,12 +57,30 @@ summary {
   height: 2.5rem;
 }
 
-.search-controls .search-filters {
+.search-filters {
   max-width: 30rem;
-  margin-top: 1rem;
+  margin-bottom: 1.5rem;
   padding: 1rem;
   background-color: #ffffff;
   border: 1px solid #dfe1e2;
+}
+
+@media (min-width: 64em) {
+  .search-controls__filter-toggle {
+    display: none;
+  }
+
+  .search-filters[hidden] {
+    display: block;
+  }
+
+  .search-layout__filters {
+    order: 2;
+  }
+
+  .search-layout__results {
+    order: 1;
+  }
 }
 
 .usa-hero .usa-combo-box__list-option {

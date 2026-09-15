@@ -3,6 +3,7 @@
   "home": "Home",
   "search_label": "Search by city or town",
   "search_button": "Search",
+  "filters_label": "Filters",
   "filters_button": "Filters",
   "filter_bedrooms": "Bedrooms",
   "filter_bathrooms": "Bathrooms",

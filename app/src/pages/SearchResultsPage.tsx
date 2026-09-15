@@ -89,12 +89,68 @@ function ListingCard({ listing }: { listing: Listing }) {
   );
 }
 
-function SearchControls({ location }: { location: string | null }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selected, setSelected] = useState(location ?? undefined);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+function FiltersPanel({ open }: { open: boolean }) {
   const [bedrooms, setBedrooms] = useState("any");
   const [bathrooms, setBathrooms] = useState("any");
+
+  return (
+    <div className="search-filters" id="search-filters" hidden={!open}>
+      <h2 className="font-sans-md margin-top-0 margin-bottom-1">{content.filters_label}</h2>
+
+      <div className="grid-row grid-gap">
+        <div className="tablet:grid-col-6">
+          <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
+            {content.filter_bedrooms}
+          </label>
+          <select
+            className="usa-select"
+            id="filter-bedrooms"
+            name="bedrooms"
+            value={bedrooms}
+            onChange={(event) => setBedrooms(event.target.value)}
+          >
+            {BEDROOM_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="tablet:grid-col-6">
+          <label className="usa-label tablet:margin-top-0" htmlFor="filter-bathrooms">
+            {content.filter_bathrooms}
+          </label>
+          <select
+            className="usa-select"
+            id="filter-bathrooms"
+            name="bathrooms"
+            value={bathrooms}
+            onChange={(event) => setBathrooms(event.target.value)}
+          >
+            {BATHROOM_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchControls({
+  location,
+  filtersOpen,
+  onToggleFilters,
+}: {
+  location: string | null;
+  filtersOpen: boolean;
+  onToggleFilters: () => void;
+}) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selected, setSelected] = useState(location ?? undefined);
 
   const runSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -133,59 +189,15 @@ function SearchControls({ location }: { location: string | null }) {
             </button>
           </form>
 
-          <button
+           <button
             type="button"
-            className="usa-button usa-button--outline margin-top-2"
+            className="usa-button usa-button--outline margin-top-2 search-controls__filter-toggle"
             aria-expanded={filtersOpen}
             aria-controls="search-filters"
-            onClick={() => setFiltersOpen((open) => !open)}
+            onClick={onToggleFilters}
           >
             {content.filters_button}
           </button>
-
-          {filtersOpen && (
-            <div className="search-filters" id="search-filters">
-              <div className="grid-row grid-gap">
-                <div className="tablet:grid-col-6">
-                  <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
-                    {content.filter_bedrooms}
-                  </label>
-                  <select
-                    className="usa-select"
-                    id="filter-bedrooms"
-                    name="bedrooms"
-                    value={bedrooms}
-                    onChange={(event) => setBedrooms(event.target.value)}
-                  >
-                    {BEDROOM_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="tablet:grid-col-6">
-                  <label className="usa-label margin-top-0" htmlFor="filter-bathrooms">
-                    {content.filter_bathrooms}
-                  </label>
-                  <select
-                    className="usa-select"
-                    id="filter-bathrooms"
-                    name="bathrooms"
-                    value={bathrooms}
-                    onChange={(event) => setBathrooms(event.target.value)}
-                  >
-                    {BATHROOM_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
         </search>
       </div>
     </div>
@@ -263,13 +275,27 @@ function SearchResultsPage() {
   const [searchParams] = useSearchParams();
   const { location, page, sort } = parseSearchQuery(searchParams);
   const search = useSearchListings({ location, page, sort });
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   return (
     <div>
-      <SearchControls key={location ?? ""} location={location} />
+      <SearchControls
+        key={location ?? ""}
+        location={location}
+        filtersOpen={filtersOpen}
+        onToggleFilters={() => setFiltersOpen((open) => !open)}
+      />
 
       <div className="grid-container">
-        <SearchResults search={search} />
+        <div className="grid-row grid-gap">
+          <div className="grid-col-12 desktop:grid-col-3 search-layout__filters">
+            <FiltersPanel open={filtersOpen} />
+          </div>
+
+          <div className="grid-col-12 desktop:grid-col-9 search-layout__results">
+            <SearchResults search={search} />
+          </div>
+        </div>
       </div>
     </div>
   );
