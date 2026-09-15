@@ -3,6 +3,7 @@ import {
   type SubmitEvent,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -17,7 +18,7 @@ import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchLi
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
 import { listingImageUrl } from "@/utils/listingPhotos";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
-import { parseSearchQuery, parseSort } from "@/utils/searchQuery";
+import { type FilterKey, parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
@@ -96,10 +97,23 @@ function ListingCard({ listing }: { listing: Listing }) {
   );
 }
 
+const selectedValue = (options: { value: string }[], raw: string | null): string =>
+  raw && options.some((option) => option.value === raw) ? raw : "any";
+
 function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [bedrooms, setBedrooms] = useState("any");
-  const [bathrooms, setBathrooms] = useState("any");
+  const [searchParams, setSearchParams] = useSearchParams();
   const panel = useRef<HTMLDivElement>(null);
+
+  const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const params = new URLSearchParams(searchParams);
+    if (event.target.value === "any") {
+      params.delete(name);
+    } else {
+      params.set(name, event.target.value);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -149,8 +163,8 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
               className="usa-select"
               id="filter-bedrooms"
               name="bedrooms"
-              value={bedrooms}
-              onChange={(event) => setBedrooms(event.target.value)}
+              value={selectedValue(BEDROOM_OPTIONS, searchParams.get("bedrooms"))}
+              onChange={changeFilter("bedrooms")}
             >
               {BEDROOM_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -168,8 +182,8 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
               className="usa-select"
               id="filter-bathrooms"
               name="bathrooms"
-              value={bathrooms}
-              onChange={(event) => setBathrooms(event.target.value)}
+              value={selectedValue(BATHROOM_OPTIONS, searchParams.get("bathrooms"))}
+              onChange={changeFilter("bathrooms")}
             >
               {BATHROOM_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -328,8 +342,11 @@ function SearchResults({ search }: SearchResultsProps) {
 
 function SearchResultsPage() {
   const [searchParams] = useSearchParams();
-  const { location, page, sort } = parseSearchQuery(searchParams);
-  const search = useSearchListings({ location, page, sort });
+  const { location, page, sort, filters } = useMemo(
+    () => parseSearchQuery(searchParams),
+    [searchParams],
+  );
+  const search = useSearchListings({ location, page, sort, filters });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filterToggle = useRef<HTMLButtonElement>(null);
 

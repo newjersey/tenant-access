@@ -12,14 +12,19 @@ export type SearchListingsState =
 const LOADING: SearchListingsState = { status: "loading" };
 const ERROR: SearchListingsState = { status: "error" };
 
-export function useSearchListings({ location, page, sort }: SearchQuery): SearchListingsState {
+export function useSearchListings({
+  location,
+  page,
+  sort,
+  filters,
+}: SearchQuery): SearchListingsState {
   const [state, setState] = useState<SearchListingsState>(LOADING);
 
   useEffect(() => {
     const controller = new AbortController();
     setState(LOADING);
 
-    searchListings({ location, page, sort }, controller.signal)
+    searchListings({ location, page, sort, filters }, controller.signal)
       .then((response) => {
         setState({
           status: "ready",
@@ -34,7 +39,7 @@ export function useSearchListings({ location, page, sort }: SearchQuery): Search
       });
 
     return () => controller.abort();
-  }, [location, page, sort]);
+  }, [location, page, sort, filters]);
 
   return state;
 }

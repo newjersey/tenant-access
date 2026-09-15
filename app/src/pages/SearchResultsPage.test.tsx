@@ -73,7 +73,7 @@ describe("SearchResultsPage", () => {
 
     expect(await screen.findByText(content.no_results)).toBeInTheDocument();
     expect(searchListingsMock).toHaveBeenCalledWith(
-      { location: "Newark", page: 3, sort: "updated" },
+      { location: "Newark", page: 3, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -287,7 +287,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: "Trenton", page: 1, sort: "updated" },
+      { location: "Trenton", page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -300,7 +300,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1, sort: "updated" },
+      { location: null, page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -314,7 +314,7 @@ describe("SearchResultsPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1, sort: "updated" },
+      { location: null, page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -329,7 +329,7 @@ describe("SearchResultsPage", () => {
     await userEvent.selectOptions(select, content.sort_price_asc);
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: "Newark", page: 1, sort: "price_asc" },
+      { location: "Newark", page: 1, sort: "price_asc", filters: {} },
       expect.any(AbortSignal),
     );
   });

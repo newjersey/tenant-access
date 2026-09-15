@@ -3,11 +3,28 @@ import type { Pool } from "pg";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 import { isFromCloudFront } from "./require-cloudfront.js";
+import { buildFilterClause, type FilterClause } from "./search-filters.js";
 import type { SearchParams } from "./search-params.js";
+
+interface Location {
+  city: string | null;
+  county: string | null;
+}
+
+interface Search {
+  location: Location;
+  filters: FilterClause;
+  sort: SortKey;
+  page: number;
+}
 
 const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;
 const MAX_PARAM_LENGTH = 100;
+
+const CITY_PLACEHOLDER = 1;
+const COUNTY_PLACEHOLDER= 2;
+const FIRST_FILTER_PLACEHOLDER = 3;
 
 // For performance, stop counting or searching past this many.
 // The frontend shows "over 1000 results" rather than an exact figure.
@@ -31,35 +48,30 @@ function parseSort(raw: string | undefined): SortKey {
   return raw !== undefined && raw in SORT_ORDERS ? (raw as SortKey) : DEFAULT_SORT;
 }
 
-const WHERE_SQL = `
+const whereSql = (filters: FilterClause) => `
   WHERE shown_to_public
-    AND ($1::text IS NULL OR lower(city) = lower($1))
-    AND ($2::text IS NULL OR lower(city) IN (
-      SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($2)
-    ))`;
+    AND ($${CITY_PLACEHOLDER}::text IS NULL OR lower(city) = lower($${CITY_PLACEHOLDER}))
+    AND ($${COUNTY_PLACEHOLDER}::text IS NULL OR lower(city) IN (
+      SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($${COUNTY_PLACEHOLDER})
+    ))${filters.sql}`;
 
-const resultsSql = (sort: SortKey) => `
+const resultsSql = (sort: SortKey, filters: FilterClause) => `
   SELECT
     ${LISTING_SELECT_COLUMNS}
-  FROM listings${WHERE_SQL}
+  FROM listings${whereSql(filters)}
   ORDER BY ${SORT_ORDERS[sort]}
-  LIMIT $3
-  OFFSET $4
+  LIMIT $${FIRST_FILTER_PLACEHOLDER + filters.values.length}
+  OFFSET $${FIRST_FILTER_PLACEHOLDER + filters.values.length + 1}
 `;
 
-const COUNT_SQL = `
+const countSql = (filters: FilterClause) => `
   SELECT COUNT(*) AS total
   FROM (
     SELECT 1
-    FROM listings${WHERE_SQL}
+    FROM listings${whereSql(filters)}
     LIMIT ${RESULT_CAP}
   )
 `;
-
-interface Location {
-  city: string | null;
-  county: string | null;
-}
 
 // "Somerset County" -> { county: "Somerset" }; anything else -> { city: <as given> }.
 function parseLocation(raw: string | undefined): Location {
@@ -69,18 +81,23 @@ function parseLocation(raw: string | undefined): Location {
   return county ? { city: null, county } : { city: trimmed, county: null };
 }
 
-async function queryResults(pool: Pool, location: Location, sort: SortKey, offset: number) {
-  const result = await pool.query<ListingRow>(resultsSql(sort), [
-    location.city,
-    location.county,
+async function queryResults(pool: Pool, search: Search) {
+  const result = await pool.query<ListingRow>(resultsSql(search.sort, search.filters), [
+    search.location.city,
+    search.location.county,
+    ...search.filters.values,
     PAGE_SIZE,
-    offset,
+    (search.page - 1) * PAGE_SIZE,
   ]);
   return result.rows;
 }
 
-async function queryTotalResultsCount(pool: Pool, location: Location) {
-  const result = await pool.query<{ total: string }>(COUNT_SQL, [location.city, location.county]);
+async function queryTotalResultsCount(pool: Pool, search: Search) {
+  const result = await pool.query<{ total: string }>(countSql(search.filters), [
+    search.location.city,
+    search.location.county,
+    ...search.filters.values,
+  ]);
   return Number(result.rows[0].total);
 }
 
@@ -114,15 +131,18 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     return respond(403, { success: false, error: "Forbidden" }, origin);
   }
   const params: SearchParams = event.queryStringParameters ?? {};
-  const location = parseLocation(params.location);
-  const page = parseAndConstrainPage(params.page);
-  const sort = parseSort(params.sort);
+  const search: Search = {
+    location: parseLocation(params.location),
+    filters: buildFilterClause(params, FIRST_FILTER_PLACEHOLDER),
+    sort: parseSort(params.sort),
+    page: parseAndConstrainPage(params.page),
+  };
 
   try {
     const pool = await getPool();
     const [listings, rawCount] = await Promise.all([
-      queryResults(pool, location, sort, (page - 1) * PAGE_SIZE),
-      queryTotalResultsCount(pool, location),
+      queryResults(pool, search),
+      queryTotalResultsCount(pool, search),
     ]);
 
     return respond(
@@ -131,7 +151,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         success: true,
         listings,
         pagination: {
-          page,
+          page: search.page,
           pageSize: PAGE_SIZE,
           total: rawCount,
         },
