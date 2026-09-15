@@ -14,6 +14,19 @@ import { parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
+const MINIMUM_ROOM_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
+  value: String(count),
+  label: `${count}+`,
+}));
+
+const BEDROOM_OPTIONS = [
+  { value: "any", label: content.filter_any },
+  { value: "studio", label: content.filter_studio },
+  ...MINIMUM_ROOM_OPTIONS,
+];
+
+const BATHROOM_OPTIONS = [{ value: "any", label: content.filter_any }, ...MINIMUM_ROOM_OPTIONS];
+
 function resultsLabel(page: number, total: number): string {
   const first = (page - 1) * PAGE_SIZE + 1;
   const last = Math.min(page * PAGE_SIZE, total);
@@ -79,6 +92,9 @@ function ListingCard({ listing }: { listing: Listing }) {
 function SearchControls({ location }: { location: string | null }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState(location ?? undefined);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [bedrooms, setBedrooms] = useState("any");
+  const [bathrooms, setBathrooms] = useState("any");
 
   const runSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -116,6 +132,60 @@ function SearchControls({ location }: { location: string | null }) {
               <Icon icon="search" class="usa-search__submit-icon" />
             </button>
           </form>
+
+          <button
+            type="button"
+            className="usa-button usa-button--outline margin-top-2"
+            aria-expanded={filtersOpen}
+            aria-controls="search-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            {content.filters_button}
+          </button>
+
+          {filtersOpen && (
+            <div className="search-filters" id="search-filters">
+              <div className="grid-row grid-gap">
+                <div className="tablet:grid-col-6">
+                  <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
+                    {content.filter_bedrooms}
+                  </label>
+                  <select
+                    className="usa-select"
+                    id="filter-bedrooms"
+                    name="bedrooms"
+                    value={bedrooms}
+                    onChange={(event) => setBedrooms(event.target.value)}
+                  >
+                    {BEDROOM_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="tablet:grid-col-6">
+                  <label className="usa-label margin-top-0" htmlFor="filter-bathrooms">
+                    {content.filter_bathrooms}
+                  </label>
+                  <select
+                    className="usa-select"
+                    id="filter-bathrooms"
+                    name="bathrooms"
+                    value={bathrooms}
+                    onChange={(event) => setBathrooms(event.target.value)}
+                  >
+                    {BATHROOM_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
         </search>
       </div>
     </div>
