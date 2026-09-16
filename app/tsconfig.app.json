@@ -30,5 +30,5 @@
       "@splidejs/react-splide": ["../node_modules/@splidejs/react-splide/dist/types/index.d.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "e2e", "playwright.config.ts"]
 }

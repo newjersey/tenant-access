@@ -1,6 +1,14 @@
 import * as cdk from "aws-cdk-lib";
+import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
+import * as apigwv2int from "aws-cdk-lib/aws-apigatewayv2-integrations";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+import * as cwActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as destinations from "aws-cdk-lib/aws-lambda-destinations";
+import * as eventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
@@ -8,7 +16,11 @@ import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as sqs from "aws-cdk-lib/aws-sqs";
+import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
+import { SEARCH_QUERY_PARAMS } from "../../src/lambda/search-params.js";
 
 export class TenantAccessStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -31,6 +43,20 @@ export class TenantAccessStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
+    const imagesBucket = new s3.Bucket(this, "ListingImagesBucket", {
+      versioned: false,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      lifecycleRules: [
+        {
+          id: "abort-incomplete-uploads",
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
+      ],
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
     // VPC for RDS (using default VPC to save costs)
     const vpc = ec2.Vpc.fromLookup(this, "ExistingVPC", {
       vpcId: "vpc-0c73f9052afddcf4d",
@@ -38,6 +64,11 @@ export class TenantAccessStack extends cdk.Stack {
 
     vpc.addGatewayEndpoint("S3Endpoint", {
       service: ec2.GatewayVpcEndpointAwsService.S3,
+    });
+
+    vpc.addInterfaceEndpoint("SqsEndpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.SQS,
+      privateDnsEnabled: true,
     });
 
     vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
@@ -178,7 +209,12 @@ export class TenantAccessStack extends cdk.Stack {
         DB_SECRET_ARN: dbCredentials.secretArn,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        nodeModules: [
+          "pg",
+          "@aws-sdk/client-s3",
+          "@aws-sdk/client-sqs",
+          "@aws-sdk/client-secrets-manager",
+        ],
         externalModules: ["aws-sdk", "pg-native"],
       },
     });
@@ -187,6 +223,74 @@ export class TenantAccessStack extends cdk.Stack {
     updateLambda.addEnvironment("BUCKET_NAME", dataBucket.bucketName);
     database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(updateLambda);
+
+    const detailsDlq = new sqs.Queue(this, "ScrapeDetailsDlq", {
+      enforceSSL: true,
+      retentionPeriod: cdk.Duration.days(14),
+    });
+
+    const detailsQueue = new sqs.Queue(this, "ScrapeDetailsQueue", {
+      enforceSSL: true,
+      visibilityTimeout: cdk.Duration.minutes(18),
+      retentionPeriod: cdk.Duration.days(4),
+      deadLetterQueue: { queue: detailsDlq, maxReceiveCount: 10 },
+    });
+
+    const scrapeDetailsLambda = new NodejsFunction(this, "ScrapeDetailsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/scrape-details.ts",
+      handler: "handler",
+      timeout: cdk.Duration.minutes(3),
+      memorySize: 512,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        DETAILS_PREFIX: "details/",
+        IMAGES_BUCKET_NAME: imagesBucket.bucketName,
+      },
+      bundling: {
+        nodeModules: ["@aws-sdk/client-s3"],
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    scrapeDetailsLambda.addEventSource(
+      new eventSources.SqsEventSource(detailsQueue, {
+        batchSize: 1,
+        maxConcurrency: 2,
+      }),
+    );
+
+    imagesBucket.grantPut(scrapeDetailsLambda, "photos/*");
+    dataBucket.grantPut(scrapeDetailsLambda, "details/*");
+
+    const updateDetailsLambda = new NodejsFunction(this, "UpdateDetailsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/update-details.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(1),
+      memorySize: 512,
+      reservedConcurrentExecutions: 5,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    dataBucket.grantRead(updateDetailsLambda, "details/*");
+    database.connections.allowFrom(updateDetailsLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(updateDetailsLambda);
+
+    detailsQueue.grantSendMessages(updateLambda);
+    updateLambda.addEnvironment("DETAILS_QUEUE_URL", detailsQueue.queueUrl);
 
     const queryLambda = new NodejsFunction(this, "QueryListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
@@ -211,6 +315,207 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
+    // Shared secret proving a request came through CloudFront
+    // created manually with:
+    // aws secretsmanager create-secret --name tenant-access/origin-secret \
+    //--secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
+    // despite the name, unsafeUnwrap() is not a problem in this file because
+    // it's still just a pointer like "{{resolve:secretsmanager:...}}"
+    const originSecret = cdk.SecretValue.secretsManager(
+      "tenant-access/origin-secret",
+    ).unsafeUnwrap();
+
+    const searchLambda = new NodejsFunction(this, "SearchListingsFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/search-listings.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 512,
+      reservedConcurrentExecutions: 10,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+        ORIGIN_SECRET: originSecret,
+        ALLOWED_ORIGINS: "http://localhost:5173,https://dev.d2ejn42jgz68c8.amplifyapp.com", // TODO: dev only
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(searchLambda);
+
+    const publicApi = new apigwv2.HttpApi(this, "PublicApi", {
+      description: "Public API (listings search, accounts, more)",
+      createDefaultStage: false,
+    });
+
+    publicApi.addRoutes({
+      path: "/listings/search",
+      methods: [apigwv2.HttpMethod.GET],
+      integration: new apigwv2int.HttpLambdaIntegration("SearchIntegration", searchLambda),
+    });
+
+    new apigwv2.HttpStage(this, "PublicApiStage", {
+      httpApi: publicApi,
+      autoDeploy: true,
+      throttle: { rateLimit: 50, burstLimit: 100 },
+    });
+
+    const publicWebAcl = new wafv2.CfnWebACL(this, "PublicWebAcl", {
+      scope: "CLOUDFRONT", // requires this stack to be in us-east-1
+      defaultAction: { allow: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: "PublicWebAcl",
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "RateLimitPerIp",
+          priority: 1,
+          action: { block: {} },
+          statement: {
+            rateBasedStatement: {
+              limit: 5000,
+              evaluationWindowSec: 300,
+              aggregateKeyType: "IP",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "RateLimitPerIp",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "IpReputation",
+          priority: 2,
+          overrideAction: { none: {} }, // use default AWS-managed list of suspicious IPs
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesAmazonIpReputationList",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "IpReputation",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          // Note: may need tuning if legitimate queries get blocked
+          name: "CommonRuleSet",
+          priority: 3,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesCommonRuleSet",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "CommonRuleSet",
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+
+    const searchCachePolicy = new cloudfront.CachePolicy(this, "SearchCachePolicy", {
+      comment: "Listings search: allowlisted query params only",
+      defaultTtl: cdk.Duration.seconds(300),
+      minTtl: cdk.Duration.seconds(0),
+      maxTtl: cdk.Duration.seconds(300),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(...SEARCH_QUERY_PARAMS),
+      // Origin must be in the key: the Access Control Allow Origin header varies by it.
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Origin"),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
+
+    const publicApiDistribution = new cloudfront.Distribution(this, "PublicApiDistribution", {
+      comment: "Public API (CloudFront + WAF)",
+      webAclId: publicWebAcl.attrArn,
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", publicApi.apiEndpoint)), {
+          readTimeout: cdk.Duration.seconds(15),
+          customHeaders: { "x-origin-secret": originSecret },
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachePolicy: searchCachePolicy,
+      },
+      additionalBehaviors: {
+        "/photos/*": {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(imagesBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
+      },
+    });
+
+    const alertsTopic = new sns.Topic(this, "AlertsTopic", {
+      displayName: "Tenant Access alerts",
+    });
+
+    const searchErrorRate = new cloudwatch.MathExpression({
+      expression: "IF(requests >= 20, errorRate, 0)", // ignores low traffic
+      usingMetrics: {
+        requests: publicApiDistribution.metricRequests(),
+        errorRate: publicApiDistribution.metricTotalErrorRate(),
+      },
+      period: cdk.Duration.minutes(5),
+      label: "4xx+5xx rate (quiet periods ignored)",
+    });
+
+    const searchErrorRateAlarm = new cloudwatch.Alarm(this, "SearchErrorRateAlarm", {
+      alarmName: "TenantAccess-SearchApi-ErrorRate",
+      alarmDescription: "4xx+5xx rate on the public search API stayed above 25% for a half hour.",
+      metric: searchErrorRate,
+      threshold: 25,
+      evaluationPeriods: 6, // 6 x 5min: a half hour of breach before notifying to avoid noise
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+    searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
+
+    // TODO: turn on once stable
+    // const detailsDlqAlarm = new cloudwatch.Alarm(this, "ScrapeDetailsDlqAlarm", {
+    //   alarmName: "TenantAccess-ScrapeDetails-DeadLetters",
+    //   alarmDescription: "A detail page failed three times. The message body names the uid.",
+    //   metric: detailsDlq.metricApproximateNumberOfMessagesVisible({
+    //     period: cdk.Duration.minutes(5),
+    //     statistic: "Maximum",
+    //   }),
+    //   threshold: 0,
+    //   evaluationPeriods: 1,
+    //   comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+    //   treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    // });
+
+    // detailsDlqAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+
+    const alertsDestination = new destinations.SnsDestination(alertsTopic);
+
+    // todo: once stable, add scrapeDetailsLambda and updateDetailsLambda
+    for (const fn of [scrapeLambda, parseLambda, updateLambda]) {
+      fn.configureAsyncInvoke({ onFailure: alertsDestination });
+    }
+
     dataBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(parseLambda),
@@ -221,6 +526,12 @@ export class TenantAccessStack extends cdk.Stack {
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(updateLambda),
       { prefix: "parsed/", suffix: "listings.json" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(updateDetailsLambda),
+      { prefix: "details/", suffix: ".json" },
     );
 
     new scheduler.Schedule(this, "NightlyScrapeSchedule", {
@@ -278,6 +589,31 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ScrapeListingsLambdaName", {
       value: scrapeLambda.functionName,
       description: "Name of scrape-listings Lambda function",
+    });
+
+    new cdk.CfnOutput(this, "SearchApiUrl", {
+      value: `https://${publicApiDistribution.distributionDomainName}/listings/search`,
+      description: "Public search endpoint (CloudFront + WAF)",
+    });
+
+    new cdk.CfnOutput(this, "SearchApiOriginEndpoint", {
+      value: publicApi.apiEndpoint,
+      description: "HTTP API origin — bypasses CloudFront and WAF, do not publish",
+    });
+
+    new cdk.CfnOutput(this, "AlertsTopicArn", {
+      value: alertsTopic.topicArn,
+      description: "SNS topic for alerts -- subscribe the Slack channel email address to it",
+    });
+
+    new cdk.CfnOutput(this, "ImagesBaseUrl", {
+      value: `https://${publicApiDistribution.distributionDomainName}`,
+      description: "Prefix for photo_keys: <base>/photos/<uid>/<id>.jpg",
+    });
+
+    new cdk.CfnOutput(this, "ScrapeDetailsQueueUrl", {
+      value: detailsQueue.queueUrl,
+      description: 'Detail-scrape work queue -- send {"uid": N} to re-scrape one listing',
     });
   }
 }

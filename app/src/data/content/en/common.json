@@ -5,12 +5,23 @@
   "govUrl": "https://nj.gov",
   "govAboutUrl": "https://nj.gov/governor/admin/about/",
   "govLtAboutUrl": "https://nj.gov/governor/admin/lt/",
+  "locationComboBox": {
+    "noResults": "No matching cities"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "previousPage": "Previous page",
+    "next": "Next",
+    "nextPage": "Next page",
+    "page": "Page {{page}}"
+  },
   "banner": {
     "title": "Official Site of the State of New Jersey",
     "cta": "Get updates"
   },
   "header": {
-    "agencyName": "New Jersey Housing and Mortgage Finance Agency",
+    "appName": "NJ Housing Resource Center",
     "menuText": "Menu",
     "register": "Register",
     "signin": "Sign in"

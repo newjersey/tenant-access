@@ -1,3 +1,12 @@
 {
-  "heading": "Find rental properties in New Jersey"
+  "heading": "Find affordable housing in New Jersey",
+  "search_instructions": "Browse New Jersey rental listings and connect with local assistance programs, lottery options, and Section 8 vouchers.",
+  "location": "Location",
+  "search_rentals": "Search Rentals",
+  "why": "Why use NJ HRC?",
+  "introduction": "The NJ Housing Resource Center is NJ's central listing site for affordable housing.",
+  "filter": "Filter by your housing needs",
+  "many_units": "Over 3,000 units listed across NJ",
+  "easy_browsing": "Quick and easy to browse properties",
+  "view_all": "View all NJ Affordable Rentals"
 }

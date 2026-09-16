@@ -1,0 +1,8 @@
+.njhmf-location-combo-box .usa-combo-box__list-option {
+  padding-left: 1.75rem;
+}
+
+.njhmf-location-combo-box .usa-combo-box__list-option[data-value$=" County"] {
+  font-weight: 700;
+  padding-left: 0.5rem;
+}

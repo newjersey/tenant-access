@@ -1,11 +1,23 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { SendMessageBatchCommand, SQSClient } from "@aws-sdk/client-sqs";
 import type { S3Event } from "aws-lambda";
+import type { Client } from "pg";
 import type { Listing } from "../scraper/parser.js";
 import { getClient } from "./db.js";
 
 const s3 = new S3Client();
+const sqs = new SQSClient();
 
 const BATCH_SIZE = 500;
+const SQS_BATCH_SIZE = 10;
+
+const NEEDS_DETAILS_SQL = `SELECT uid FROM listings
+  WHERE shown_to_public
+    AND (
+      details_scraped_at IS NULL
+      OR last_updated::date >= (details_scraped_at AT TIME ZONE 'America/New_York')::date
+    )
+  ORDER BY details_scraped_at NULLS FIRST, last_updated DESC`;
 
 // Guards against hiding the whole catalog when a scrape or parse degrades:
 // the site could change markup, rate-limit us, or return a partial page.
@@ -68,13 +80,11 @@ function toValues(listing: Listing): unknown[] {
   ];
 }
 
-// On conflict, refresh every column except the PK and created_at, and bump scraped_at.
 const UPDATE_SET = COLUMNS.filter((c) => c !== "uid")
   .map((c) => `${c} = EXCLUDED.${c}`)
   .concat("scraped_at = NOW()")
   .join(", ");
 
-/** One multi-row INSERT ... ON CONFLICT for a batch of listings. */
 function buildBatchInsert(batch: Listing[]): { sql: string; values: unknown[] } {
   const values: unknown[] = [];
   const rows = batch.map((listing, rowIndex) => {
@@ -91,18 +101,38 @@ function buildBatchInsert(batch: Listing[]): { sql: string; values: unknown[] } 
   };
 }
 
-/**
- * Postgres rejects an ON CONFLICT DO UPDATE that touches the same row twice in
- * one statement, so a uid repeated inside a batch would fail the whole insert.
- * Last occurrence wins.
- */
-function dedupeByUid(listings: Listing[]): Listing[] {
-  return [...new Map(listings.map((listing) => [listing.uid, listing])).values()];
+async function enqueueDetailScrapes(client: Client, queueUrl: string): Promise<number> {
+  const { rows } = await client.query<{ uid: number }>(NEEDS_DETAILS_SQL);
+  let failed = 0;
+
+  for (let i = 0; i < rows.length; i += SQS_BATCH_SIZE) {
+    const batch = rows.slice(i, i + SQS_BATCH_SIZE);
+    const response = await sqs.send(
+      new SendMessageBatchCommand({
+        QueueUrl: queueUrl,
+        Entries: batch.map(({ uid }) => ({
+          Id: String(uid),
+          MessageBody: JSON.stringify({ uid }),
+        })),
+      }),
+    );
+    failed += response.Failed?.length ?? 0;
+  }
+
+  if (failed > 0) {
+    console.error(`${failed} uid(s) never reached the detail queue; tomorrow's run retries them`);
+  }
+
+  console.log(`Enqueued ${rows.length - failed}/${rows.length} listing(s) for detail scraping`);
+  return rows.length - failed;
 }
 
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;
   if (!bucket) throw new Error("BUCKET_NAME is not set");
+
+  const queueUrl = process.env.DETAILS_QUEUE_URL;
+  if (!queueUrl) throw new Error("DETAILS_QUEUE_URL is not set");
 
   const record = event.Records[0];
   if (!record) {
@@ -115,7 +145,7 @@ export const handler = async (event: S3Event) => {
   const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!object.Body) throw new Error(`Empty body for ${key}`);
 
-  const listings = dedupeByUid(JSON.parse(await object.Body.transformToString()) as Listing[]);
+  const listings = JSON.parse(await object.Body.transformToString()) as Listing[];
   const uids = listings.map((listing) => listing.uid);
   console.log(`Loaded ${listings.length} unique listing(s)`);
 
@@ -124,7 +154,6 @@ export const handler = async (event: S3Event) => {
   try {
     client = await getClient();
 
-    // Sanity-check against what we are already serving before touching anything.
     const previous = await client.query<{ count: string }>(
       "SELECT COUNT(*) AS count FROM listings WHERE shown_to_public",
     );
@@ -152,8 +181,6 @@ export const handler = async (event: S3Event) => {
       console.log(`Upserted ${i + batch.length}/${listings.length}`);
     }
 
-    // Reconcile visibility from the authoritative uid list. Idempotent, and
-    // independent of clock skew or of which rows this run happened to touch.
     const hidden = await client.query(
       "UPDATE listings SET shown_to_public = false WHERE uid <> ALL($1::int[]) AND shown_to_public",
       [uids],
@@ -166,6 +193,9 @@ export const handler = async (event: S3Event) => {
     await client.query("COMMIT");
 
     console.log(`Upserted ${listings.length}, hid ${hidden.rowCount}, restored ${shown.rowCount}`);
+
+    const enqueued = await enqueueDetailScrapes(client, queueUrl);
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -173,18 +203,12 @@ export const handler = async (event: S3Event) => {
         upserted: listings.length,
         hidden: hidden.rowCount,
         restored: shown.rowCount,
+        enqueued,
       }),
     };
   } catch (error) {
     await client?.query("ROLLBACK").catch(() => {});
-    console.error("Update failed:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        success: false,
-        error: error instanceof Error && error.message,
-      }),
-    };
+    throw error;
   } finally {
     await client?.end();
   }
