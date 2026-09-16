@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -73,7 +73,7 @@ describe("SearchResultsPage", () => {
 
     expect(await screen.findByText(content.no_results)).toBeInTheDocument();
     expect(searchListingsMock).toHaveBeenCalledWith(
-      { location: "Newark", page: 3, sort: "updated" },
+      { location: "Newark", page: 3, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -271,7 +271,9 @@ describe("SearchResultsPage", () => {
     const box = await screen.findByRole("combobox", { name: content.search_label });
     await userEvent.type(box, "orange");
 
-    const suggested = screen.getAllByRole("option").map((option) => option.textContent);
+    const suggested = within(screen.getByRole("listbox"))
+      .getAllByRole("option")
+      .map((option) => option.textContent);
     expect(suggested).toEqual(["East Orange", "Orange", "South Orange", "West Orange"]);
   });
 
@@ -285,7 +287,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: "Trenton", page: 1, sort: "updated" },
+      { location: "Trenton", page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -298,7 +300,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1, sort: "updated" },
+      { location: null, page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -308,11 +310,11 @@ describe("SearchResultsPage", () => {
 
     const box = await screen.findByRole("combobox", { name: content.search_label });
     await userEvent.type(box, "Nutly");
-    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: null, page: 1, sort: "updated" },
+      { location: null, page: 1, sort: "updated", filters: {} },
       expect.any(AbortSignal),
     );
   });
@@ -327,8 +329,63 @@ describe("SearchResultsPage", () => {
     await userEvent.selectOptions(select, content.sort_price_asc);
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
-      { location: "Newark", page: 1, sort: "price_asc" },
+      { location: "Newark", page: 1, sort: "price_asc", filters: {} },
       expect.any(AbortSignal),
     );
+  });
+
+  it("closes the filter drawer when the window grows to desktop width", async () => {
+    renderAt("/search");
+
+    await userEvent.click(await screen.findByRole("button", { name: content.filters_button }));
+    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
+
+    const desktop = window.matchMedia("(min-width: 64em)");
+    Object.assign(desktop, { matches: true });
+    act(() => {
+      desktop.dispatchEvent(new Event("change"));
+    });
+
+    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
+  });
+
+  it("closes the drawer on Done, Esc, or clicking outside drawer", async () => {
+    renderAt("/search");
+
+    // done
+    const toggle = await screen.findByRole("button", { name: content.filters_button });
+    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole("button", { name: content.filters_done }));
+    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
+    expect(toggle).toHaveFocus();
+
+    // click away
+    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole("button", { name: content.filters_close }));
+    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
+    expect(toggle).toHaveFocus();
+
+    // esc key
+    await userEvent.click(toggle);
+    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
+    await userEvent.keyboard("{ArrowDown}"); // just making sure other keys have no effect
+    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
+    await userEvent.keyboard("{Escape}");
+    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
+    expect(toggle).toHaveFocus();
+  });
+
+  it("filter choices save", async () => {
+    renderAt("/search");
+
+    const bedrooms = await screen.findByLabelText(content.filter_bedrooms);
+    const bathrooms = screen.getByLabelText(content.filter_bathrooms);
+
+    await userEvent.selectOptions(bedrooms, "studio");
+    await userEvent.selectOptions(bathrooms, "2");
+
+    expect(bedrooms).toHaveValue("studio");
+    expect(bathrooms).toHaveValue("2");
+    expect(within(bathrooms).queryByRole("option", { name: content.filter_studio })).toBeNull();
   });
 });

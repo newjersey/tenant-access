@@ -69,6 +69,9 @@ export async function searchListings(
   if (query.sort) {
     params.push(`sort=${encodeURIComponent(query.sort)}`);
   }
+  for (const [key, value] of Object.entries(query.filters ?? {})) {
+    params.push(`${key}=${encodeURIComponent(value)}`);
+  }
 
   const response = await fetch(`${API_BASE_URL}/listings/search?${params.join("&")}`, { signal });
   if (!response.ok) {

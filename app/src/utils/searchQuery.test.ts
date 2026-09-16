@@ -5,7 +5,7 @@ const parse = (query: string) => parseSearchQuery(new URLSearchParams(query));
 
 describe("parseSearchQuery", () => {
   it("defaults to no location on the first page", () => {
-    expect(parse("")).toEqual({ location: null, page: 1, sort: "updated" });
+    expect(parse("")).toEqual({ location: null, page: 1, sort: "updated", filters: {} });
   });
 
   it("reads the location and page", () => {
@@ -13,6 +13,7 @@ describe("parseSearchQuery", () => {
       location: "Newark",
       page: 3,
       sort: "updated",
+      filters: {},
     });
   });
 
@@ -39,5 +40,14 @@ describe("parseSearchQuery", () => {
     expect(parse("sort=price_asc").sort).toBe("price_asc");
     expect(parse("sort=price_desc").sort).toBe("price_desc");
     expect(parse("sort=blah").sort).toBe("updated");
+  });
+
+  it("reads filters, trimming values and dropping any", () => {
+    expect(parse("bedrooms=studio&bathrooms=2").filters).toEqual({
+      bedrooms: "studio",
+      bathrooms: "2",
+    });
+    expect(parse("bedrooms=any&bathrooms=").filters).toEqual({});
+    expect(parse("bedrooms=%20%202%20").filters).toEqual({ bedrooms: "2" });
   });
 });

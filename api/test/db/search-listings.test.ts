@@ -209,4 +209,32 @@ describe("search-listings against a real database", () => {
     });
     expect(result.listings?.[1]).toMatchObject({ uid: 200, photoKeys: [], legacyDetails: null });
   });
+
+  it("combines both room filters with a location", async () => {
+    await seedListing(db, makeListing(100, { city: "Newark", bedrooms: 3, bathrooms: 2 }));
+    await seedListing(db, makeListing(200, { city: "Newark", bedrooms: 3, bathrooms: 1 }));
+    await seedListing(db, makeListing(300, { city: "Newark", bedrooms: 1, bathrooms: 2 }));
+    await seedListing(db, makeListing(400, { city: "Trenton", bedrooms: 3, bathrooms: 2 }));
+
+    const result = await search({ location: "Newark", bedrooms: "3", bathrooms: "2" });
+
+    expect(uids(result)).toEqual([100]);
+    expect(result.pagination?.total).toBe(1);
+  });
+
+  it("matches an exact bedroom count, and 5+ as a minimum", async () => {
+    await seedListing(db, makeListing(100, { bedrooms: 3 }));
+    await seedListing(db, makeListing(200, { bedrooms: 5 }));
+    await seedListing(db, makeListing(300, { bedrooms: 6 }));
+
+    expect(uids(await search({ bedrooms: "3" }))).toEqual([100]);
+    expect(uids(await search({ bedrooms: "5+" }))).toEqual([200, 300]);
+  });
+
+  it("matches only studios when studio is chosen", async () => {
+    await seedListing(db, makeListing(100, { bedrooms: 0 }));
+    await seedListing(db, makeListing(200, { bedrooms: 1 }));
+
+    expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
+  });
 });

@@ -57,6 +57,64 @@ summary {
   height: 2.5rem;
 }
 
+.search-filters {
+  max-width: 30rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #dfe1e2;
+}
+
+.search-filters__overlay {
+  border: 0;
+  padding: 0;
+}
+
+.filters-drawer-open {
+  overflow: hidden;
+}
+
+@media (max-width: 63.99em) {
+  .search-filters {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    width: 20rem;
+    max-width: 90vw;
+    margin: 0;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    border: 0;
+  }
+
+  .search-filters--open {
+    display: flex;
+  }
+
+  .search-filters__done {
+    margin-top: auto;
+  }
+}
+
+@media (min-width: 64em) {
+  .search-controls__filter-toggle,
+  .search-filters__overlay {
+    display: none;
+  }
+
+  .search-layout__filters {
+    order: 2;
+  }
+
+  .search-layout__results {
+    order: 1;
+  }
+}
+
 .usa-hero .usa-combo-box__list-option {
   color: black;
 }
