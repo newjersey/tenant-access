@@ -8,6 +8,11 @@ import type { ScrapedDetails } from "./write-details.js";
 const s3 = new S3Client();
 
 const FETCH_TIMEOUT_MS = 30_000;
+const PAUSE_MS = 10_000;
+
+function pause(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, PAUSE_MS));
+}
 
 // could be more out there??
 const KNOWN_SECTIONS = new Set([
@@ -71,6 +76,8 @@ async function fetchDetailPage(uid: number): Promise<string> {
   const response = await requestPage(url);
 
   if (!response.ok) {
+    const headers = JSON.stringify(Object.fromEntries(response.headers));
+    console.warn(`uid ${uid}: ${response.status} ${headers}`);
     throw new Error(`Detail fetch failed: ${response.status} ${response.statusText} for ${url}`);
   }
 
@@ -115,7 +122,11 @@ export const handler = async (event: SQSEvent) => {
   };
 
   for (const record of event.Records) {
-    await scrapeOne(targets, uidFrom(record));
+    try {
+      await scrapeOne(targets, uidFrom(record));
+    } finally {
+      await pause();
+    }
   }
 
   return { scraped: event.Records.length };
