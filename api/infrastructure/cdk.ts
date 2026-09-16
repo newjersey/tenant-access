@@ -10,9 +10,6 @@ if (!vpcId?.startsWith("vpc-")) {
 }
 
 const allowedOrigins = process.env.TENANT_ACCESS_ALLOWED_ORIGINS ?? "";
-if (!allowedOrigins) {
-  console.warn("TENANT_ACCESS_ALLOWED_ORIGINS is unset: the API will reject all browser origins");
-}
 
 new TenantAccessStack(app, "TenantAccessStack", {
   env: {
