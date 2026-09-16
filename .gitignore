@@ -209,3 +209,5 @@ cdk.out/
 
 test-results/
 playwright-report/
+
+cdk.context.json
