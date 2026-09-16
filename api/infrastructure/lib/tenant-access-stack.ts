@@ -22,8 +22,13 @@ import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
 import { SEARCH_QUERY_PARAMS } from "../../src/lambda/search-params.js";
 
+export interface TenantAccessStackProps extends cdk.StackProps {
+  readonly vpcId: string;
+  readonly allowedOrigins: string;
+}
+
 export class TenantAccessStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: TenantAccessStackProps) {
     super(scope, id, props);
 
     // S3 bucket for scraped data
@@ -57,9 +62,8 @@ export class TenantAccessStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    // VPC for RDS (using default VPC to save costs)
     const vpc = ec2.Vpc.fromLookup(this, "ExistingVPC", {
-      vpcId: "vpc-0c73f9052afddcf4d",
+      vpcId: props.vpcId,
     });
 
     vpc.addGatewayEndpoint("S3Endpoint", {
@@ -340,7 +344,7 @@ export class TenantAccessStack extends cdk.Stack {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
         ORIGIN_SECRET: originSecret,
-        ALLOWED_ORIGINS: "http://localhost:5173,https://dev.d2ejn42jgz68c8.amplifyapp.com", // TODO: dev only
+        ALLOWED_ORIGINS: props.allowedOrigins,
       },
       bundling: {
         nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
