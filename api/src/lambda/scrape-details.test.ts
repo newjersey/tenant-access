@@ -54,6 +54,7 @@ function stubFetch(html: string, ok = true) {
       ok,
       status: 503,
       statusText: "Service Unavailable",
+      headers: new Headers({ server: "test" }),
       text: async () => html,
     })),
   );
@@ -65,6 +66,7 @@ beforeEach(() => {
   delete process.env.DETAILS_PREFIX;
   puts.length = 0;
   vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.stubGlobal("setTimeout", (fn: () => void) => fn());
 });
 
 afterEach(() => {
