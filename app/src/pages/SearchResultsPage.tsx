@@ -102,7 +102,7 @@ const selectedValue = (options: { value: string }[], raw: string | null): string
 
 function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const panel = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLElement>(null);
 
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
     const params = new URLSearchParams(searchParams);
@@ -143,7 +143,7 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
         />
       )}
 
-      <div
+      <section
         className={`search-filters${open ? " search-filters--open" : ""}`}
         id="search-filters"
         aria-labelledby="search-filters-heading"
@@ -201,7 +201,7 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
         >
           {content.filters_done}
         </button>
-      </div>
+      </section>
     </>
   );
 }

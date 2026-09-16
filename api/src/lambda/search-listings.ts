@@ -23,7 +23,7 @@ const CACHE_SECONDS = 300;
 const MAX_PARAM_LENGTH = 100;
 
 const CITY_PLACEHOLDER = 1;
-const COUNTY_PLACEHOLDER= 2;
+const COUNTY_PLACEHOLDER = 2;
 const FIRST_FILTER_PLACEHOLDER = 3;
 
 // For performance, stop counting or searching past this many.
