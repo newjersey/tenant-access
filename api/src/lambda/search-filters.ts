@@ -5,18 +5,34 @@ const MAX_PARAM = 10;
 type Condition = { sql: (placeholder: string) => string; value: unknown };
 type FilterDef = (raw: string) => Condition | null;
 
-const atLeast = (raw: string, sql: (placeholder: string) => string): Condition | null => {
-  const parsed = Number.parseInt(raw, 10);
-  const inRange = Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_PARAM;
-  return inRange ? { sql, value: parsed } : null;
+const roomCount = (raw: string): { count: number; orMore: boolean } | null => {
+  const match = /^(\d+)(\+?)$/.exec(raw);
+  if (!match) return null;
+
+  const count = Number.parseInt(match[1], 10);
+  return count >= 1 && count <= MAX_PARAM ? { count, orMore: match[2] === "+" } : null;
 };
 
 const FILTERS: Record<FilterQueryParam, FilterDef> = {
-  bedrooms: (raw) =>
-    raw === "studio"
-      ? { sql: (placeholder) => `bedrooms = ${placeholder}`, value: 0 }
-      : atLeast(raw, (placeholder) => `bedrooms >= ${placeholder}`),
-  bathrooms: (raw) => atLeast(raw, (placeholder) => `bathrooms >= ${placeholder}`),
+  bedrooms: (raw) => {
+    if (raw === "studio") {
+      return { sql: (placeholder) => `bedrooms = ${placeholder}`, value: 0 };
+    }
+
+    const parsed = roomCount(raw);
+    return parsed
+      ? {
+          sql: (placeholder) => `bedrooms ${parsed.orMore ? ">=" : "="} ${placeholder}`,
+          value: parsed.count,
+        }
+      : null;
+  },
+  bathrooms: (raw) => {
+    const parsed = roomCount(raw);
+    return parsed
+      ? { sql: (placeholder) => `bathrooms >= ${placeholder}`, value: parsed.count }
+      : null;
+  },
 };
 
 export interface FilterClause {

@@ -14,10 +14,17 @@ describe("buildFilterClause", () => {
     expect(build({ bedrooms: "any", bathrooms: "any" })).toEqual({ sql: "", values: [] });
   });
 
-  it("reads a bedroom count as a minimum", () => {
+  it("reads a bedroom count as an exact match", () => {
     expect(build({ bedrooms: "2" })).toEqual({
-      sql: "\n    AND bedrooms >= $3",
+      sql: "\n    AND bedrooms = $3",
       values: [2],
+    });
+  });
+
+  it("reads a plus-suffixed bedroom count as a minimum", () => {
+    expect(build({ bedrooms: "5+" })).toEqual({
+      sql: "\n    AND bedrooms >= $3",
+      values: [5],
     });
   });
 
@@ -29,7 +36,7 @@ describe("buildFilterClause", () => {
   });
 
   it("ignores values outside the supported range or shape", () => {
-    for (const value of ["0", "11", "-1", "abc", "  "]) {
+    for (const value of ["0", "11", "-1", "abc", "  ", "5abc", "+5", "5++"]) {
       expect(build({ bedrooms: value, bathrooms: value })).toEqual({ sql: "", values: [] });
     }
   });

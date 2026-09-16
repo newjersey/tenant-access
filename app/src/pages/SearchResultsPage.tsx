@@ -30,7 +30,8 @@ const MINIMUM_ROOM_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
 const BEDROOM_OPTIONS = [
   { value: "any", label: content.filter_any },
   { value: "studio", label: content.filter_studio },
-  ...MINIMUM_ROOM_OPTIONS,
+  ...[1, 2, 3, 4].map((count) => ({ value: String(count), label: String(count) })),
+  { value: "5+", label: "5+" },
 ];
 
 const BATHROOM_OPTIONS = [{ value: "any", label: content.filter_any }, ...MINIMUM_ROOM_OPTIONS];
@@ -377,11 +378,11 @@ function SearchResultsPage() {
 
       <div className="grid-container">
         <div className="grid-row grid-gap">
-          <div className="grid-col-12 desktop:grid-col-3 search-layout__filters">
+          <div className="grid-col-12 desktop:grid-col-4 search-layout__filters">
             <FiltersPanel open={filtersOpen} onClose={closeFilters} />
           </div>
 
-          <div className="grid-col-12 desktop:grid-col-9 search-layout__results">
+          <div className="grid-col-12 desktop:grid-col-8 search-layout__results">
             <SearchResults search={search} />
           </div>
         </div>
