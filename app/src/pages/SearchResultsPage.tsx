@@ -344,8 +344,9 @@ function SearchResults({ search }: SearchResultsProps) {
 
   return (
     <>
-      <SortSelect />
       <p className="font-sans-md margin-bottom-3">{resultsLabel(page, total)}</p>
+
+      <SortSelect />
 
       <ul className="usa-card-group">
         {search.listings.map((listing) => (
