@@ -36,11 +36,13 @@ const BEDROOM_OPTIONS = [
 
 const BATHROOM_OPTIONS = [{ value: "any", label: content.filter_any }, ...MINIMUM_ROOM_OPTIONS];
 
-const FILTER_LABELS: Record<FilterKey, { label: string; options: { value: string; label: string }[] }> =
-  {
-    bedrooms: { label: content.filter_bedrooms, options: BEDROOM_OPTIONS },
-    bathrooms: { label: content.filter_bathrooms, options: BATHROOM_OPTIONS },
-  };
+const FILTER_LABELS: Record<
+  FilterKey,
+  { label: string; options: { value: string; label: string }[] }
+> = {
+  bedrooms: { label: content.filter_bedrooms, options: BEDROOM_OPTIONS },
+  bathrooms: { label: content.filter_bathrooms, options: BATHROOM_OPTIONS },
+};
 
 function appliedFilters(params: URLSearchParams): { key: FilterKey; label: string }[] {
   return FILTER_KEYS.flatMap((key) => {
@@ -278,7 +280,6 @@ function AppliedFilters() {
     </div>
   );
 }
-
 
 function SearchControls({
   location,
