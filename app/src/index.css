@@ -6,6 +6,10 @@ summary {
   cursor: pointer;
 }
 
+.color-info-lighter {
+  background-color: #E7F6F8;
+}
+
 .listing-card__img {
   aspect-ratio: 16 / 9;
   display: block;

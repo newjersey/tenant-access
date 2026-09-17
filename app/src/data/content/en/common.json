@@ -24,6 +24,7 @@
   "header": {
     "appName": "NJ Housing Resource Center",
     "menuText": "Menu",
+    "pilot": "This website is the pilot version of the NJ Housing Resource Center.",
     "register": "Register",
     "signin": "Sign in"
   },
