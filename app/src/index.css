@@ -74,6 +74,10 @@ summary {
   margin-top: 1rem;
 }
 
+.applied-filters {
+  flex-wrap: wrap;
+}
+
 .search-filters__overlay {
   border: 0;
   padding: 0;

@@ -406,4 +406,36 @@ describe("SearchResultsPage", () => {
       expect.any(AbortSignal),
     );
   });
+
+  it("removes a filter using the applied filter buttons", async () => {
+    renderAt("/search?location=Newark&bedrooms=studio&bathrooms=2&page=2");
+
+    const removeBedrooms = await screen.findByRole("button", {
+      name: content.filters_remove.replace(
+        "{{filter}}",
+        `${content.filter_bedrooms}: ${content.filter_studio}`,
+      ),
+    });
+    expect(
+      screen.getByRole("button", {
+        name: content.filters_remove.replace("{{filter}}", `${content.filter_bathrooms}: 2+`),
+      }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(removeBedrooms);
+
+    expect(screen.getByLabelText(content.filter_bedrooms)).toHaveValue("any");
+    expect(screen.getByLabelText(content.filter_bathrooms)).toHaveValue("2");
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: "Newark", page: 1, sort: "updated", filters: { bathrooms: "2" } },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("hides applied filters when none are set", async () => {
+    renderAt("/search?location=Newark");
+
+    expect(await screen.findByText(content.no_results)).toBeInTheDocument();
+    expect(screen.queryByText(content.filters_applied)).toBeNull();
+  });
 });
