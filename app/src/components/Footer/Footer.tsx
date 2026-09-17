@@ -48,7 +48,7 @@ const Footer = () => {
         <div className="grid-container">
           <div className="usa-footer__logo grid-row grid-gap-2">
             <div className="grid-col-auto">
-              <img className="usa-footer__logo-img" src="/images/logo-img.jpg" alt="NJHMF logo" />
+              <img className="maxw-15" src="/images/njhmfa-logo.png" alt="NJHMF logo" />
             </div>
             <div className="grid-col-auto">
               <h3 className="usa-footer__logo-heading">{content.footer.agencyName}</h3>
