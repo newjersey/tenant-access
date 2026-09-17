@@ -5,6 +5,7 @@
   "search_button": "Search",
   "filters_label": "Filters",
   "filters_done": "Done",
+  "filters_clear": "Clear all filters",
   "filters_close": "Close filters",
   "filters_button": "Filters",
   "filter_bedrooms": "Bedrooms",

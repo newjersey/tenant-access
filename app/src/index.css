@@ -65,6 +65,11 @@ summary {
   border: 1px solid #dfe1e2;
 }
 
+.search-filters__clear {
+  display: block;
+  margin-top: 1rem;
+}
+
 .search-filters__overlay {
   border: 0;
   padding: 0;

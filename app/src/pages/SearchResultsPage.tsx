@@ -18,7 +18,7 @@ import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchLi
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
 import { listingImageUrl } from "@/utils/listingPhotos";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
-import { type FilterKey, parseSearchQuery, parseSort } from "@/utils/searchQuery";
+import { FILTER_KEYS, type FilterKey, parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
@@ -116,6 +116,15 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
     setSearchParams(params);
   };
 
+  const clearFilters = () => {
+    const params = new URLSearchParams(searchParams);
+    for (const key of FILTER_KEYS) {
+      params.delete(key);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   useEffect(() => {
     if (!open) return;
 
@@ -201,6 +210,14 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
           onClick={onClose}
         >
           {content.filters_done}
+        </button>
+
+        <button
+          type="button"
+          className="usa-button usa-button--unstyled search-filters__clear"
+          onClick={clearFilters}
+        >
+          {content.filters_clear}
         </button>
       </section>
     </>

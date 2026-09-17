@@ -388,4 +388,22 @@ describe("SearchResultsPage", () => {
     expect(bathrooms).toHaveValue("2");
     expect(within(bathrooms).queryByRole("option", { name: content.filter_studio })).toBeNull();
   });
+
+  it("clears all filters", async () => {
+    renderAt("/search?location=Newark&bedrooms=studio&bathrooms=2&page=2");
+
+    const bedrooms = await screen.findByLabelText(content.filter_bedrooms);
+    const bathrooms = screen.getByLabelText(content.filter_bathrooms);
+    expect(bedrooms).toHaveValue("studio");
+    expect(bathrooms).toHaveValue("2");
+
+    await userEvent.click(screen.getByRole("button", { name: content.filters_clear }));
+
+    expect(bedrooms).toHaveValue("any");
+    expect(bathrooms).toHaveValue("any");
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      { location: "Newark", page: 1, sort: "updated", filters: {} },
+      expect.any(AbortSignal),
+    );
+  });
 });
