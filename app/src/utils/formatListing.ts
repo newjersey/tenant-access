@@ -1,4 +1,5 @@
 import type { Listing } from "@/clients/listings";
+import content from "@/data/content/en/search-results.json";
 
 type RentFields = Pick<Listing, "rent" | "rentMax">;
 type UnitFields = Pick<Listing, "bedrooms" | "bathrooms">;
@@ -24,8 +25,8 @@ export function formatRent({ rent, rentMax }: RentFields): string | null {
 
 export function formatUnitSummary({ bedrooms, bathrooms }: UnitFields): string | null {
   const parts = [
-    bedrooms === null ? null : `${bedrooms} bd`,
-    bathrooms === null ? null : `${bathrooms} ba`,
+    bedrooms === null ? null : `${bedrooms} ${content.bed}`,
+    bathrooms === null ? null : `${bathrooms} ${content.bath}`,
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(" | ") : null;

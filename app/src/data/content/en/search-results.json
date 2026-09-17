@@ -22,5 +22,7 @@
   "error": "We couldn't load listings right now. Please try again.",
   "no_results": "No listings matched your search.",
   "rent_unavailable": "Contact for rent",
-  "more_information": "More information"
+  "more_information": "More information",
+  "bed": "bed",
+  "bath": "bath"
 }
