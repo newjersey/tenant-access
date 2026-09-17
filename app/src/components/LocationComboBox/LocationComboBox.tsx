@@ -24,6 +24,7 @@ function LocationComboBox({ id, defaultValue, onChange }: LocationComboBoxProps)
       defaultValue={defaultValue}
       onChange={onChange}
       noResults={content.locationComboBox.noResults}
+      inputProps={{ placeholder: content.locationComboBox.placeholder }}
     />
   );
 }
