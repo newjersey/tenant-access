@@ -26,12 +26,25 @@ describe("formatRent", () => {
 
 describe("formatUnitSummary", () => {
   it("joins bedrooms and bathrooms", () => {
-    expect(formatUnitSummary({ bedrooms: 2, bathrooms: 1 })).toBe("2 bd | 1 ba");
+    expect(formatUnitSummary({ bedrooms: 2, bathrooms: 1 })).toBe("2 bed | 1 bath");
   });
 
-  it("skips a missing figure, including a studio's zero bedrooms", () => {
-    expect(formatUnitSummary({ bedrooms: null, bathrooms: 1 })).toBe("1 ba");
-    expect(formatUnitSummary({ bedrooms: 0, bathrooms: null })).toBe("0 bd");
+  it("drops a trailing .0 but keeps a half", () => {
+    expect(formatUnitSummary({ bedrooms: 2, bathrooms: "1.0" as unknown as number })).toBe(
+      "2 bed | 1 bath",
+    );
+    expect(formatUnitSummary({ bedrooms: 1, bathrooms: "1.5" as unknown as number })).toBe(
+      "1 bed | 1.5 bath",
+    );
+  });
+
+  it("calls zero bedrooms a studio", () => {
+    expect(formatUnitSummary({ bedrooms: 0, bathrooms: 1 })).toBe("Studio | 1 bath");
+    expect(formatUnitSummary({ bedrooms: 0, bathrooms: null })).toBe("Studio");
+  });
+
+  it("skips a missing figure", () => {
+    expect(formatUnitSummary({ bedrooms: null, bathrooms: 1 })).toBe("1 bath");
   });
 
   it("returns null when neither is known", () => {

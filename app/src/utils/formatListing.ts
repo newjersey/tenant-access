@@ -23,10 +23,25 @@ export function formatRent({ rent, rentMax }: RentFields): string | null {
   return `${currency.format(rent)}-${currency.format(rentMax)}/month`;
 }
 
+function formatCount(value: number | null): string | null {
+  const count = Number(value);
+  return value === null || !Number.isFinite(count) ? null : count.toString();
+}
+
+function formatBedrooms(bedrooms: number | null): string | null {
+  const count = formatCount(bedrooms);
+  if (count === null) {
+    return null;
+  }
+
+  return count === "0" ? content.studio : `${count} ${content.bed}`;
+}
+
 export function formatUnitSummary({ bedrooms, bathrooms }: UnitFields): string | null {
+  const baths = formatCount(bathrooms);
   const parts = [
-    bedrooms === null ? null : `${bedrooms} ${content.bed}`,
-    bathrooms === null ? null : `${bathrooms} ${content.bath}`,
+    formatBedrooms(bedrooms),
+    baths === null ? null : `${baths} ${content.bath}`,
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(" | ") : null;
