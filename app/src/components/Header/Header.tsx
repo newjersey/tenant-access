@@ -8,9 +8,7 @@ const Header = () => {
       <div className="color-info-lighter padding-y-2" role="status" aria-label="Site status">
         <div className="grid-container  maxw-desktop-lg">
           <div className="grid-col-12">
-            <p className="font-sans-xs text-bold">
-              {content.header.pilot}
-            </p>
+            <p className="font-sans-xs text-bold">{content.header.pilot}</p>
           </div>
         </div>
       </div>
