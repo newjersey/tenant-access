@@ -1,8 +1,5 @@
 import content from "@/data/content/en/common.json";
 
-/**
- * Footer component for displaying the footer content
- */
 const Footer = () => {
   return (
     <div className="usa-footer usa-footer--slim">
@@ -21,8 +18,8 @@ const Footer = () => {
                   </a>
                 </li>
                 <li className="mobile-lg:grid-col-6 desktop:grid-col-auto usa-footer__primary-content">
-                  <a className="usa-footer__primary-link" href={content.footer.linkUrlNews}>
-                    {content.footer.linkTextNews}
+                  <a className="usa-footer__primary-link" href={content.footer.linkUrlResources}>
+                    {content.footer.linkTextResources}
                   </a>
                 </li>
               </ul>
