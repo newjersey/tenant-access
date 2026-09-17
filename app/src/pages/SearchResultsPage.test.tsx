@@ -97,7 +97,7 @@ describe("SearchResultsPage", () => {
     expect(await screen.findByText("$1,200/month")).toBeInTheDocument();
     expect(screen.getByText("$1,300-$1,600/month")).toBeInTheDocument();
     expect(screen.getByText("221 King Street, Clifton, NJ 08608")).toBeInTheDocument();
-    expect(screen.getByText("2 bd | 1 ba")).toBeInTheDocument();
+    expect(screen.getByText("2 bed | 1 bath")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
