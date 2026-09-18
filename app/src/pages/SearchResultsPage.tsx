@@ -267,7 +267,7 @@ function AppliedFilters() {
           <li className="usa-button-group__item" key={key}>
             <button
               type="button"
-              className="usa-button usa-button--outline"
+              className="usa-button button-tag"
               aria-label={content.filters_remove.replace("{{filter}}", label)}
               onClick={removeFilter(key)}
             >

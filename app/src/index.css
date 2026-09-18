@@ -6,6 +6,12 @@ summary {
   cursor: pointer;
 }
 
+.button-tag {
+  background-color: #a3d7ff;
+  color: black;
+  font-weight: normal;
+}
+
 .color-info-lighter {
   background-color: #e7f6f8;
 }
