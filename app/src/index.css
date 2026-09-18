@@ -6,6 +6,10 @@ summary {
   cursor: pointer;
 }
 
+.color-info-lighter {
+  background-color: #e7f6f8;
+}
+
 .listing-card__img {
   aspect-ratio: 16 / 9;
   display: block;
@@ -63,6 +67,15 @@ summary {
   padding: 1rem;
   background-color: #ffffff;
   border: 1px solid #dfe1e2;
+}
+
+.search-filters__clear {
+  display: block;
+  margin-top: 1rem;
+}
+
+.applied-filters {
+  flex-wrap: wrap;
 }
 
 .search-filters__overlay {

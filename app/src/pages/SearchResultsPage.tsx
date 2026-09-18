@@ -18,7 +18,7 @@ import { type SearchListingsState, useSearchListings } from "@/hooks/useSearchLi
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
 import { listingImageUrl } from "@/utils/listingPhotos";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
-import { type FilterKey, parseSearchQuery, parseSort } from "@/utils/searchQuery";
+import { FILTER_KEYS, type FilterKey, parseSearchQuery, parseSort } from "@/utils/searchQuery";
 
 const numberFormat = new Intl.NumberFormat("en-US");
 
@@ -35,6 +35,25 @@ const BEDROOM_OPTIONS = [
 ];
 
 const BATHROOM_OPTIONS = [{ value: "any", label: content.filter_any }, ...MINIMUM_ROOM_OPTIONS];
+
+const FILTER_LABELS: Record<
+  FilterKey,
+  { label: string; options: { value: string; label: string }[] }
+> = {
+  bedrooms: { label: content.filter_bedrooms, options: BEDROOM_OPTIONS },
+  bathrooms: { label: content.filter_bathrooms, options: BATHROOM_OPTIONS },
+};
+
+function appliedFilters(params: URLSearchParams): { key: FilterKey; label: string }[] {
+  return FILTER_KEYS.flatMap((key) => {
+    const value = params.get(key);
+    if (!value || value === "any") return [];
+
+    const { label, options } = FILTER_LABELS[key];
+    const option = options.find((choice) => choice.value === value);
+    return option ? [{ key, label: `${label}: ${option.label}` }] : [];
+  });
+}
 
 function resultsLabel(page: number, total: number): string {
   const first = (page - 1) * PAGE_SIZE + 1;
@@ -111,6 +130,15 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
       params.delete(name);
     } else {
       params.set(name, event.target.value);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  const clearFilters = () => {
+    const params = new URLSearchParams(searchParams);
+    for (const key of FILTER_KEYS) {
+      params.delete(key);
     }
     params.delete("page");
     setSearchParams(params);
@@ -202,8 +230,54 @@ function FiltersPanel({ open, onClose }: { open: boolean; onClose: () => void })
         >
           {content.filters_done}
         </button>
+
+        <button
+          type="button"
+          className="usa-button usa-button--unstyled search-filters__clear"
+          onClick={clearFilters}
+        >
+          {content.filters_clear}
+        </button>
       </section>
     </>
+  );
+}
+
+function AppliedFilters() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const applied = appliedFilters(searchParams);
+
+  if (applied.length === 0) return null;
+
+  const removeFilter = (key: FilterKey) => () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete(key);
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  return (
+    <div className="margin-bottom-2">
+      <h2 id="applied-filters-heading" className="font-sans-sm margin-top-0 margin-bottom-1">
+        {content.filters_applied}
+      </h2>
+
+      <ul className="usa-button-group applied-filters" aria-labelledby="applied-filters-heading">
+        {applied.map(({ key, label }) => (
+          <li className="usa-button-group__item" key={key}>
+            <button
+              type="button"
+              className="usa-button usa-button--outline"
+              aria-label={content.filters_remove.replace("{{filter}}", label)}
+              onClick={removeFilter(key)}
+            >
+              {label}
+              <Icon icon="close" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -327,8 +401,9 @@ function SearchResults({ search }: SearchResultsProps) {
 
   return (
     <>
-      <SortSelect />
       <p className="font-sans-md margin-bottom-3">{resultsLabel(page, total)}</p>
+
+      <SortSelect />
 
       <ul className="usa-card-group">
         {search.listings.map((listing) => (
@@ -383,6 +458,7 @@ function SearchResultsPage() {
           </div>
 
           <div className="grid-col-12 desktop:grid-col-8 search-layout__results">
+            <AppliedFilters />
             <SearchResults search={search} />
           </div>
         </div>
