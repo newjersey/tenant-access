@@ -272,7 +272,7 @@ describe("SearchResultsPage", () => {
     await userEvent.type(box, "orange");
 
     const suggested = screen.getAllByRole("option").map((option) => option.textContent);
-    expect(suggested).toEqual(["East Orange", "Orange", "South Orange", "West Orange"]);
+    expect(suggested).toEqual(["Orange", "East Orange", "South Orange", "West Orange"]);
   });
 
   it("starts a new search back at the first page", async () => {
