@@ -7,8 +7,8 @@ import App from "@/App.tsx";
 import ErrorFallback from "@/components/ErrorBoundary/ErrorFallback";
 import RouteErrorFallback from "@/components/ErrorBoundary/RouteErrorFallback";
 import HomePage from "@/pages/HomePage";
-import NotFoundPage from "./pages/NotFoundPage";
 import SearchResultsPage from "@/pages/SearchResultsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const router = createBrowserRouter([
   {
