@@ -4,7 +4,7 @@ import { expectNoAxeViolations } from "./support";
 
 test.describe("search results page", () => {
   test("renders without accessibility violations", async ({ page }) => {
-    await page.goto("/search?location=Trenton");
+    await page.goto("/search?location=Trenton&bedrooms=studio");
     await expect(page.getByRole("heading", { level: 1, name: content.heading })).toBeVisible();
     await expectNoAxeViolations(page);
   });
