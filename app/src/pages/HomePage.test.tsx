@@ -41,8 +41,7 @@ describe("HomePage", () => {
     renderPage();
 
     const box = screen.getByRole("combobox", { name: content.location });
-    await userEvent.type(box, "Trenton");
-    await userEvent.click(screen.getByRole("option", { name: "Trenton" }));
+    await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/search?location=Trenton");

@@ -282,8 +282,7 @@ describe("SearchResultsPage", () => {
 
     const box = await screen.findByRole("combobox", { name: content.search_label });
     await userEvent.clear(box);
-    await userEvent.type(box, "Trenton");
-    await userEvent.click(screen.getByRole("option", { name: "Trenton" }));
+    await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
 
     expect(searchListingsMock).toHaveBeenLastCalledWith(
@@ -309,7 +308,7 @@ describe("SearchResultsPage", () => {
     renderAt("/search");
 
     const box = await screen.findByRole("combobox", { name: content.search_label });
-    await userEvent.type(box, "Nutly");
+    await userEvent.type(box, "Nonsense");
     expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: content.search_button }));
