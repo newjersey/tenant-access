@@ -34,6 +34,7 @@ export default defineConfig({
     silent: "passed-only",
     testTimeout: 30_000,
     hookTimeout: 60_000,
+    isolate: false,
     coverage: {
       provider: "v8",
       include: postgresFiles,
