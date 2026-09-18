@@ -271,7 +271,9 @@ describe("SearchResultsPage", () => {
     const box = await screen.findByRole("combobox", { name: content.search_label });
     await userEvent.type(box, "orange");
 
-    const suggested = screen.getAllByRole("option").map((option) => option.textContent);
+    const suggested = within(screen.getByRole("listbox"))
+      .getAllByRole("option")
+      .map((option) => option.textContent);
     expect(suggested).toEqual(["Orange", "East Orange", "South Orange", "West Orange"]);
   });
 
