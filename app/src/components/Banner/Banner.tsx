@@ -1,9 +1,6 @@
 import Icon from "@/components/Icon/Icon";
 import content from "@/data/content/en/common.json";
 
-/**
- * Banner component for displaying important messages or announcements
- */
 const Banner = () => {
   return (
     <section id="banner" className="nj-banner" aria-label="Official government website">
