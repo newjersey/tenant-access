@@ -17,7 +17,7 @@
   "dependencies": {
     "@newjersey/njwds": "^2.9.1",
     "@splidejs/react-splide": "^0.7.12",
-    "@trussworks/react-uswds": "^10.2.0",
+    "@trussworks/react-uswds": "^12.0.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-error-boundary": "^6.1.2",
