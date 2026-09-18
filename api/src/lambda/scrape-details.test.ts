@@ -118,10 +118,12 @@ describe("scrape-details handler", () => {
   });
 
   it("writes nothing when the origin refuses the page", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     stubFetch("", false);
 
     await expect(handler(event(1388803))).rejects.toThrow("Detail fetch failed: 503");
     expect(puts).toEqual([]);
+    expect(warn).toHaveBeenCalledWith('uid 1388803: 503 {"server":"test"}');
   });
 
   it("reports the underlying error, not just 'fetch failed'", async () => {

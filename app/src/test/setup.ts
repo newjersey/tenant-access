@@ -2,6 +2,20 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
+// jsdom has not implemented <search>, so react-dom reports the correct element as an
+// unknown tag when running tests unless we suppress. Real browsers support it (including Playwright).
+const originalError = console.error;
+console.error = (...args: Parameters<typeof console.error>) => {
+  if (
+    typeof args[0] === "string" &&
+    args[0].includes("The tag <%s> is unrecognized") &&
+    args[1] === "search"
+  ) {
+    return;
+  }
+  originalError(...args);
+};
+
 const mediaQueryLists = new Map<string, MediaQueryList>();
 
 window.matchMedia = (media: string): MediaQueryList => {
