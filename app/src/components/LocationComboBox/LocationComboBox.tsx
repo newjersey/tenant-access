@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ComboBox, type ComboBoxOption } from "@trussworks/react-uswds";
 import "@/components/LocationComboBox/LocationComboBox.css";
 import content from "@/data/content/en/common.json";
@@ -19,7 +20,7 @@ interface LocationComboBoxProps {
   options?: ComboBoxOption[]; // can override options for tests
 }
 
-function LocationComboBox({
+const LocationComboBox = memo(function LocationComboBox({
   id,
   defaultValue,
   onChange,
@@ -37,6 +38,6 @@ function LocationComboBox({
       inputProps={{ placeholder: content.locationComboBox.placeholder }}
     />
   );
-}
+});
 
 export default LocationComboBox;
