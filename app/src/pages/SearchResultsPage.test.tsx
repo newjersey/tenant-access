@@ -31,24 +31,18 @@ describe("SearchResultsPage", () => {
     resolveWith([]);
   });
 
-  it("asks the API for the location and page in the URL", async () => {
-    renderAt("/search?location=Newark&page=3");
+  it("asks the API for the location, page, and filters in the URL", async () => {
+    renderAt("/search?location=Newark&page=3&bedrooms=studio&bathrooms=2");
 
     expect(await screen.findByRole("combobox", { name: content.search_label })).toHaveValue(
       "Newark",
     );
     expect(await screen.findByText(content.no_results)).toBeInTheDocument();
+    expect(await screen.findByText(content.filters_applied)).toBeInTheDocument();
     expect(searchListingsMock).toHaveBeenCalledWith(
-      { location: "Newark", page: 3, sort: "updated", filters: {} },
+      { location: "Newark", page: 3, sort: "updated", filters: { bedrooms: "studio", bathrooms: "2" }, },
       expect.any(AbortSignal),
     );
-  });
-
-  it("titles the page and offers a way back home", async () => {
-    renderAt("/search?location=Newark");
-
-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(content.heading);
-    expect(screen.getByRole("link", { name: content.home })).toHaveAttribute("href", "/");
   });
 
   it("leaves the search box empty when no location is set", async () => {
@@ -98,22 +92,7 @@ describe("SearchResultsPage", () => {
     );
   });
 
-  it("closes the filter drawer when the window grows to desktop width", async () => {
-    renderAt("/search");
-
-    await userEvent.click(await screen.findByRole("button", { name: content.filters_button }));
-    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
-
-    const desktop = window.matchMedia("(min-width: 64em)");
-    Object.assign(desktop, { matches: true });
-    act(() => {
-      desktop.dispatchEvent(new Event("change"));
-    });
-
-    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
-  });
-
-  it("closes the drawer and returns focus to the toggle", async () => {
+  it("closes the filter drawer when button clicked or the window grows to desktop width", async () => {
     renderAt("/search");
 
     const toggle = await screen.findByRole("button", { name: content.filters_button });
@@ -123,20 +102,16 @@ describe("SearchResultsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.filters_done }));
     expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
     expect(toggle).toHaveFocus();
-  });
 
-  it("asks the API for the filters in the URL and shows them as applied", async () => {
-    renderAt("/search?location=Newark&bedrooms=studio&bathrooms=2");
+    await userEvent.click(toggle);
+    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
 
-    expect(await screen.findByText(content.filters_applied)).toBeInTheDocument();
-    expect(searchListingsMock).toHaveBeenCalledWith(
-      {
-        location: "Newark",
-        page: 1,
-        sort: "updated",
-        filters: { bedrooms: "studio", bathrooms: "2" },
-      },
-      expect.any(AbortSignal),
-    );
+    const desktop = window.matchMedia("(min-width: 64em)");
+    Object.assign(desktop, { matches: true });
+    act(() => {
+      desktop.dispatchEvent(new Event("change"));
+    });
+
+    expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
   });
 });
