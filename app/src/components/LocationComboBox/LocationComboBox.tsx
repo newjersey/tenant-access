@@ -17,21 +17,19 @@ interface LocationComboBoxProps {
   id: string;
   defaultValue?: string;
   onChange: (location: string | undefined) => void;
-  options?: ComboBoxOption[]; // can override options for tests
 }
 
 const LocationComboBox = memo(function LocationComboBox({
   id,
   defaultValue,
   onChange,
-  options = ALL_LOCATIONS,
 }: LocationComboBoxProps) {
   return (
     <ComboBox
       id={id}
       className="njhmf-location-combo-box"
       name="location"
-      options={options}
+      options={ALL_LOCATIONS}
       defaultValue={defaultValue}
       onChange={onChange}
       noResults={content.locationComboBox.noResults}
