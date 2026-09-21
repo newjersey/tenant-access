@@ -9,13 +9,7 @@ import SearchResultsPage from "./SearchResultsPage";
 const { searchListingsMock } = vi.hoisted(() => ({ searchListingsMock: vi.fn() }));
 
 vi.mock("@/clients/listings", () => ({ searchListings: searchListingsMock }));
-vi.mock("@/data/locations/cities-by-county.json", () => ({
-  default: {
-    Essex: ["Newark", "Orange", "East Orange"],
-    Mercer: ["Trenton"],
-    Monmouth: ["Long Branch"],
-  },
-}));
+vi.mock("@/data/locations/cities-by-county.json", () => import("@/test/citiesByCounty"));
 
 const resolveWith = (listings = [makeListing()], page = 1, total = listings.length) =>
   searchListingsMock.mockResolvedValue({
