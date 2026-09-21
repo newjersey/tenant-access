@@ -31,7 +31,7 @@ describe("SortSelect", () => {
   });
 
   it("falls back to last updated when the URL asks for nonsense", () => {
-    renderAt("/search?sort=sideways");
+    renderAt("/search?sort=nonsense");
 
     expect(screen.getByLabelText(content.sort_label)).toHaveValue("updated");
   });
