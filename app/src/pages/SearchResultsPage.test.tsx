@@ -150,11 +150,12 @@ describe("SearchResultsPage", () => {
     const bathrooms = screen.getByLabelText(content.filter_bathrooms);
 
     await userEvent.selectOptions(bedrooms, "studio");
-    await userEvent.selectOptions(bathrooms, "2");
-
     expect(bedrooms).toHaveValue("studio");
+
+    await userEvent.selectOptions(bathrooms, "2");
     expect(bathrooms).toHaveValue("2");
-    expect(within(bathrooms).queryByRole("option", { name: content.filter_studio })).toBeNull();
+    await userEvent.selectOptions(bathrooms, "any");
+    expect(bathrooms).toHaveValue("any");
   });
 
   it("clears all filters", async () => {

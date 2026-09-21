@@ -27,7 +27,7 @@ function ListingCard({ listing }: { listing: Listing }) {
           <h2 className="usa-card__heading">
             <a
               className="listing-card__link"
-              href={listing.fullListingUrl ?? undefined}
+              href={listing.fullListingUrl}
               aria-label={`${rent}, ${address}`}
               target="_blank"
               rel="noreferrer"

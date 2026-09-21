@@ -36,7 +36,7 @@ export interface Listing {
   amenities: string[];
   contactName: string | null;
   contactOrganization: string | null;
-  fullListingUrl: string | null;
+  fullListingUrl: string;
   rentType: string | null;
   depositRange: string | null;
   legacyDetails: LegacyDetails | null;
