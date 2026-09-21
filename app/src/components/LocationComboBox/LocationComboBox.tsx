@@ -1,5 +1,5 @@
-import { memo } from "react";
 import { ComboBox, type ComboBoxOption } from "@trussworks/react-uswds";
+import { memo } from "react";
 import "@/components/LocationComboBox/LocationComboBox.css";
 import content from "@/data/content/en/common.json";
 import citiesByCounty from "@/data/locations/cities-by-county.json";

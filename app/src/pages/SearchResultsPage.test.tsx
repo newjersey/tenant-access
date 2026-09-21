@@ -40,7 +40,12 @@ describe("SearchResultsPage", () => {
     expect(await screen.findByText(content.no_results)).toBeInTheDocument();
     expect(await screen.findByText(content.filters_applied)).toBeInTheDocument();
     expect(searchListingsMock).toHaveBeenCalledWith(
-      { location: "Newark", page: 3, sort: "updated", filters: { bedrooms: "studio", bathrooms: "2" }, },
+      {
+        location: "Newark",
+        page: 3,
+        sort: "updated",
+        filters: { bedrooms: "studio", bathrooms: "2" },
+      },
       expect.any(AbortSignal),
     );
   });
