@@ -20,7 +20,7 @@ const resolveWith = (listings = [makeListing()], page = 1, total = listings.leng
 const renderAt = (url: string) =>
   render(
     <MemoryRouter initialEntries={[url]}>
-      <SearchResultsPage />{" "}
+      <SearchResultsPage />
     </MemoryRouter>,
   );
 
