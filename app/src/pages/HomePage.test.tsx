@@ -10,6 +10,7 @@ vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return { ...actual, useNavigate: () => mockNavigate };
 });
+vi.mock("@/data/locations/cities-by-county.json", () => import("@/test/citiesByCounty"));
 
 const renderPage = () =>
   render(
