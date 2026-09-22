@@ -51,10 +51,11 @@ describe("parseSearchQuery", () => {
     expect(parse("bedrooms=%20%202%20").filters).toEqual({ bedrooms: "2" });
   });
 
-  it("reads a toggle filter only when it is exactly true", () => {
+  it("keeps a toggle filter only when its value is exactly true", () => {
     expect(parse("senior=true").filters).toEqual({ senior: "true" });
-    expect(parse("senior=false").filters).toEqual({});
-    expect(parse("senior=1").filters).toEqual({});
-    expect(parse("senior=TRUE").filters).toEqual({});
+
+    for (const value of ["false", "1", "yes", "TRUE", "any", ""]) {
+      expect(parse(`senior=${value}`).filters).toEqual({});
+    }
   });
 });

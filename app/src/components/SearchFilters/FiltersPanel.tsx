@@ -7,7 +7,7 @@ import {
   selectedValue,
 } from "@/components/SearchFilters/filterOptions";
 import content from "@/data/content/en/search-results.json";
-import { FILTER_KEYS, type FilterKey } from "@/utils/searchQuery";
+import { FILTER_KEYS, type FilterKey, parseFilters } from "@/utils/searchQuery";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface FiltersPanelProps {
 
 function FiltersPanel({ open, onClose }: FiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeFilters = parseFilters(searchParams);
   const panel = useRef<HTMLElement>(null);
 
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
@@ -143,7 +144,7 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
               id="filter-senior"
               type="checkbox"
               name="senior"
-              checked={searchParams.get("senior") === "true"}
+              checked={Boolean(activeFilters.senior)}
               onChange={toggleFilter("senior")}
             />
             <label className="usa-checkbox__label" htmlFor="filter-senior">

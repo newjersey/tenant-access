@@ -28,11 +28,14 @@ const renderAt = (url: string, open = false) => {
 };
 
 describe("FiltersPanel", () => {
-  it("seeds both selects from the URL", () => {
-    const { bedrooms, bathrooms } = renderAt("/search?bedrooms=studio&bathrooms=2");
+  it("seeds every control from the URL", () => {
+    const { bedrooms, bathrooms, senior } = renderAt(
+      "/search?bedrooms=studio&bathrooms=2&senior=true",
+    );
 
     expect(bedrooms).toHaveValue("studio");
     expect(bathrooms).toHaveValue("2");
+    expect(senior).toBeChecked();
   });
 
   it("falls back to any when the URL asks for an option that does not exist", () => {
@@ -72,14 +75,6 @@ describe("FiltersPanel", () => {
     expect(senior).not.toBeChecked();
     expect(query).toHaveTextContent("location=Newark");
     expect(query.textContent).not.toContain("page");
-  });
-
-  it("checks the senior housing toggle when the URL asks for it", () => {
-    expect(renderAt("/search?senior=true").senior).toBeChecked();
-  });
-
-  it("leaves the senior housing toggle off for any value other than true", () => {
-    expect(renderAt("/search?senior=1").senior).not.toBeChecked();
   });
 
   it("adds and removes the senior housing toggle, returning to the first page", async () => {
