@@ -35,7 +35,7 @@ const FILTERS: Record<FilterQueryParam, FilterDef> = {
       ? { sql: (placeholder) => `bathrooms >= ${placeholder}`, value: parsed.count }
       : null;
   },
-   senior: (raw) =>
+  senior: (raw) =>
     raw === "true"
       ? {
           sql: (placeholder) => `amenities @> ARRAY[${placeholder}]::text[]`,
