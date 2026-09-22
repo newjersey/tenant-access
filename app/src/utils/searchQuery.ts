@@ -2,9 +2,10 @@ export const SORT_OPTIONS = ["updated", "price_asc", "price_desc"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 const DEFAULT_SORT: SortOption = "updated";
 
-export const FILTER_KEYS = ["bedrooms", "bathrooms"] as const;
+export const FILTER_KEYS = ["bedrooms", "bathrooms", "senior"] as const;
 export type FilterKey = (typeof FILTER_KEYS)[number];
 export type SearchFilters = Partial<Record<FilterKey, string>>;
+export const TOGGLE_FILTER_KEYS: readonly FilterKey[] = ["senior"];
 
 export interface SearchQuery {
   location: string | null;
@@ -22,9 +23,10 @@ export function parseFilters(params: URLSearchParams): SearchFilters {
 
   for (const key of FILTER_KEYS) {
     const value = params.get(key)?.trim();
-    if (value && value !== "any") {
-      filters[key] = value;
-    }
+    if (!value || value === "any") continue;
+    if (TOGGLE_FILTER_KEYS.includes(key) && value !== "true") continue;
+
+    filters[key] = value;
   }
 
   return filters;

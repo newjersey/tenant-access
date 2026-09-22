@@ -29,6 +29,17 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
     setSearchParams(params);
   };
 
+  const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
+    const params = new URLSearchParams(searchParams);
+    if (event.target.checked) {
+      params.set(name, "true");
+    } else {
+      params.delete(name);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   const clearFilters = () => {
     const params = new URLSearchParams(searchParams);
     for (const key of FILTER_KEYS) {
@@ -124,6 +135,20 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="usa-checkbox margin-top-2">
+            <input
+              className="usa-checkbox__input"
+              id="filter-senior"
+              type="checkbox"
+              name="senior"
+              checked={searchParams.get("senior") === "true"}
+              onChange={toggleFilter("senior")}
+            />
+            <label className="usa-checkbox__label" htmlFor="filter-senior">
+              {content.filter_senior}
+            </label>
           </div>
         </div>
 

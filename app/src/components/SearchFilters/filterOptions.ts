@@ -23,9 +23,10 @@ export const BATHROOM_OPTIONS: FilterOption[] = [
   ...MINIMUM_ROOM_OPTIONS,
 ];
 
-export const FILTER_LABELS: Record<FilterKey, { label: string; options: FilterOption[] }> = {
+export const FILTER_LABELS: Record<FilterKey, { label: string; options?: FilterOption[] }> = {
   bedrooms: { label: content.filter_bedrooms_short, options: BEDROOM_OPTIONS },
   bathrooms: { label: content.filter_bathrooms_short, options: BATHROOM_OPTIONS },
+  senior: { label: content.filter_senior },
 };
 
 export function appliedFilters(params: URLSearchParams): { key: FilterKey; label: string }[] {
@@ -34,6 +35,8 @@ export function appliedFilters(params: URLSearchParams): { key: FilterKey; label
     if (!value || value === "any") return [];
 
     const { label, options } = FILTER_LABELS[key];
+    if (!options) return value === "true" ? [{ key, label }] : [];
+
     const option = options.find((choice) => choice.value === value);
     return option ? [{ key, label: `${label}: ${option.label}` }] : [];
   });

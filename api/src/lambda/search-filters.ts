@@ -2,6 +2,8 @@ import { FILTER_QUERY_PARAMS, type FilterQueryParam, type SearchParams } from ".
 
 const MAX_PARAM = 10;
 
+const SENIOR_AMENITY = "Seniors Housing";
+
 type Condition = { sql: (placeholder: string) => string; value: unknown };
 type FilterDef = (raw: string) => Condition | null;
 
@@ -33,6 +35,13 @@ const FILTERS: Record<FilterQueryParam, FilterDef> = {
       ? { sql: (placeholder) => `bathrooms >= ${placeholder}`, value: parsed.count }
       : null;
   },
+   senior: (raw) =>
+    raw === "true"
+      ? {
+          sql: (placeholder) => `amenities @> ARRAY[${placeholder}]::text[]`,
+          value: SENIOR_AMENITY,
+        }
+      : null,
 };
 
 export interface FilterClause {

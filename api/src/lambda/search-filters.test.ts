@@ -40,4 +40,24 @@ describe("buildFilterClause", () => {
       expect(build({ bedrooms: value, bathrooms: value })).toEqual({ sql: "", values: [] });
     }
   });
+
+  it("matches the senior housing amenity", () => {
+    expect(build({ senior: "true" })).toEqual({
+      sql: "\n    AND amenities @> ARRAY[$3]::text[]",
+      values: ["Seniors Housing"],
+    });
+  });
+
+  it("ignores any senior value other than true", () => {
+    for (const value of ["false", "1", "yes", "TRUE", "  "]) {
+      expect(build({ senior: value })).toEqual({ sql: "", values: [] });
+    }
+  });
+
+  it("numbers placeholders in parameter order across mixed filters", () => {
+    expect(build({ bedrooms: "2", senior: "true" })).toEqual({
+      sql: "\n    AND bedrooms = $3\n    AND amenities @> ARRAY[$4]::text[]",
+      values: [2, "Seniors Housing"],
+    });
+  });
 });

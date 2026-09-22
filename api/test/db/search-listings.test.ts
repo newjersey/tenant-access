@@ -237,4 +237,17 @@ describe("search-listings against a real database", () => {
 
     expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
   });
+
+  it("combines senior housing with a room filter and a location", async () => {
+    const senior = { amenities: ["Seniors Housing"] };
+    await seedListing(db, makeListing(100, { city: "Newark", bedrooms: 1, ...senior }));
+    await seedListing(db, makeListing(200, { city: "Newark", amenities: ["No Smoking"] }));
+    await seedListing(db, makeListing(300, { city: "Newark", bedrooms: 1 }));
+    await seedListing(db, makeListing(400, { city: "Trenton", bedrooms: 1, ...senior }));
+
+    const result = await search({ location: "Newark", bedrooms: "1", senior: "true" });
+
+    expect(uids(result)).toEqual([100]);
+    expect(result.pagination?.total).toBe(1);
+  });
 });

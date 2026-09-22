@@ -22,6 +22,17 @@ describe("appliedFilters", () => {
   it("skips values that are not one of the offered options", () => {
     expect(appliedFilters(new URLSearchParams("bedrooms=nonsense"))).toEqual([]);
   });
+
+  it("labels a toggle filter with just its name", () => {
+    expect(appliedFilters(new URLSearchParams("senior=true"))).toEqual([
+      { key: "senior", label: content.filter_senior },
+    ]);
+  });
+
+  it("skips a toggle filter set to anything other than true", () => {
+    expect(appliedFilters(new URLSearchParams("senior=false"))).toEqual([]);
+    expect(appliedFilters(new URLSearchParams("senior=1"))).toEqual([]);
+  });
 });
 
 describe("selectedValue", () => {
