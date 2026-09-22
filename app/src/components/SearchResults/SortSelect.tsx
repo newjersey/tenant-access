@@ -16,7 +16,7 @@ function SortSelect() {
 
   return (
     <>
-      <label className="usa-sr-only" htmlFor="sort-listings">
+      <label htmlFor="sort-listings">
         {content.sort_label}
       </label>
       <select
