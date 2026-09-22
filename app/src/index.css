@@ -91,6 +91,34 @@ summary {
   flex-wrap: wrap;
 }
 
+@media (max-width: 29.99em) {
+  .applied-filters {
+    flex-direction: row;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .applied-filters .usa-button-group__item {
+    flex: 0 1 calc(50% - 0.5rem);
+    margin: 0;
+    min-width: 0;
+  }
+
+  .applied-filters .button-tag {
+    font-size: 0.93rem;
+    line-height: 1.2;
+    margin-right: 0;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+  }
+
+  .applied-filters .button-tag .usa-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+}
+
 .search-filters__overlay {
   border: 0;
   padding: 0;
