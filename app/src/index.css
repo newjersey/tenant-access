@@ -12,6 +12,15 @@ summary {
   font-weight: normal;
 }
 
+.button-tag .usa-icon {
+  color: #005ea2;
+}
+
+.button-tag:hover .usa-icon,
+.button-tag:active .usa-icon {
+  color: #ffffff;
+}
+
 .color-info-lighter {
   background-color: #e7f6f8;
 }
@@ -111,11 +120,6 @@ summary {
     min-height: 2.5rem;
     padding: 0.5rem 0.75rem;
     width: 100%;
-  }
-
-  .applied-filters .button-tag .usa-icon {
-    height: 1.25rem;
-    width: 1.25rem;
   }
 }
 
