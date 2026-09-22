@@ -28,6 +28,8 @@ summary {
 
 .listing-card__img {
   aspect-ratio: 16 / 9;
+  border-top-left-radius: calc(0.5rem - 2px);
+  border-top-right-radius: calc(0.5rem - 2px);
   display: block;
   object-fit: cover;
   width: 100%;
