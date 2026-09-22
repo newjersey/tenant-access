@@ -80,6 +80,13 @@ summary {
   margin-top: 1rem;
 }
 
+.search-filters__close {
+  margin-right: -0.5rem;
+  padding: 0.5rem;
+  color: #1b1b1b;
+  text-decoration: none;
+}
+
 .applied-filters {
   flex-wrap: wrap;
 }

@@ -79,20 +79,25 @@ describe("FiltersPanel", () => {
     expect(document.body).toHaveClass("filters-drawer-open");
   });
 
-  it("asks to close on Done, on the overlay, and on Escape", async () => {
+  it("asks to close on Done, X, overlay, or Escape", async () => {
     const { onClose } = renderAt("/search", true);
 
     await userEvent.click(screen.getByRole("button", { name: content.filters_done }));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    await userEvent.click(screen.getByRole("button", { name: content.filters_close }));
+    const [overlay, closeIcon] = screen.getAllByRole("button", { name: content.filters_close });
+
+    await userEvent.click(closeIcon);
     expect(onClose).toHaveBeenCalledTimes(2);
+
+    await userEvent.click(overlay);
+    expect(onClose).toHaveBeenCalledTimes(3);
 
     await userEvent.keyboard("{ArrowDown}"); // other keys have no effect
-    expect(onClose).toHaveBeenCalledTimes(2);
+    expect(onClose).toHaveBeenCalledTimes(3);
 
     await userEvent.keyboard("{Escape}");
-    expect(onClose).toHaveBeenCalledTimes(3);
+    expect(onClose).toHaveBeenCalledTimes(4);
   });
 
   it("stays out of the way while closed", async () => {
@@ -100,7 +105,7 @@ describe("FiltersPanel", () => {
 
     expect(panel).not.toHaveClass("search-filters--open");
     expect(document.body).not.toHaveClass("filters-drawer-open");
-    expect(screen.queryByRole("button", { name: content.filters_close })).toBeNull();
+    expect(document.querySelector(".search-filters__overlay")).not.toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
     expect(onClose).not.toHaveBeenCalled();
