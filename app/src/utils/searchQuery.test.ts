@@ -50,4 +50,12 @@ describe("parseSearchQuery", () => {
     expect(parse("bedrooms=any&bathrooms=").filters).toEqual({});
     expect(parse("bedrooms=%20%202%20").filters).toEqual({ bedrooms: "2" });
   });
+
+  it("keeps a toggle filter only when its value is exactly true", () => {
+    expect(parse("senior=true").filters).toEqual({ senior: "true" });
+
+    for (const value of ["false", "1", "yes", "TRUE", "any", ""]) {
+      expect(parse(`senior=${value}`).filters).toEqual({});
+    }
+  });
 });

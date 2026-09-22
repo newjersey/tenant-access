@@ -8,10 +8,11 @@ import {
 import content from "@/data/content/en/search-results.json";
 
 describe("appliedFilters", () => {
-  it("labels every filter set in the URL", () => {
-    expect(appliedFilters(new URLSearchParams("bedrooms=studio&bathrooms=2"))).toEqual([
+  it("labels every filter set in the URL, a toggle by name alone", () => {
+    expect(appliedFilters(new URLSearchParams("bedrooms=studio&bathrooms=2&senior=true"))).toEqual([
       { key: "bedrooms", label: `${content.filter_bedrooms_short}: ${content.filter_studio}` },
       { key: "bathrooms", label: `${content.filter_bathrooms_short}: 2+` },
+      { key: "senior", label: content.filter_senior },
     ]);
   });
 

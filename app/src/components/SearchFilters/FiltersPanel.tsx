@@ -7,7 +7,7 @@ import {
   selectedValue,
 } from "@/components/SearchFilters/filterOptions";
 import content from "@/data/content/en/search-results.json";
-import { FILTER_KEYS, type FilterKey } from "@/utils/searchQuery";
+import { FILTER_KEYS, type FilterKey, parseFilters } from "@/utils/searchQuery";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface FiltersPanelProps {
 
 function FiltersPanel({ open, onClose }: FiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeFilters = parseFilters(searchParams);
   const panel = useRef<HTMLElement>(null);
 
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
@@ -24,6 +25,17 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
       params.delete(name);
     } else {
       params.set(name, event.target.value);
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
+  const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
+    const params = new URLSearchParams(searchParams);
+    if (event.target.checked) {
+      params.set(name, "true");
+    } else {
+      params.delete(name);
     }
     params.delete("page");
     setSearchParams(params);
@@ -87,6 +99,20 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
             <Icon icon="close" size="3" />
           </button>
         </div>
+        <div className="usa-checkbox margin-bottom-2">
+          <input
+            className="usa-checkbox__input"
+            id="filter-senior"
+            type="checkbox"
+            name="senior"
+            checked={Boolean(activeFilters.senior)}
+            onChange={toggleFilter("senior")}
+          />
+          <label className="usa-checkbox__label" htmlFor="filter-senior">
+            {content.filter_senior}
+          </label>
+        </div>
+
         <div className="grid-row grid-gap">
           <div className="tablet:grid-col-6">
             <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">

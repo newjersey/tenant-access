@@ -36,8 +36,18 @@ describe("buildFilterClause", () => {
   });
 
   it("ignores values outside the supported range or shape", () => {
-    for (const value of ["0", "11", "-1", "abc", "  ", "5abc", "+5", "5++"]) {
-      expect(build({ bedrooms: value, bathrooms: value })).toEqual({ sql: "", values: [] });
+    for (const value of ["0", "11", "-1", "abc", "  ", "5abc", "+5", "5++", "false", "TRUE"]) {
+      expect(build({ bedrooms: value, bathrooms: value, senior: value })).toEqual({
+        sql: "",
+        values: [],
+      });
     }
+  });
+
+  it("matches the senior housing amenity, numbering placeholders in parameter order", () => {
+    expect(build({ bedrooms: "2", senior: "true" })).toEqual({
+      sql: "\n    AND bedrooms = $3\n    AND amenities @> ARRAY[$4]::text[]",
+      values: [2, "Seniors Housing"],
+    });
   });
 });

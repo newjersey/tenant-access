@@ -210,13 +210,22 @@ describe("search-listings against a real database", () => {
     expect(result.listings?.[1]).toMatchObject({ uid: 200, photoKeys: [], legacyDetails: null });
   });
 
-  it("combines both room filters with a location", async () => {
-    await seedListing(db, makeListing(100, { city: "Newark", bedrooms: 3, bathrooms: 2 }));
-    await seedListing(db, makeListing(200, { city: "Newark", bedrooms: 3, bathrooms: 1 }));
-    await seedListing(db, makeListing(300, { city: "Newark", bedrooms: 1, bathrooms: 2 }));
-    await seedListing(db, makeListing(400, { city: "Trenton", bedrooms: 3, bathrooms: 2 }));
+  it("combines every filter with a location", async () => {
+    const match = { city: "Newark", bedrooms: 3, bathrooms: 2, amenities: ["Seniors Housing"] };
+    await seedListing(db, makeListing(100, match));
+    await seedListing(db, makeListing(200, { ...match, bathrooms: 1 }));
+    await seedListing(db, makeListing(300, { ...match, bedrooms: 1 }));
+    await seedListing(db, makeListing(400, { ...match, city: "Trenton" }));
+    await seedListing(db, makeListing(500, { ...match, amenities: [] }));
+    await seedListing(db, makeListing(600, match));
+    await db.query("UPDATE listings SET amenities = NULL WHERE uid = 600");
 
-    const result = await search({ location: "Newark", bedrooms: "3", bathrooms: "2" });
+    const result = await search({
+      location: "Newark",
+      bedrooms: "3",
+      bathrooms: "2",
+      senior: "true",
+    });
 
     expect(uids(result)).toEqual([100]);
     expect(result.pagination?.total).toBe(1);

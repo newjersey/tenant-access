@@ -21,17 +21,21 @@ const renderAt = (url: string, open = false) => {
     onClose,
     bedrooms: screen.getByLabelText(content.filter_bedrooms),
     bathrooms: screen.getByLabelText(content.filter_bathrooms),
+    senior: screen.getByLabelText(content.filter_senior),
     query: screen.getByTestId("query"),
     panel: document.getElementById("search-filters"),
   };
 };
 
 describe("FiltersPanel", () => {
-  it("seeds both selects from the URL", () => {
-    const { bedrooms, bathrooms } = renderAt("/search?bedrooms=studio&bathrooms=2");
+  it("seeds every control from the URL", () => {
+    const { bedrooms, bathrooms, senior } = renderAt(
+      "/search?bedrooms=studio&bathrooms=2&senior=true",
+    );
 
     expect(bedrooms).toHaveValue("studio");
     expect(bathrooms).toHaveValue("2");
+    expect(senior).toBeChecked();
   });
 
   it("falls back to any when the URL asks for an option that does not exist", () => {
@@ -60,16 +64,30 @@ describe("FiltersPanel", () => {
   });
 
   it("clears every filter at once, leaving the rest of the query alone", async () => {
-    const { bedrooms, bathrooms, query } = renderAt(
-      "/search?location=Newark&bedrooms=studio&bathrooms=2&page=2",
+    const { bedrooms, bathrooms, senior, query } = renderAt(
+      "/search?location=Newark&bedrooms=studio&bathrooms=2&senior=true&page=2",
     );
 
     await userEvent.click(screen.getByRole("button", { name: content.filters_clear }));
 
     expect(bedrooms).toHaveValue("any");
     expect(bathrooms).toHaveValue("any");
+    expect(senior).not.toBeChecked();
     expect(query).toHaveTextContent("location=Newark");
     expect(query.textContent).not.toContain("page");
+  });
+
+  it("adds and removes the senior housing toggle, returning to the first page", async () => {
+    const { senior, query } = renderAt("/search?location=Newark&page=4");
+
+    await userEvent.click(senior);
+    expect(senior).toBeChecked();
+    expect(query).toHaveTextContent("location=Newark&senior=true");
+    expect(query.textContent).not.toContain("page");
+
+    await userEvent.click(senior);
+    expect(senior).not.toBeChecked();
+    expect(query.textContent).not.toContain("senior");
   });
 
   it("marks itself open and locks the page behind it", () => {
