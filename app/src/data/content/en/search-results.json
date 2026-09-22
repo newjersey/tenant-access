@@ -12,6 +12,8 @@
   "filters_button": "Filters",
   "filter_bedrooms": "Bedrooms",
   "filter_bathrooms": "Bathrooms",
+  "filter_bedrooms_short": "Bed",
+  "filter_bathrooms_short": "Bath",
   "filter_any": "Any",
   "filter_studio": "Studio",
   "sort_label": "Sort by:",
