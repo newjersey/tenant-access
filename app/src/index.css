@@ -14,6 +14,7 @@ summary {
 
 .button-tag .usa-icon {
   color: #005ea2;
+  top: -1px;
 }
 
 .button-tag:hover .usa-icon,
