@@ -99,6 +99,20 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
             <Icon icon="close" size="3" />
           </button>
         </div>
+        <div className="usa-checkbox margin-bottom-2">
+          <input
+            className="usa-checkbox__input"
+            id="filter-senior"
+            type="checkbox"
+            name="senior"
+            checked={Boolean(activeFilters.senior)}
+            onChange={toggleFilter("senior")}
+          />
+          <label className="usa-checkbox__label" htmlFor="filter-senior">
+            {content.filter_senior}
+          </label>
+        </div>
+
         <div className="grid-row grid-gap">
           <div className="tablet:grid-col-6">
             <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">
@@ -136,20 +150,6 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="usa-checkbox margin-top-2">
-            <input
-              className="usa-checkbox__input"
-              id="filter-senior"
-              type="checkbox"
-              name="senior"
-              checked={Boolean(activeFilters.senior)}
-              onChange={toggleFilter("senior")}
-            />
-            <label className="usa-checkbox__label" htmlFor="filter-senior">
-              {content.filter_senior}
-            </label>
           </div>
         </div>
 
