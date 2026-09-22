@@ -1,5 +1,6 @@
 import { type ChangeEvent, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import Icon from "@/components/Icon/Icon";
 import {
   BATHROOM_OPTIONS,
   BEDROOM_OPTIONS,
@@ -72,10 +73,20 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
         tabIndex={-1}
         ref={panel}
       >
-        <h2 id="search-filters-heading" className="font-sans-md margin-top-0 margin-bottom-1">
-          {content.filters_label}
-        </h2>
+        <div className="display-flex flex-align-center flex-justify margin-bottom-1">
+          <h2 id="search-filters-heading" className="font-sans-md margin-y-0">
+            {content.filters_label}
+          </h2>
 
+          <button
+            type="button"
+            className="usa-button usa-button--unstyled desktop:display-none search-filters__close"
+            aria-label={content.filters_close}
+            onClick={onClose}
+          >
+            <Icon icon="close" size="3" />
+          </button>
+        </div>
         <div className="grid-row grid-gap">
           <div className="tablet:grid-col-6">
             <label className="usa-label margin-top-0" htmlFor="filter-bedrooms">

@@ -20,8 +20,8 @@ const renderAt = (url: string) => {
 };
 
 const removeLabel = (filter: string) => content.filters_remove.replace("{{filter}}", filter);
-const REMOVE_BEDROOMS = removeLabel(`${content.filter_bedrooms}: ${content.filter_studio}`);
-const REMOVE_BATHROOMS = removeLabel(`${content.filter_bathrooms}: 2+`);
+const REMOVE_BEDROOMS = removeLabel(`${content.filter_bedrooms_short}: ${content.filter_studio}`);
+const REMOVE_BATHROOMS = removeLabel(`${content.filter_bathrooms_short}: 2+`);
 
 describe("AppliedFilters", () => {
   it("shows nothing at all when no filters are set", () => {

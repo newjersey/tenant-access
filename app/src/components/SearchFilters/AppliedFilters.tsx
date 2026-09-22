@@ -33,7 +33,7 @@ function AppliedFilters() {
               onClick={removeFilter(key)}
             >
               {label}
-              <Icon icon="close" />
+              <Icon icon="close" size="3" />
             </button>
           </li>
         ))}

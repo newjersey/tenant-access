@@ -24,8 +24,8 @@ export const BATHROOM_OPTIONS: FilterOption[] = [
 ];
 
 export const FILTER_LABELS: Record<FilterKey, { label: string; options: FilterOption[] }> = {
-  bedrooms: { label: content.filter_bedrooms, options: BEDROOM_OPTIONS },
-  bathrooms: { label: content.filter_bathrooms, options: BATHROOM_OPTIONS },
+  bedrooms: { label: content.filter_bedrooms_short, options: BEDROOM_OPTIONS },
+  bathrooms: { label: content.filter_bathrooms_short, options: BATHROOM_OPTIONS },
 };
 
 export function appliedFilters(params: URLSearchParams): { key: FilterKey; label: string }[] {
