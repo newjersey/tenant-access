@@ -1,4 +1,4 @@
-export const FILTER_QUERY_PARAMS = ["bedrooms", "bathrooms", "senior"] as const;
+export const FILTER_QUERY_PARAMS = ["bedrooms", "bathrooms", "senior", "maxRent"] as const;
 
 export const SEARCH_QUERY_PARAMS = ["location", "page", "sort", ...FILTER_QUERY_PARAMS] as const;
 

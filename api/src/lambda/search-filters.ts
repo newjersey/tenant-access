@@ -1,8 +1,8 @@
 import { FILTER_QUERY_PARAMS, type FilterQueryParam, type SearchParams } from "./search-params.js";
 
 const MAX_PARAM = 10;
-
 const SENIOR_AMENITY = "Seniors Housing";
+const DOLLAR_AMOUNT = /^[1-9]\d{0,5}$/; // One to six digits, no leading zero: "1200" but not "0", "01200", or "1200.50".
 
 type Condition = { sql: (placeholder: string) => string; value: unknown };
 type FilterDef = (raw: string) => Condition | null;
@@ -41,6 +41,10 @@ const FILTERS: Record<FilterQueryParam, FilterDef> = {
           sql: (placeholder) => `amenities @> ARRAY[${placeholder}]::text[]`,
           value: SENIOR_AMENITY,
         }
+      : null,
+  maxRent: (raw) =>
+    DOLLAR_AMOUNT.test(raw)
+      ? { sql: (placeholder) => `rent <= ${placeholder}`, value: Number.parseInt(raw, 10) }
       : null,
 };
 

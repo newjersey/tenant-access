@@ -2,10 +2,13 @@ export const SORT_OPTIONS = ["updated", "price_asc", "price_desc"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 const DEFAULT_SORT: SortOption = "updated";
 
-export const FILTER_KEYS = ["bedrooms", "bathrooms", "senior"] as const;
+export const FILTER_KEYS = ["bedrooms", "bathrooms", "senior", "maxRent"] as const;
 export type FilterKey = (typeof FILTER_KEYS)[number];
 export type SearchFilters = Partial<Record<FilterKey, string>>;
 export const TOGGLE_FILTER_KEYS: readonly FilterKey[] = ["senior"];
+export const DOLLAR_AMOUNT_FILTER_KEYS: readonly FilterKey[] = ["maxRent"];
+
+export const DOLLAR_AMOUNT_PATTERN = /^[1-9]\d{0,5}$/; // One to six digits, no leading zero
 
 export interface SearchQuery {
   location: string | null;
@@ -25,6 +28,7 @@ export function parseFilters(params: URLSearchParams): SearchFilters {
     const value = params.get(key)?.trim();
     if (!value || value === "any") continue;
     if (TOGGLE_FILTER_KEYS.includes(key) && value !== "true") continue;
+    if (DOLLAR_AMOUNT_FILTER_KEYS.includes(key) && !DOLLAR_AMOUNT_PATTERN.test(value)) continue;
 
     filters[key] = value;
   }

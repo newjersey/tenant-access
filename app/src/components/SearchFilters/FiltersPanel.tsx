@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import {
@@ -14,31 +14,40 @@ interface FiltersPanelProps {
   onClose: () => void;
 }
 
+const INPUT_DEBOUNCE_MS = 1000; // to keep from re-searching when not done typing
+const MAX_RENT_DIGITS = 6;
+
+function withFilter(current: URLSearchParams, name: FilterKey, value: string): URLSearchParams {
+  const params = new URLSearchParams(current);
+  if (value) {
+    params.set(name, value);
+  } else {
+    params.delete(name);
+  }
+  params.delete("page");
+  return params;
+}
+
 function FiltersPanel({ open, onClose }: FiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilters = parseFilters(searchParams);
   const panel = useRef<HTMLElement>(null);
 
+  const urlMaxRent = activeFilters.maxRent ?? "";
+  const [maxRent, setMaxRent] = useState(urlMaxRent);
+  const appliedMaxRent = useRef(urlMaxRent);
+
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
-    const params = new URLSearchParams(searchParams);
-    if (event.target.value === "any") {
-      params.delete(name);
-    } else {
-      params.set(name, event.target.value);
-    }
-    params.delete("page");
-    setSearchParams(params);
+    const chosen = event.target.value;
+    setSearchParams(withFilter(searchParams, name, chosen === "any" ? "" : chosen));
   };
 
   const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const params = new URLSearchParams(searchParams);
-    if (event.target.checked) {
-      params.set(name, "true");
-    } else {
-      params.delete(name);
-    }
-    params.delete("page");
-    setSearchParams(params);
+    setSearchParams(withFilter(searchParams, name, event.target.checked ? "true" : ""));
+  };
+
+  const changeMaxRent = (event: ChangeEvent<HTMLInputElement>) => {
+    setMaxRent(event.target.value.replace(/\D/g, "").replace(/^0+/, "").slice(0, MAX_RENT_DIGITS));
   };
 
   const clearFilters = () => {
@@ -47,8 +56,29 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
       params.delete(key);
     }
     params.delete("page");
+    appliedMaxRent.current = "";
+    setMaxRent("");
     setSearchParams(params);
   };
+
+  useEffect(() => {
+    if (urlMaxRent !== appliedMaxRent.current) {
+      appliedMaxRent.current = urlMaxRent;
+      setMaxRent(urlMaxRent);
+    }
+  }, [urlMaxRent]);
+
+  // debounce to only search when done typing
+  useEffect(() => {
+    if (maxRent === appliedMaxRent.current) return;
+
+    const timer = setTimeout(() => {
+      appliedMaxRent.current = maxRent;
+      setSearchParams(withFilter(searchParams, "maxRent", maxRent));
+    }, INPUT_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [maxRent, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!open) return;
@@ -151,6 +181,27 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
               ))}
             </select>
           </div>
+        </div>
+
+        <label className="usa-label" htmlFor="filter-max-rent">
+          {content.filter_max_rent}
+        </label>
+        <div className="usa-input-group usa-input-group--sm margin-top-1">
+          <div className="usa-input-prefix" aria-hidden="true">
+            $
+          </div>
+          <input
+            className="usa-input"
+            id="filter-max-rent"
+            name="maxRent"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            aria-describedby="filter-max-rent-hint"
+            maxLength={MAX_RENT_DIGITS}
+            value={maxRent}
+            onChange={changeMaxRent}
+          />
         </div>
 
         <button

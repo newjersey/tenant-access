@@ -1,4 +1,5 @@
 import content from "@/data/content/en/search-results.json";
+import { formatDollars } from "@/utils/formatListing";
 import { FILTER_KEYS, type FilterKey, parseFilters } from "@/utils/searchQuery";
 
 export interface FilterOption {
@@ -23,10 +24,17 @@ export const BATHROOM_OPTIONS: FilterOption[] = [
   ...MINIMUM_ROOM_OPTIONS,
 ];
 
-export const FILTER_LABELS: Record<FilterKey, { label: string; options?: FilterOption[] }> = {
+export const FILTER_LABELS: Record<
+  FilterKey,
+  { label: string; options?: FilterOption[]; format?: (value: string) => string }
+> = {
   bedrooms: { label: content.filter_bedrooms_short, options: BEDROOM_OPTIONS },
   bathrooms: { label: content.filter_bathrooms_short, options: BATHROOM_OPTIONS },
   senior: { label: content.filter_senior },
+  maxRent: {
+    label: content.filter_max_rent_short,
+    format: (value) => formatDollars(Number(value)),
+  },
 };
 
 export function appliedFilters(params: URLSearchParams): { key: FilterKey; label: string }[] {
@@ -36,7 +44,8 @@ export function appliedFilters(params: URLSearchParams): { key: FilterKey; label
     const value = active[key];
     if (!value) return [];
 
-    const { label, options } = FILTER_LABELS[key];
+    const { label, options, format } = FILTER_LABELS[key];
+    if (format) return [{ key, label: `${label}: ${format(value)}` }];
     if (!options) return [{ key, label }];
 
     const option = options.find((choice) => choice.value === value);
