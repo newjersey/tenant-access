@@ -112,11 +112,18 @@ describe("SearchResultsPage", () => {
     expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
 
     const desktop = window.matchMedia("(min-width: 64em)");
+
+    act(() => {
+      desktop.dispatchEvent(new Event("change")); // on mobile, so the drawer stays open
+    });
+    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
+
     Object.assign(desktop, { matches: true });
     act(() => {
       desktop.dispatchEvent(new Event("change"));
     });
-
     expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
+
+    Object.assign(desktop, { matches: false }); // cleanup
   });
 });
