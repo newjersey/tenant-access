@@ -69,7 +69,7 @@ describe("SearchControls", () => {
   it("refuses a city that is not on the list", async () => {
     const { box, submit, query } = renderAt("/search");
 
-    await userEvent.type(box, "Nonsense");
+    await userEvent.type(box, "xyz");
     expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
 
     await userEvent.click(submit);
