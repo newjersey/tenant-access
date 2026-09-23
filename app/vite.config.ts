@@ -22,7 +22,7 @@ export default defineConfig({
     coverage: {
       reporter: ["text", "html"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/**/*.d.ts", "src/main.tsx"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/**/*.d.ts", "src/main.tsx", "src/test/**"],
       thresholds: {
         statements: 90,
         branches: 90,
