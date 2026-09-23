@@ -18,16 +18,18 @@ const currency = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+export const formatDollars = (amount: number): string => currency.format(amount);
+
 export function formatRent({ rent, rentMax }: RentFields): string | null {
   if (rent === null) {
     return rentMax === null ? null : `Up to ${currency.format(rentMax)}/month`;
   }
 
   if (rentMax === null || rentMax <= rent) {
-    return `${currency.format(rent)}/month`;
+    return `${formatDollars(rent)}/month`;
   }
 
-  return `${currency.format(rent)}-${currency.format(rentMax)}/month`;
+  return `${formatDollars(rent)}-${formatDollars(rentMax)}/month`;
 }
 
 function formatCount(value: number | null): string | null {

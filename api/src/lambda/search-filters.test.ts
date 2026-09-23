@@ -44,10 +44,27 @@ describe("buildFilterClause", () => {
     }
   });
 
-  it("matches the senior housing amenity, numbering placeholders in parameter order", () => {
-    expect(build({ bedrooms: "2", senior: "true" })).toEqual({
-      sql: "\n    AND bedrooms = $3\n    AND amenities @> ARRAY[$4]::text[]",
-      values: [2, "Seniors Housing"],
+  it("caps rent at the low end of a listing's range", () => {
+    expect(build({ maxRent: "1200" })).toEqual({
+      sql: "\n    AND rent <= $3",
+      values: [1200],
+    });
+  });
+
+  it("ignores a max rent that is not a plain figure of up to six digits", () => {
+    for (const value of ["0", "01200", "-5", "1200.50", "1,200", "$1200", "abc", "1234567"]) {
+      expect(build({ maxRent: value })).toEqual({ sql: "", values: [] });
+    }
+  });
+
+  it("matches multiple filters, numbering placeholders in parameter order", () => {
+    expect(build({ bedrooms: "studio", bathrooms: "1", senior: "true", maxRent: "1500" })).toEqual({
+      sql:
+        "\n    AND bedrooms = $3" +
+        "\n    AND bathrooms >= $4" +
+        "\n    AND amenities @> ARRAY[$5]::text[]" +
+        "\n    AND rent <= $6",
+      values: [0, 1, "Seniors Housing", 1500],
     });
   });
 });

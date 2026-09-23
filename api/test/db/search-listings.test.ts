@@ -211,7 +211,13 @@ describe("search-listings against a real database", () => {
   });
 
   it("combines every filter with a location", async () => {
-    const match = { city: "Newark", bedrooms: 3, bathrooms: 2, amenities: ["Seniors Housing"] };
+    const match = {
+      city: "Newark",
+      bedrooms: 3,
+      bathrooms: 2,
+      rent: 1400,
+      amenities: ["Seniors Housing"],
+    };
     await seedListing(db, makeListing(100, match));
     await seedListing(db, makeListing(200, { ...match, bathrooms: 1 }));
     await seedListing(db, makeListing(300, { ...match, bedrooms: 1 }));
@@ -219,12 +225,14 @@ describe("search-listings against a real database", () => {
     await seedListing(db, makeListing(500, { ...match, amenities: [] }));
     await seedListing(db, makeListing(600, match));
     await db.query("UPDATE listings SET amenities = NULL WHERE uid = 600");
+    await seedListing(db, makeListing(700, { ...match, rent: 1600 }));
 
     const result = await search({
       location: "Newark",
       bedrooms: "3",
       bathrooms: "2",
       senior: "true",
+      maxRent: "1500",
     });
 
     expect(uids(result)).toEqual([100]);

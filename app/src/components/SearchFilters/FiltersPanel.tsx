@@ -1,13 +1,15 @@
 import { type ChangeEvent, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
+import AmountFilter from "@/components/SearchFilters/AmountFilter";
 import {
   BATHROOM_OPTIONS,
   BEDROOM_OPTIONS,
   selectedValue,
 } from "@/components/SearchFilters/filterOptions";
 import content from "@/data/content/en/search-results.json";
-import { FILTER_KEYS, type FilterKey, parseFilters } from "@/utils/searchQuery";
+import { useDebouncedFilterInput } from "@/hooks/useDebouncedFilterInput";
+import { FILTER_KEYS, type FilterKey, parseFilters, withFilter } from "@/utils/searchQuery";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -18,27 +20,15 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilters = parseFilters(searchParams);
   const panel = useRef<HTMLElement>(null);
+  const maxRent = useDebouncedFilterInput("maxRent");
 
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
-    const params = new URLSearchParams(searchParams);
-    if (event.target.value === "any") {
-      params.delete(name);
-    } else {
-      params.set(name, event.target.value);
-    }
-    params.delete("page");
-    setSearchParams(params);
+    const chosen = event.target.value;
+    setSearchParams(withFilter(searchParams, name, chosen === "any" ? "" : chosen));
   };
 
   const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const params = new URLSearchParams(searchParams);
-    if (event.target.checked) {
-      params.set(name, "true");
-    } else {
-      params.delete(name);
-    }
-    params.delete("page");
-    setSearchParams(params);
+    setSearchParams(withFilter(searchParams, name, event.target.checked ? "true" : ""));
   };
 
   const clearFilters = () => {
@@ -47,6 +37,7 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
       params.delete(key);
     }
     params.delete("page");
+    maxRent.clear();
     setSearchParams(params);
   };
 
@@ -99,7 +90,10 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
             <Icon icon="close" size="3" />
           </button>
         </div>
-        <div className="usa-checkbox margin-bottom-2">
+
+        <AmountFilter name="maxRent" label={content.filter_max_rent} input={maxRent} />
+
+        <div className="usa-checkbox margin-top-3 margin-bottom-3">
           <input
             className="usa-checkbox__input"
             id="filter-senior"

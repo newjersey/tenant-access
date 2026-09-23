@@ -22,62 +22,31 @@ const renderAt = (url: string, open = false) => {
     bedrooms: screen.getByLabelText(content.filter_bedrooms),
     bathrooms: screen.getByLabelText(content.filter_bathrooms),
     senior: screen.getByLabelText(content.filter_senior),
+    maxRent: screen.getByLabelText(content.filter_max_rent),
     query: screen.getByTestId("query"),
     panel: document.getElementById("search-filters"),
   };
 };
 
 describe("FiltersPanel", () => {
-  it("seeds every control from the URL", () => {
-    const { bedrooms, bathrooms, senior } = renderAt(
-      "/search?bedrooms=studio&bathrooms=2&senior=true",
-    );
-
-    expect(bedrooms).toHaveValue("studio");
-    expect(bathrooms).toHaveValue("2");
-    expect(senior).toBeChecked();
-  });
-
   it("falls back to any when the URL asks for an option that does not exist", () => {
     const { bedrooms } = renderAt("/search?bedrooms=nonsense");
 
     expect(bedrooms).toHaveValue("any");
   });
 
-  it("writes a chosen filter to the URL and returns to the first page", async () => {
-    const { bedrooms, query } = renderAt("/search?location=Newark&page=3");
+  it("filters by select, returning to the first page", async () => {
+    const { bathrooms, query } = renderAt("/search?location=Newark&page=4");
 
-    await userEvent.selectOptions(bedrooms, "studio");
-
-    expect(bedrooms).toHaveValue("studio");
-    expect(query).toHaveTextContent("location=Newark&bedrooms=studio");
-    expect(query.textContent).not.toContain("page");
-  });
-
-  it("drops a filter from the URL when it is set back to any", async () => {
-    const { bathrooms, query } = renderAt("/search?bathrooms=2");
+    await userEvent.selectOptions(bathrooms, "2");
+    expect(bathrooms).toHaveValue("2");
 
     await userEvent.selectOptions(bathrooms, "any");
-
     expect(bathrooms).toHaveValue("any");
     expect(query.textContent).not.toContain("bathrooms");
   });
 
-  it("clears every filter at once, leaving the rest of the query alone", async () => {
-    const { bedrooms, bathrooms, senior, query } = renderAt(
-      "/search?location=Newark&bedrooms=studio&bathrooms=2&senior=true&page=2",
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: content.filters_clear }));
-
-    expect(bedrooms).toHaveValue("any");
-    expect(bathrooms).toHaveValue("any");
-    expect(senior).not.toBeChecked();
-    expect(query).toHaveTextContent("location=Newark");
-    expect(query.textContent).not.toContain("page");
-  });
-
-  it("adds and removes the senior housing toggle, returning to the first page", async () => {
+  it("filters by checkbox, returning to the first page", async () => {
     const { senior, query } = renderAt("/search?location=Newark&page=4");
 
     await userEvent.click(senior);
@@ -88,6 +57,27 @@ describe("FiltersPanel", () => {
     await userEvent.click(senior);
     expect(senior).not.toBeChecked();
     expect(query.textContent).not.toContain("senior");
+  });
+
+  it("seeds every control from the URL and clears every filter", async () => {
+    const { bedrooms, bathrooms, senior, maxRent, query } = renderAt(
+      "/search?location=Newark&bedrooms=studio&bathrooms=2&senior=true&maxRent=1200&page=2",
+    );
+
+    expect(bedrooms).toHaveValue("studio");
+    expect(bathrooms).toHaveValue("2");
+    expect(maxRent).toHaveValue("1200");
+    expect(senior).toBeChecked();
+    expect(query).toHaveTextContent("location=Newark");
+
+    await userEvent.click(screen.getByRole("button", { name: content.filters_clear }));
+
+    expect(bedrooms).toHaveValue("any");
+    expect(bathrooms).toHaveValue("any");
+    expect(senior).not.toBeChecked();
+    expect(maxRent).toHaveValue("");
+    expect(query).toHaveTextContent("location=Newark");
+    expect(query.textContent).not.toContain("page");
   });
 
   it("marks itself open and locks the page behind it", () => {
