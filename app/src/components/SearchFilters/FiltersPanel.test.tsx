@@ -35,13 +35,28 @@ describe("FiltersPanel", () => {
     expect(bedrooms).toHaveValue("any");
   });
 
-  it("drops a filter from the URL when it is set back to any", async () => {
-    const { bathrooms, query } = renderAt("/search?bathrooms=2");
+  it("filters by select, returning to the first page", async () => {
+    const { bathrooms, query } = renderAt("/search?location=Newark&page=4");
+
+    await userEvent.selectOptions(bathrooms, "2");
+    expect(bathrooms).toHaveValue("2");
 
     await userEvent.selectOptions(bathrooms, "any");
-
     expect(bathrooms).toHaveValue("any");
     expect(query.textContent).not.toContain("bathrooms");
+  });
+
+  it("filters by checkbox, returning to the first page", async () => {
+    const { senior, query } = renderAt("/search?location=Newark&page=4");
+
+    await userEvent.click(senior);
+    expect(senior).toBeChecked();
+    expect(query).toHaveTextContent("location=Newark&senior=true");
+    expect(query.textContent).not.toContain("page");
+
+    await userEvent.click(senior);
+    expect(senior).not.toBeChecked();
+    expect(query.textContent).not.toContain("senior");
   });
 
   it("seeds every control from the URL and clears every filter", async () => {
@@ -65,15 +80,6 @@ describe("FiltersPanel", () => {
     expect(query.textContent).not.toContain("page");
   });
 
-  it("adds the senior housing toggle, returning to the first page", async () => {
-    const { senior, query } = renderAt("/search?location=Newark&page=4");
-
-    await userEvent.click(senior);
-    expect(senior).toBeChecked();
-    expect(query).toHaveTextContent("location=Newark&senior=true");
-    expect(query.textContent).not.toContain("page");
-  });
-
   it("marks itself open and locks the page behind it", () => {
     const { panel } = renderAt("/search", true);
 
@@ -93,6 +99,9 @@ describe("FiltersPanel", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
 
     await userEvent.click(overlay);
+    expect(onClose).toHaveBeenCalledTimes(3);
+
+    await userEvent.keyboard("{ArrowDown}"); // other keys have no effect
     expect(onClose).toHaveBeenCalledTimes(3);
 
     await userEvent.keyboard("{Escape}");
