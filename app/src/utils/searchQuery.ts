@@ -8,7 +8,11 @@ export type SearchFilters = Partial<Record<FilterKey, string>>;
 export const TOGGLE_FILTER_KEYS: readonly FilterKey[] = ["senior"];
 export const DOLLAR_AMOUNT_FILTER_KEYS: readonly FilterKey[] = ["maxRent"];
 
+export const DOLLAR_AMOUNT_DIGITS = 6;
 export const DOLLAR_AMOUNT_PATTERN = /^[1-9]\d{0,5}$/; // One to six digits, no leading zero
+
+export const wholeDollars = (raw: string): string =>
+  raw.split(".")[0].replace(/\D/g, "").replace(/^0+/, "").slice(0, DOLLAR_AMOUNT_DIGITS);
 
 export interface SearchQuery {
   location: string | null;

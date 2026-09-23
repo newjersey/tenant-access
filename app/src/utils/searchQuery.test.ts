@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSearchQuery } from "./searchQuery";
+import { parseSearchQuery, wholeDollars } from "./searchQuery";
 
 const parse = (query: string) => parseSearchQuery(new URLSearchParams(query));
 
@@ -57,5 +57,15 @@ describe("parseSearchQuery", () => {
     for (const value of ["false", "1", "yes", "TRUE", "any", ""]) {
       expect(parse(`senior=${value}`).filters).toEqual({});
     }
+  });
+});
+
+describe("wholeDollars", () => {
+  it("keeps the whole dollars a filter can use", () => {
+    expect(wholeDollars("1200")).toBe("1200");
+    expect(wholeDollars("$1,200.50")).toBe("1200");
+    expect(wholeDollars("00123")).toBe("123");
+    expect(wholeDollars("12345678")).toBe("123456");
+    expect(wholeDollars("abc")).toBe("");
   });
 });

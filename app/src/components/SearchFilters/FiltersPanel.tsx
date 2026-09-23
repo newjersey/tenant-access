@@ -1,6 +1,7 @@
 import { type ChangeEvent, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
+import AmountFilter from "@/components/SearchFilters/AmountFilter";
 import {
   BATHROOM_OPTIONS,
   BEDROOM_OPTIONS,
@@ -15,11 +16,6 @@ interface FiltersPanelProps {
   onClose: () => void;
 }
 
-const MAX_RENT_DIGITS = 6;
-
-const wholeDollars = (raw: string) =>
-  raw.replace(/\D/g, "").replace(/^0+/, "").slice(0, MAX_RENT_DIGITS);
-
 function FiltersPanel({ open, onClose }: FiltersPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilters = parseFilters(searchParams);
@@ -33,10 +29,6 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
 
   const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
     setSearchParams(withFilter(searchParams, name, event.target.checked ? "true" : ""));
-  };
-
-  const changeMaxRent = (event: ChangeEvent<HTMLInputElement>) => {
-    maxRent.change(wholeDollars(event.target.value));
   };
 
   const clearFilters = () => {
@@ -152,26 +144,7 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
           </div>
         </div>
 
-        <label className="usa-label" htmlFor="filter-max-rent">
-          {content.filter_max_rent}
-        </label>
-        <div className="usa-input-group usa-input-group--sm margin-top-1">
-          <div className="usa-input-prefix" aria-hidden="true">
-            $
-          </div>
-          <input
-            className="usa-input"
-            id="filter-max-rent"
-            name="maxRent"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            aria-describedby="filter-max-rent-hint"
-            maxLength={MAX_RENT_DIGITS}
-            value={maxRent.value}
-            onChange={changeMaxRent}
-          />
-        </div>
+        <AmountFilter name="maxRent" label={content.filter_max_rent} input={maxRent} />
 
         <button
           type="button"
