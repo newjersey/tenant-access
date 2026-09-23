@@ -58,6 +58,15 @@ describe("parseSearchQuery", () => {
       expect(parse(`senior=${value}`).filters).toEqual({});
     }
   });
+
+  it("keeps a dollar amount filter only when it is one to six digits", () => {
+    expect(parse("maxRent=1200").filters).toEqual({ maxRent: "1200" });
+    expect(parse("maxRent=%201200%20").filters).toEqual({ maxRent: "1200" });
+
+    for (const value of ["0", "0900", "1234567", "12.50", "-500", "abc", ""]) {
+      expect(parse(`maxRent=${value}`).filters).toEqual({});
+    }
+  });
 });
 
 describe("wholeDollars", () => {
