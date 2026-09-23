@@ -36,6 +36,21 @@ export function parseFilters(params: URLSearchParams): SearchFilters {
   return filters;
 }
 
+export function withFilter(
+  current: URLSearchParams,
+  name: FilterKey,
+  value: string,
+): URLSearchParams {
+  const params = new URLSearchParams(current);
+  if (value) {
+    params.set(name, value);
+  } else {
+    params.delete(name);
+  }
+  params.delete("page");
+  return params;
+}
+
 export function parseSearchQuery(params: URLSearchParams): SearchQuery {
   const parsedPage = Number.parseInt(params.get("page") ?? "", 10);
 
