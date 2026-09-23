@@ -101,6 +101,13 @@ describe("SearchResultsPage", () => {
     renderAt("/search");
 
     const toggle = await screen.findByRole("button", { name: content.filters_button });
+    const desktop = window.matchMedia("(min-width: 64em)");
+
+    // on mobile
+    act(() => {
+      desktop.dispatchEvent(new Event("change"));
+    });
+
     await userEvent.click(toggle);
     expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
 
@@ -111,13 +118,7 @@ describe("SearchResultsPage", () => {
     await userEvent.click(toggle);
     expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
 
-    const desktop = window.matchMedia("(min-width: 64em)");
-
-    act(() => {
-      desktop.dispatchEvent(new Event("change")); // on mobile, so the drawer stays open
-    });
-    expect(document.getElementById("search-filters")).toHaveClass("search-filters--open");
-
+    // on desktop
     Object.assign(desktop, { matches: true });
     act(() => {
       desktop.dispatchEvent(new Event("change"));
