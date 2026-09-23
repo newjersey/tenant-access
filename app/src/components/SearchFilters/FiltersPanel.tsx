@@ -90,7 +90,10 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
             <Icon icon="close" size="3" />
           </button>
         </div>
-        <div className="usa-checkbox margin-bottom-2">
+
+        <AmountFilter name="maxRent" label={content.filter_max_rent} input={maxRent} />
+
+        <div className="usa-checkbox margin-top-3 margin-bottom-3">
           <input
             className="usa-checkbox__input"
             id="filter-senior"
@@ -143,8 +146,6 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
             </select>
           </div>
         </div>
-
-        <AmountFilter name="maxRent" label={content.filter_max_rent} input={maxRent} />
 
         <button
           type="button"
