@@ -36,11 +36,18 @@ describe("searchListings", () => {
     });
   });
 
-  it("percent-encodes a location rather than using a plus", async () => {
-    await searchListings({ location: "Jersey City", page: 1 });
+  it("percent-encodes search url", async () => {
+    await searchListings({
+      location: "Jersey City",
+      page: 1,
+      sort: "price_asc",
+      filters: { bedrooms: "5+", maxRent: "1500" },
+    });
 
     const [url] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/listings/search?page=1&location=Jersey%20City`);
+    expect(url).toBe(
+      `${BASE_URL}/listings/search?page=1&location=Jersey%20City&sort=price_asc&bedrooms=5%2B&maxRent=1500`,
+    );
   });
 
   it("passes the abort signal through", async () => {
