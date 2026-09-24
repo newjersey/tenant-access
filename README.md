@@ -344,6 +344,10 @@ Git hooks are configured via Husky to automatically run code quality checks on c
 
 This project is licensed under the MIT license. For more information, see [LICENSE](LICENSE).
 
+## Analytics and Feedback
+
+This app uses Google Analytics and the NJ Feedback Widget. Two separate G-XXX IDs are loaded into AWS Amplify as environment variables (one for production, one for dev).
+
 ## Disclaimer
 
 This project utilizes certain tools and technologies for development purposes. The inclusion of these tools does not imply endorsement or recommendation. Users are encouraged to evaluate the suitability of these tools for their own use.
