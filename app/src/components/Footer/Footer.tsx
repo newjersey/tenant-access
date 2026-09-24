@@ -1,4 +1,16 @@
 import content from "@/data/content/en/common.json";
+import "@newjersey/feedback-widget/feedback-widget.min.js";
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "feedback-widget": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+    }
+  }
+}
 
 const Footer = () => {
   return (
@@ -6,6 +18,10 @@ const Footer = () => {
       <div className="grid-container usa-footer__return-to-top">
         <a href="#banner">{content.footer.returnToTop}</a>
       </div>
+
+      <feedback-widget
+        contact-link={content.footer.linkUrlContact}
+      ></feedback-widget>
 
       <div className="usa-footer__primary-section">
         <div className="usa-footer__primary-container grid-row">
