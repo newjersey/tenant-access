@@ -16,7 +16,11 @@ const Footer = () => {
         <a href="#banner">{content.footer.returnToTop}</a>
       </div>
 
-      <feedback-widget contact-link={content.footer.linkUrlContact}></feedback-widget>
+      <div className="feedback-widget-section">
+        <div className="grid-container">
+          <feedback-widget contact-link={content.footer.linkUrlContact}></feedback-widget>
+        </div>
+      </div>
 
       <div className="usa-footer__primary-section">
         <div className="usa-footer__primary-container grid-row">
