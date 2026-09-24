@@ -222,3 +222,7 @@ summary {
     justify-content: center;
   }
 }
+
+.usa-footer__primary-section {
+  background-color: #dfe1e2;
+}
