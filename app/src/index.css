@@ -205,3 +205,24 @@ summary {
     animation: none;
   }
 }
+
+.feedback-widget-section {
+  background-color: #f0f0f0;
+  padding-top: 1.9rem;
+  padding-bottom: 1.9rem;
+}
+
+.feedback-widget-section .feedback-container {
+  background-color: transparent;
+  padding: 0;
+}
+
+@media (max-width: 864px) {
+  .feedback-widget-section .flex-box {
+    justify-content: center;
+  }
+}
+
+.usa-footer__primary-section {
+  background-color: #dfe1e2;
+}
