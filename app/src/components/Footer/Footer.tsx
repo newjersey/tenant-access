@@ -4,10 +4,7 @@ import "@newjersey/feedback-widget/feedback-widget.min.js";
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "feedback-widget": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      >;
+      "feedback-widget": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
     }
   }
 }
@@ -19,9 +16,7 @@ const Footer = () => {
         <a href="#banner">{content.footer.returnToTop}</a>
       </div>
 
-      <feedback-widget
-        contact-link={content.footer.linkUrlContact}
-      ></feedback-widget>
+      <feedback-widget contact-link={content.footer.linkUrlContact}></feedback-widget>
 
       <div className="usa-footer__primary-section">
         <div className="usa-footer__primary-container grid-row">
