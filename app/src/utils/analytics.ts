@@ -23,6 +23,7 @@ export function initAnalytics(): void {
 
   window.dataLayer = window.dataLayer || [];
   window.gtag = function gtag() {
+    // biome-ignore lint/complexity/noArguments: required by the gtag.js contract.
     window.dataLayer.push(arguments);
   };
   window.gtag("js", new Date());

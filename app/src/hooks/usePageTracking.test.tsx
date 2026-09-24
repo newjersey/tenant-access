@@ -1,9 +1,5 @@
 import { act, render } from "@testing-library/react";
-import {
-  createMemoryRouter,
-  Outlet,
-  RouterProvider,
-} from "react-router-dom";
+import { createMemoryRouter, Outlet, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { initAnalytics, trackPageView } from "@/utils/analytics";
 import usePageTracking from "./usePageTracking";
