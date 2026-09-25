@@ -1,5 +1,6 @@
 import Alert from "@/components/Alert/Alert";
 import ListingCard from "@/components/ListingCard/ListingCard";
+import SkeletonCard from "@/components/ListingCard/SkeletonCard";
 import Pagination from "@/components/Pagination/Pagination";
 import SortSelect from "@/components/SearchResults/SortSelect";
 import content from "@/data/content/en/search-results.json";
@@ -24,33 +25,6 @@ function resultsLabel(page: number, total: number): string {
     .replace("{{first}}", numberFormat.format(first))
     .replace("{{last}}", numberFormat.format(last))
     .replace("{{total}}", numberFormat.format(total));
-}
-
-function SkeletonCard() {
-  return (
-    <li className="usa-card tablet:grid-col-6 listing-card">
-      <div className="usa-card__container">
-        <div className="usa-card__media">
-          <div className="listing-card__img listing-card__img--empty skeleton-box" />
-        </div>
-
-        <div className="usa-card__header">
-          <h2 className="usa-card__heading">
-            <span className="skeleton-text">$0,000/month</span>
-          </h2>
-        </div>
-
-        <div className="usa-card__body">
-          <p>
-            <span className="skeleton-text">0 bed, 0 bath</span>
-          </p>
-          <p>
-            <span className="skeleton-text">000 Sample Street, Township</span>
-          </p>
-        </div>
-      </div>
-    </li>
-  );
 }
 
 interface SearchResultsProps {
