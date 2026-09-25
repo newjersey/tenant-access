@@ -34,21 +34,10 @@ const renderAt = (url: string, location: string | null = null) => {
 };
 
 describe("SearchControls", () => {
-  it("seeds the box from the location it is given", () => {
-    const { box } = renderAt("/search?location=Newark", "Newark");
-
-    expect(box).toHaveValue("Newark");
-  });
-
-  it("leaves the box empty when no location is set", () => {
-    const { box } = renderAt("/search");
-
-    expect(box).toHaveValue("");
-  });
-
-  it("starts a new search back at the first page", async () => {
+  it("seeds box from url and starts a new search back at the first page", async () => {
     const { box, submit, query } = renderAt("/search?location=Newark&page=3", "Newark");
 
+    expect(box).toHaveValue("Newark");
     await userEvent.clear(box);
     await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(submit);
@@ -58,12 +47,13 @@ describe("SearchControls", () => {
   });
 
   it("searches every location when the box is cleared", async () => {
-    const { submit, query } = renderAt("/search?location=Newark", "Newark");
+    const { box, submit, query } = renderAt("/search?location=Newark", "Newark");
 
     await userEvent.click(screen.getByRole("button", { name: "Clear the select contents" }));
     await userEvent.click(submit);
 
     expect(query.textContent).not.toContain("location");
+    expect(box).toHaveValue("");
   });
 
   it("refuses a city that is not on the list", async () => {
@@ -76,7 +66,7 @@ describe("SearchControls", () => {
     expect(query.textContent).not.toContain("location");
   });
 
-  it("points the filter toggle at the drawer and reports it closed", async () => {
+  it("filters closed at first, and button toggles", async () => {
     const { onToggleFilters } = renderAt("/search");
 
     const toggle = screen.getByRole("button", { name: content.filters_button });
