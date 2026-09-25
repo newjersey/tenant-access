@@ -22,6 +22,14 @@ function SearchResultsPage() {
     filterToggle.current?.focus();
   }, []);
 
+  const lastPage = useRef(page);
+
+  useEffect(() => {
+    if (lastPage.current === page) return;
+    lastPage.current = page;
+    window.scrollTo({ top: 0 });
+  }, [page]);
+
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 64em)");
     const closeOnDesktop = () => {
