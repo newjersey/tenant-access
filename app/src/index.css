@@ -226,3 +226,7 @@ summary {
 .usa-footer__primary-section {
   background-color: #dfe1e2;
 }
+
+.search-results__loading {
+  min-height: 80vh;
+}

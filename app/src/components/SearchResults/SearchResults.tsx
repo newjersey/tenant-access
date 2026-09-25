@@ -31,7 +31,7 @@ interface SearchResultsProps {
 function SearchResults({ search }: SearchResultsProps) {
   if (search.status === "loading") {
     return (
-      <p role="status">
+      <p role="status" className="search-results__loading">
         <span className="loading-spinner" aria-hidden="true" />
         {content.loading}
       </p>
