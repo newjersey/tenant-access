@@ -1,8 +1,10 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import common from "@/data/content/en/common.json";
 import content from "@/data/content/en/search-results.json";
+import { makeListing } from "@/test/makeListing";
 import SearchResultsPage from "./SearchResultsPage";
 
 const { searchListingsMock } = vi.hoisted(() => ({ searchListingsMock: vi.fn() }));
@@ -25,6 +27,10 @@ describe("SearchResultsPage", () => {
       listings: [],
       pagination: { page: 1, total: 0 },
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("asks the API for the location, page, and filters in the URL", async () => {
@@ -72,5 +78,29 @@ describe("SearchResultsPage", () => {
     expect(document.getElementById("search-filters")).not.toHaveClass("search-filters--open");
 
     Object.assign(desktop, { matches: false }); // cleanup
+  });
+
+  it("returns to the top of the page when the results page changes", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    searchListingsMock.mockResolvedValue({
+      success: true,
+      listings: [makeListing()],
+      pagination: { page: 1, total: 41 },
+    });
+
+    renderAt("/search?location=Newark");
+
+    const nextPage = await screen.findByRole("link", { name: common.pagination.nextPage });
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    await userEvent.click(nextPage);
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    await waitFor(() =>
+      expect(searchListingsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal),
+      ),
+    );
   });
 });

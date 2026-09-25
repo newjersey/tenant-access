@@ -1,5 +1,6 @@
 import Alert from "@/components/Alert/Alert";
 import ListingCard from "@/components/ListingCard/ListingCard";
+import SkeletonCard from "@/components/ListingCard/SkeletonCard";
 import Pagination from "@/components/Pagination/Pagination";
 import SortSelect from "@/components/SearchResults/SortSelect";
 import content from "@/data/content/en/search-results.json";
@@ -7,6 +8,8 @@ import type { SearchListingsState } from "@/hooks/useSearchListings";
 import { PAGE_SIZE, RESULT_CAP } from "@/utils/pagination";
 
 const numberFormat = new Intl.NumberFormat("en-US");
+
+const SKELETON_CARDS = 6;
 
 function resultsLabel(page: number, total: number): string {
   const first = (page - 1) * PAGE_SIZE + 1;
@@ -29,38 +32,46 @@ interface SearchResultsProps {
 }
 
 function SearchResults({ search }: SearchResultsProps) {
-  if (search.status === "loading") {
-    return (
-      <p role="status">
-        <span className="loading-spinner" aria-hidden="true" />
-        {content.loading}
-      </p>
-    );
-  }
-
   if (search.status === "error") {
     return <Alert type="error">{content.error}</Alert>;
   }
 
-  if (search.listings.length === 0) {
+  if (search.status === "ready" && search.listings.length === 0) {
     return <p>{content.no_results}</p>;
   }
 
-  const { page, total } = search.pagination;
+  const loading = search.status === "loading";
 
   return (
     <>
-      <p className="font-sans-md margin-bottom-3">{resultsLabel(page, total)}</p>
+      {loading ? (
+        <p role="status" className="usa-sr-only">
+          {content.loading}
+        </p>
+      ) : null}
 
       <SortSelect />
 
-      <ul className="usa-card-group">
-        {search.listings.map((listing) => (
-          <ListingCard key={listing.uid} listing={listing} />
-        ))}
+      <p className="font-sans-md margin-bottom-3" aria-hidden={loading || undefined}>
+        {loading ? (
+          <span className="skeleton-text">Results 0 - 00 of 000</span>
+        ) : (
+          resultsLabel(search.pagination.page, search.pagination.total)
+        )}
+      </p>
+
+      <ul className="usa-card-group" aria-hidden={loading || undefined}>
+        {loading
+          ? Array.from({ length: SKELETON_CARDS }, (_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: identical placeholders
+              <SkeletonCard key={index} />
+            ))
+          : search.listings.map((listing) => <ListingCard key={listing.uid} listing={listing} />)}
       </ul>
 
-      <Pagination page={page} total={total} />
+      {loading ? null : (
+        <Pagination page={search.pagination.page} total={search.pagination.total} />
+      )}
     </>
   );
 }
