@@ -36,11 +36,6 @@ const Identifier = () => {
               </a>
             </li>
             <li className="usa-identifier__required-links-item">
-              <a href={content.govLtAboutUrl} className="usa-identifier__required-link">
-                {content.ltGovernor}
-              </a>
-            </li>
-            <li className="usa-identifier__required-links-item">
               <a href={content.govUrl} className="usa-identifier__required-link usa-link">
                 {content.identifier.njhome}
               </a>
