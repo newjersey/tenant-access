@@ -1,10 +1,8 @@
 {
   "governor": "Governor Mikie Sherrill",
-  "ltGovernor": "Lt. Governor Dr. Dale G. Caldwell",
   "stateName": "State of New Jersey",
   "govUrl": "https://nj.gov",
   "govAboutUrl": "https://nj.gov/governor/admin/about/",
-  "govLtAboutUrl": "https://nj.gov/governor/admin/lt/",
   "locationComboBox": {
     "placeholder": "Search by county or city",
     "noResults": "No matching cities"
