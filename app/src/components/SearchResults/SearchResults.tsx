@@ -62,7 +62,10 @@ function SearchResults({ search }: SearchResultsProps) {
 
       <ul className="usa-card-group" aria-hidden={loading || undefined}>
         {loading
-          ? Array.from({ length: SKELETON_CARDS }, (_, index) => <SkeletonCard key={index} />)
+          ? Array.from({ length: SKELETON_CARDS }, (_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: identical placeholders
+              <SkeletonCard key={index} />
+            ))
           : search.listings.map((listing) => <ListingCard key={listing.uid} listing={listing} />)}
       </ul>
 
