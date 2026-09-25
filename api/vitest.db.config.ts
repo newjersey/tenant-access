@@ -8,15 +8,20 @@ const TOUCHES_POSTGRES = /from ["'][^"']*db\.js["']|from ["']pg["']/;
 // deliberate exemptions from the above pattern that definitely don't need DB testing
 const EXEMPT = new Set(["src/lambda/db.ts", "src/lambda/migration-runner.ts"]);
 
-const postgresFiles = readdirSync("src", { recursive: true, encoding: "utf8" })
+// deliberate additions that affect db queries despite not importing the db
+const ALWAYS_INCLUDE = ["src/lambda/search-filters.ts"];
+
+const detected = readdirSync("src", { recursive: true, encoding: "utf8" })
   .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
   .map((name) => join("src", name))
   .filter((path) => !EXEMPT.has(path))
   .filter((path) => TOUCHES_POSTGRES.test(readFileSync(path, "utf8")));
 
-if (postgresFiles.length === 0) {
+if (detected.length === 0) {
   throw new Error("No files talk to Postgres -- something broke the DB test coverage");
 }
+
+const postgresFiles = [...ALWAYS_INCLUDE, ...detected];
 
 export default defineConfig({
   test: {
@@ -29,6 +34,7 @@ export default defineConfig({
     silent: "passed-only",
     testTimeout: 30_000,
     hookTimeout: 60_000,
+    isolate: false,
     coverage: {
       provider: "v8",
       include: postgresFiles,

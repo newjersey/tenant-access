@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parseSearchQuery } from "./searchQuery";
+import { parseSearchQuery, wholeDollars } from "./searchQuery";
 
 const parse = (query: string) => parseSearchQuery(new URLSearchParams(query));
 
 describe("parseSearchQuery", () => {
   it("defaults to no location on the first page", () => {
-    expect(parse("")).toEqual({ location: null, page: 1, sort: "updated" });
+    expect(parse("")).toEqual({ location: null, page: 1, sort: "updated", filters: {} });
   });
 
   it("reads the location and page", () => {
@@ -13,6 +13,7 @@ describe("parseSearchQuery", () => {
       location: "Newark",
       page: 3,
       sort: "updated",
+      filters: {},
     });
   });
 
@@ -39,5 +40,41 @@ describe("parseSearchQuery", () => {
     expect(parse("sort=price_asc").sort).toBe("price_asc");
     expect(parse("sort=price_desc").sort).toBe("price_desc");
     expect(parse("sort=blah").sort).toBe("updated");
+  });
+
+  it("reads filters, trimming values and dropping any", () => {
+    expect(parse("bedrooms=studio&bathrooms=2").filters).toEqual({
+      bedrooms: "studio",
+      bathrooms: "2",
+    });
+    expect(parse("bedrooms=any&bathrooms=").filters).toEqual({});
+    expect(parse("bedrooms=%20%202%20").filters).toEqual({ bedrooms: "2" });
+  });
+
+  it("keeps a toggle filter only when its value is exactly true", () => {
+    expect(parse("senior=true").filters).toEqual({ senior: "true" });
+
+    for (const value of ["false", "1", "yes", "TRUE", "any", ""]) {
+      expect(parse(`senior=${value}`).filters).toEqual({});
+    }
+  });
+
+  it("keeps a dollar amount filter only when it is one to six digits", () => {
+    expect(parse("maxRent=1200").filters).toEqual({ maxRent: "1200" });
+    expect(parse("maxRent=%201200%20").filters).toEqual({ maxRent: "1200" });
+
+    for (const value of ["0", "0900", "1234567", "12.50", "-500", "abc", ""]) {
+      expect(parse(`maxRent=${value}`).filters).toEqual({});
+    }
+  });
+});
+
+describe("wholeDollars", () => {
+  it("keeps the whole dollars a filter can use", () => {
+    expect(wholeDollars("1200")).toBe("1200");
+    expect(wholeDollars("$1,200.50")).toBe("1200");
+    expect(wholeDollars("00123")).toBe("123");
+    expect(wholeDollars("12345678")).toBe("123456");
+    expect(wholeDollars("abc")).toBe("");
   });
 });

@@ -10,6 +10,7 @@ vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return { ...actual, useNavigate: () => mockNavigate };
 });
+vi.mock("@/data/locations/cities-by-county.json", () => import("@/test/citiesByCounty"));
 
 const renderPage = () =>
   render(
@@ -41,8 +42,7 @@ describe("HomePage", () => {
     renderPage();
 
     const box = screen.getByRole("combobox", { name: content.location });
-    await userEvent.type(box, "Trenton");
-    await userEvent.click(screen.getByRole("option", { name: "Trenton" }));
+    await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/search?location=Trenton");

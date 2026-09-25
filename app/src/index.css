@@ -6,8 +6,30 @@ summary {
   cursor: pointer;
 }
 
+.button-tag {
+  background-color: #e8f5ff;
+  color: black;
+  font-weight: normal;
+}
+
+.button-tag .usa-icon {
+  color: #005ea2;
+  top: -1px;
+}
+
+.button-tag:hover .usa-icon,
+.button-tag:active .usa-icon {
+  color: #ffffff;
+}
+
+.color-info-lighter {
+  background-color: #e7f6f8;
+}
+
 .listing-card__img {
   aspect-ratio: 16 / 9;
+  border-top-left-radius: calc(0.5rem - 2px);
+  border-top-right-radius: calc(0.5rem - 2px);
   display: block;
   object-fit: cover;
   width: 100%;
@@ -57,6 +79,105 @@ summary {
   height: 2.5rem;
 }
 
+.search-filters {
+  max-width: 30rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #dfe1e2;
+}
+
+.search-filters__clear {
+  align-self: center;
+  display: block;
+  margin: 1rem auto 0;
+  text-align: center;
+}
+
+.search-filters__close {
+  margin-right: -0.5rem;
+  padding: 0.5rem;
+  color: #1b1b1b;
+  text-decoration: none;
+}
+
+.applied-filters {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 29.99em) {
+  .applied-filters {
+    flex-direction: row;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .applied-filters .usa-button-group__item {
+    flex: 0 1 calc(50% - 0.5rem);
+    margin: 0;
+    min-width: 0;
+  }
+
+  .applied-filters .button-tag {
+    font-size: 0.93rem;
+    line-height: 1.2;
+    margin-right: 0;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+  }
+}
+
+.search-filters__overlay {
+  border: 0;
+  padding: 0;
+}
+
+.filters-drawer-open {
+  overflow: hidden;
+}
+
+@media (max-width: 63.99em) {
+  .search-filters {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    width: 20rem;
+    max-width: 90vw;
+    margin: 0;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    border: 0;
+  }
+
+  .search-filters--open {
+    display: flex;
+  }
+
+  .search-filters__done {
+    margin-top: auto;
+  }
+}
+
+@media (min-width: 64em) {
+  .search-controls__filter-toggle,
+  .search-filters__overlay {
+    display: none;
+  }
+
+  .search-layout__filters {
+    order: 2;
+  }
+
+  .search-layout__results {
+    order: 1;
+  }
+}
+
 .usa-hero .usa-combo-box__list-option {
   color: black;
 }
@@ -83,4 +204,25 @@ summary {
   .loading-spinner {
     animation: none;
   }
+}
+
+.feedback-widget-section {
+  background-color: #f0f0f0;
+  padding-top: 1.9rem;
+  padding-bottom: 1.9rem;
+}
+
+.feedback-widget-section .feedback-container {
+  background-color: transparent;
+  padding: 0;
+}
+
+@media (max-width: 864px) {
+  .feedback-widget-section .flex-box {
+    justify-content: center;
+  }
+}
+
+.usa-footer__primary-section {
+  background-color: #dfe1e2;
 }

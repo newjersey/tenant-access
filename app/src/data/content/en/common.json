@@ -6,6 +6,7 @@
   "govAboutUrl": "https://nj.gov/governor/admin/about/",
   "govLtAboutUrl": "https://nj.gov/governor/admin/lt/",
   "locationComboBox": {
+    "placeholder": "Search by county or city",
     "noResults": "No matching cities"
   },
   "pagination": {
@@ -23,6 +24,7 @@
   "header": {
     "appName": "NJ Housing Resource Center",
     "menuText": "Menu",
+    "pilot": "This website is the pilot version of the NJ Housing Resource Center.",
     "register": "Register",
     "signin": "Sign in"
   },
@@ -30,8 +32,8 @@
     "returnToTop": "Return to top",
     "linkTextAbout": "About the NJHRC",
     "linkUrlAbout": "https://www.nj.gov/njhrc/about/about-njhrc",
-    "linkTextNews": "News",
-    "linkUrlNews": "https://nj.gov/dca/hmfa/about/pressreleases/index.shtml",
+    "linkTextResources": "Resources",
+    "linkUrlResources": "https://www.nj.gov/njhrc/resources/",
     "linkTextPhone": "1-877-428-8844",
     "linkUrlPhone": "tel:+18774288844",
     "linkTextContact": "Contact us",

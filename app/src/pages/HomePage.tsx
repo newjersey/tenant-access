@@ -46,13 +46,13 @@ function HomePage() {
               <div className="usa-icon-list__icon text-green">
                 <Icon icon="check" />
               </div>
-              <div className="usa-icon-list__content">{content.filter}</div>
+              <div className="usa-icon-list__content">{content.many_units}</div>
             </li>
             <li className="usa-icon-list__item">
               <div className="usa-icon-list__icon text-green">
                 <Icon icon="check" />
               </div>
-              <div className="usa-icon-list__content">{content.many_units}</div>
+              <div className="usa-icon-list__content">{content.filter}</div>
             </li>
             <li className="usa-icon-list__item">
               <div className="usa-icon-list__icon text-green">
