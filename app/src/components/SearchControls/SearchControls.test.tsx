@@ -33,7 +33,7 @@ const renderAt = (url: string, location: string | null = null) => {
 };
 
 describe("SearchControls", () => {
-  it("searches as soon as a city is chosen, back at the first page", async () => {
+  it("searches city from url at correct page, searches new city back at the first page", async () => {
     const { box, query } = renderAt("/search?location=Newark&page=3", "Newark");
 
     expect(box).toHaveValue("Newark");
@@ -63,6 +63,13 @@ describe("SearchControls", () => {
 
     expect(query).toHaveTextContent("location=Newark");
     expect(box).toHaveValue("xyz");
+  });
+
+  it("reverts to searching all locations when url is for a city that is not on the list", async () => {
+    const { box, query } = renderAt("/search?location=xyz", "xyz");
+
+    expect(query.textContent).not.toContain("location");
+    expect(box).toHaveValue("");
   });
 
   it("filters closed at first, and button toggles", async () => {
