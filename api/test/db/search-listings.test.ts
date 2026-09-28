@@ -1,16 +1,9 @@
-import type { APIGatewayProxyEventV2 } from "aws-lambda";
+import type { APIGatewayProxyEvent } from "aws-lambda";
 import type { Client } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getPool } from "../../src/lambda/db.js";
 import { handler } from "../../src/lambda/search-listings.js";
-import {
-  makeListing,
-  seedListing,
-  seedManyListings,
-  TEST_DB_ENV,
-  testClient,
-  truncateAll,
-} from "./support.js";
+import { makeListing, seedListing, seedManyListings, testClient, truncateAll } from "./support.js";
 
 type SearchBody = {
   success: boolean;
@@ -35,7 +28,7 @@ beforeEach(async () => {
   await truncateAll(db);
 });
 
-async function invoke(event: APIGatewayProxyEventV2) {
+async function invoke(event: APIGatewayProxyEvent) {
   const response = (await handler(event)) as {
     statusCode: number;
     headers: Record<string, string>;
@@ -46,9 +39,9 @@ async function invoke(event: APIGatewayProxyEventV2) {
 
 async function search(params: Record<string, string> = {}) {
   const event = {
-    headers: { "x-origin-secret": TEST_DB_ENV.ORIGIN_SECRET },
+    headers: {},
     queryStringParameters: params,
-  } as unknown as APIGatewayProxyEventV2;
+  } as unknown as APIGatewayProxyEvent;
 
   const response = await invoke(event);
   return { ...response, ...(JSON.parse(response.body) as SearchBody) };

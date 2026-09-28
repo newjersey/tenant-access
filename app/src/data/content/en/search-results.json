@@ -1,8 +1,7 @@
 {
   "heading": "Browse Listings",
   "home": "Home",
-  "search_label": "Search by city or town",
-  "search_button": "Search",
+  "search_label": "Location",
   "filters_label": "Filters",
   "filters_done": "Done",
   "filters_clear": "Clear all filters",

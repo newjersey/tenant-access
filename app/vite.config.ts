@@ -18,6 +18,7 @@ export default defineConfig({
     setupFiles: "./src/test/setup.ts",
     css: true,
     pool: "forks",
+    isolate: true,
     coverage: {
       reporter: ["text", "html"],
       include: ["src/**/*.{ts,tsx}"],

@@ -1,11 +1,9 @@
 import * as cdk from "aws-cdk-lib";
-import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
-import * as apigwv2int from "aws-cdk-lib/aws-apigatewayv2-integrations";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as cwActions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as destinations from "aws-cdk-lib/aws-lambda-destinations";
 import * as eventSources from "aws-cdk-lib/aws-lambda-event-sources";
@@ -18,13 +16,13 @@ import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as sqs from "aws-cdk-lib/aws-sqs";
-import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import type { Construct } from "constructs";
-import { SEARCH_QUERY_PARAMS } from "../../src/lambda/search-params.js";
 
 export interface TenantAccessStackProps extends cdk.StackProps {
   readonly vpcId: string;
+  readonly inboundCidrs: string[];
   readonly allowedOrigins: string;
+  readonly apiDomain?: { readonly name: string; readonly certificateArn: string };
 }
 
 export class TenantAccessStack extends cdk.Stack {
@@ -78,6 +76,30 @@ export class TenantAccessStack extends cdk.Stack {
     vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
       service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
       privateDnsEnabled: true,
+    });
+
+    const executeApiSecurityGroup = new ec2.SecurityGroup(this, "ExecuteApiEndpointSg", {
+      vpc,
+      description: "execute-api endpoint: HTTPS from OIT load balancer subnets only",
+      allowAllOutbound: false,
+    });
+
+    for (const cidr of props.inboundCidrs) {
+      executeApiSecurityGroup.addIngressRule(
+        ec2.Peer.ipv4(cidr),
+        ec2.Port.tcp(443),
+        "permitted inbound subnet",
+      );
+    }
+
+    // The private API is reachable only through this endpoint. Private DNS lets
+    // in-VPC callers use the normal execute-api hostname; nothing in this stack
+    // calls a public API Gateway, so claiming *.execute-api here is safe.
+    const executeApiEndpoint = vpc.addInterfaceEndpoint("ExecuteApiEndpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.APIGATEWAY,
+      privateDnsEnabled: true,
+      securityGroups: [executeApiSecurityGroup],
+      open: false,
     });
 
     // Security group for RDS
@@ -319,16 +341,6 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
-    // Shared secret proving a request came through CloudFront
-    // created manually with:
-    // aws secretsmanager create-secret --name tenant-access/origin-secret \
-    //--secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
-    // despite the name, unsafeUnwrap() is not a problem in this file because
-    // it's still just a pointer like "{{resolve:secretsmanager:...}}"
-    const originSecret = cdk.SecretValue.secretsManager(
-      "tenant-access/origin-secret",
-    ).unsafeUnwrap();
-
     const searchLambda = new NodejsFunction(this, "SearchListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
       entry: "src/lambda/search-listings.ts",
@@ -343,7 +355,6 @@ export class TenantAccessStack extends cdk.Stack {
       environment: {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
-        ORIGIN_SECRET: originSecret,
         ALLOWED_ORIGINS: props.allowedOrigins,
       },
       bundling: {
@@ -355,130 +366,136 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(searchLambda);
 
-    const publicApi = new apigwv2.HttpApi(this, "PublicApi", {
-      description: "Public API (listings search, accounts, more)",
-      createDefaultStage: false,
-    });
-
-    publicApi.addRoutes({
-      path: "/listings/search",
-      methods: [apigwv2.HttpMethod.GET],
-      integration: new apigwv2int.HttpLambdaIntegration("SearchIntegration", searchLambda),
-    });
-
-    new apigwv2.HttpStage(this, "PublicApiStage", {
-      httpApi: publicApi,
-      autoDeploy: true,
-      throttle: { rateLimit: 50, burstLimit: 100 },
-    });
-
-    const publicWebAcl = new wafv2.CfnWebACL(this, "PublicWebAcl", {
-      scope: "CLOUDFRONT", // requires this stack to be in us-east-1
-      defaultAction: { allow: {} },
-      visibilityConfig: {
-        cloudWatchMetricsEnabled: true,
-        metricName: "PublicWebAcl",
-        sampledRequestsEnabled: true,
+    // Requests only arrive from OIT's load balancer
+    const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
+      description: "Private API (listings search, listing photos, accounts, more)",
+      binaryMediaTypes: ["image/*"],
+      endpointConfiguration: {
+        types: [apigateway.EndpointType.PRIVATE],
+        vpcEndpoints: [executeApiEndpoint],
       },
-      rules: [
-        {
-          name: "RateLimitPerIp",
-          priority: 1,
-          action: { block: {} },
-          statement: {
-            rateBasedStatement: {
-              limit: 5000,
-              evaluationWindowSec: 300,
-              aggregateKeyType: "IP",
-            },
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: "RateLimitPerIp",
-            sampledRequestsEnabled: true,
-          },
-        },
-        {
-          name: "IpReputation",
-          priority: 2,
-          overrideAction: { none: {} }, // use default AWS-managed list of suspicious IPs
-          statement: {
-            managedRuleGroupStatement: {
-              vendorName: "AWS",
-              name: "AWSManagedRulesAmazonIpReputationList",
-            },
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: "IpReputation",
-            sampledRequestsEnabled: true,
-          },
-        },
-        {
-          // Note: may need tuning if legitimate queries get blocked
-          name: "CommonRuleSet",
-          priority: 3,
-          overrideAction: { none: {} },
-          statement: {
-            managedRuleGroupStatement: {
-              vendorName: "AWS",
-              name: "AWSManagedRulesCommonRuleSet",
-            },
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: "CommonRuleSet",
-            sampledRequestsEnabled: true,
-          },
-        },
-      ],
-    });
-
-    const searchCachePolicy = new cloudfront.CachePolicy(this, "SearchCachePolicy", {
-      comment: "Listings search: allowlisted query params only",
-      defaultTtl: cdk.Duration.seconds(300),
-      minTtl: cdk.Duration.seconds(0),
-      maxTtl: cdk.Duration.seconds(300),
-      queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(...SEARCH_QUERY_PARAMS),
-      // Origin must be in the key: the Access Control Allow Origin header varies by it.
-      headerBehavior: cloudfront.CacheHeaderBehavior.allowList("Origin"),
-      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
-      enableAcceptEncodingGzip: true,
-      enableAcceptEncodingBrotli: true,
-    });
-
-    const publicApiDistribution = new cloudfront.Distribution(this, "PublicApiDistribution", {
-      comment: "Public API (CloudFront + WAF)",
-      webAclId: publicWebAcl.attrArn,
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-      defaultBehavior: {
-        origin: new origins.HttpOrigin(cdk.Fn.select(2, cdk.Fn.split("/", publicApi.apiEndpoint)), {
-          readTimeout: cdk.Duration.seconds(15),
-          customHeaders: { "x-origin-secret": originSecret },
-        }),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        cachePolicy: searchCachePolicy,
-      },
-      additionalBehaviors: {
-        "/photos/*": {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(imagesBucket),
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        },
+      deployOptions: {
+        throttlingRateLimit: 50,
+        throttlingBurstLimit: 100,
       },
     });
+
+    // Resource policy denying every caller that did not arrive via the endpoint.
+    njHRCApi.grantInvokeFromVpcEndpointsOnly([executeApiEndpoint]);
+
+    // OIT's load balancer forwards the client's Host header, and a private API will
+    // not answer to an arbitrary name. Registering the name as a private custom
+    // domain and associating it with the endpoint is what makes it route.
+    if (props.apiDomain) {
+      const apiDomain = new apigateway.CfnDomainNameV2(this, "ApiDomainName", {
+        domainName: props.apiDomain.name,
+        certificateArn: props.apiDomain.certificateArn,
+        endpointConfiguration: { types: ["PRIVATE"] },
+        securityPolicy: "TLS_1_2",
+        policy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Principal: "*",
+              Action: "execute-api:Invoke",
+              Resource: "*",
+              Condition: {
+                StringEquals: { "aws:SourceVpce": executeApiEndpoint.vpcEndpointId },
+              },
+            },
+          ],
+        },
+      });
+
+      new apigateway.CfnDomainNameAccessAssociation(this, "ApiDomainAccessAssociation", {
+        domainNameArn: apiDomain.attrDomainNameArn,
+        accessAssociationSource: executeApiEndpoint.vpcEndpointId,
+        accessAssociationSourceType: "VPCE",
+      });
+
+      new apigateway.CfnBasePathMappingV2(this, "ApiDomainBasePathMapping", {
+        domainNameArn: apiDomain.attrDomainNameArn,
+        restApiId: njHRCApi.restApiId,
+        stage: njHRCApi.deploymentStage.stageName,
+      });
+
+      new cdk.CfnOutput(this, "ApiCustomDomainUrl", {
+        value: `https://${props.apiDomain.name}/listings/search`,
+        description: "Custom-domain form -- use this once DNS points at the endpoint",
+      });
+    }
+
+    njHRCApi.root
+      .addResource("listings")
+      .addResource("search")
+      .addMethod("GET", new apigateway.LambdaIntegration(searchLambda));
+
+    const photosRole = new iam.Role(this, "PhotosIntegrationRole", {
+      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+      description: "Lets the private API read listing photos out of S3",
+    });
+
+    imagesBucket.grantRead(photosRole, "photos/*");
+
+    // photo_keys are always photos/<uid>/<file>, so two fixed segments needed
+    const photosIntegration = new apigateway.AwsIntegration({
+      service: "s3",
+      region: this.region,
+      integrationHttpMethod: "GET",
+      path: `${imagesBucket.bucketName}/photos/{uid}/{file}`,
+      options: {
+        credentialsRole: photosRole,
+        requestParameters: {
+          "integration.request.path.uid": "method.request.path.uid",
+          "integration.request.path.file": "method.request.path.file",
+        },
+        integrationResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Content-Type": "integration.response.header.Content-Type",
+              "method.response.header.Cache-Control": "'public, max-age=86400'",
+            },
+          },
+          { statusCode: "404", selectionPattern: "4\\d{2}" },
+          { statusCode: "500", selectionPattern: "5\\d{2}" },
+        ],
+      },
+    });
+
+    njHRCApi.root
+      .addResource("photos")
+      .addResource("{uid}")
+      .addResource("{file}")
+      .addMethod("GET", photosIntegration, {
+        requestParameters: {
+          "method.request.path.uid": true,
+          "method.request.path.file": true,
+        },
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Content-Type": true,
+              "method.response.header.Cache-Control": true,
+            },
+          },
+          { statusCode: "404" },
+          { statusCode: "500" },
+        ],
+      });
 
     const alertsTopic = new sns.Topic(this, "AlertsTopic", {
       displayName: "Tenant Access alerts",
     });
 
     const searchErrorRate = new cloudwatch.MathExpression({
-      expression: "IF(requests >= 20, errorRate, 0)", // ignores low traffic
+      expression: "IF(requests >= 20, 100 * (clientErrors + serverErrors) / requests, 0)",
       usingMetrics: {
-        requests: publicApiDistribution.metricRequests(),
-        errorRate: publicApiDistribution.metricTotalErrorRate(),
+        requests: njHRCApi.metricCount({ statistic: "Sum" }),
+        clientErrors: njHRCApi.metricClientError({ statistic: "Sum" }),
+        serverErrors: njHRCApi.metricServerError({ statistic: "Sum" }),
       },
       period: cdk.Duration.minutes(5),
       label: "4xx+5xx rate (quiet periods ignored)",
@@ -486,7 +503,7 @@ export class TenantAccessStack extends cdk.Stack {
 
     const searchErrorRateAlarm = new cloudwatch.Alarm(this, "SearchErrorRateAlarm", {
       alarmName: "TenantAccess-SearchApi-ErrorRate",
-      alarmDescription: "4xx+5xx rate on the public search API stayed above 25% for a half hour.",
+      alarmDescription: "4xx+5xx rate on the private search API stayed above 25% for a half hour.",
       metric: searchErrorRate,
       threshold: 25,
       evaluationPeriods: 6, // 6 x 5min: a half hour of breach before notifying to avoid noise
@@ -596,13 +613,33 @@ export class TenantAccessStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "SearchApiUrl", {
-      value: `https://${publicApiDistribution.distributionDomainName}/listings/search`,
-      description: "Public search endpoint (CloudFront + WAF)",
+      value: `${njHRCApi.url}listings/search`,
+      description: "Private search endpoint -- resolves only where execute-api private DNS applies",
     });
 
-    new cdk.CfnOutput(this, "SearchApiOriginEndpoint", {
-      value: publicApi.apiEndpoint,
-      description: "HTTP API origin — bypasses CloudFront and WAF, do not publish",
+    new cdk.CfnOutput(this, "SearchApiVpceUrl", {
+      value: `https://${njHRCApi.restApiId}-${executeApiEndpoint.vpcEndpointId}.execute-api.${this.region}.amazonaws.com/${njHRCApi.deploymentStage.stageName}/listings/search`,
+      description: "Endpoint-specific form of the same route -- no private hosted zone needed",
+    });
+
+    new cdk.CfnOutput(this, "SearchApiId", {
+      value: njHRCApi.restApiId,
+      description: "REST API id -- OIT needs it to route (Host or x-apigw-api-id)",
+    });
+
+    new cdk.CfnOutput(this, "ExecuteApiVpcEndpointId", {
+      value: executeApiEndpoint.vpcEndpointId,
+      description: "execute-api interface endpoint -- the only route in to the private API",
+    });
+
+    new cdk.CfnOutput(this, "ExecuteApiVpcEndpointDnsNames", {
+      value: cdk.Fn.join(", ", executeApiEndpoint.vpcEndpointDnsEntries),
+      description: "hostedZoneId:dnsName per entry -- hand OIT the *.vpce.amazonaws.com name",
+    });
+
+    new cdk.CfnOutput(this, "ExecuteApiVpcEndpointEnis", {
+      value: cdk.Fn.join(", ", executeApiEndpoint.vpcEndpointNetworkInterfaceIds),
+      description: "ENIs holding the endpoint's private IPs -- for OIT firewall rules",
     });
 
     new cdk.CfnOutput(this, "AlertsTopicArn", {
@@ -611,7 +648,7 @@ export class TenantAccessStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "ImagesBaseUrl", {
-      value: `https://${publicApiDistribution.distributionDomainName}`,
+      value: njHRCApi.url.replace(/\/$/, ""),
       description: "Prefix for photo_keys: <base>/photos/<uid>/<id>.jpg",
     });
 
