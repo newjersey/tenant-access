@@ -1,4 +1,4 @@
-import type { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { queryMock, getPoolMock } = vi.hoisted(() => {
@@ -8,7 +8,6 @@ const { queryMock, getPoolMock } = vi.hoisted(() => {
 
 vi.mock("./db.js", () => ({ getPool: getPoolMock }));
 
-const SECRET = "test-origin-secret";
 const ALLOWED_ORIGIN = "http://localhost:5173";
 
 // ALLOWED_ORIGINS is read once at module load, so the env has to be set before the import.
@@ -16,17 +15,16 @@ let handler: typeof import("./search-listings.js").handler;
 
 const makeEvent = (
   queryStringParameters?: Record<string, string>,
-  headers: Record<string, string | undefined> = { "x-origin-secret": SECRET },
-) => ({ queryStringParameters, headers }) as APIGatewayProxyEventV2;
+  headers: Record<string, string | undefined> = {},
+) => ({ queryStringParameters, headers }) as unknown as APIGatewayProxyEvent;
 
 const invoke = async (...args: Parameters<typeof makeEvent>) =>
-  (await handler(makeEvent(...args))) as APIGatewayProxyStructuredResultV2;
+   (await handler(makeEvent(...args))) as APIGatewayProxyResult;
 
 describe("search-listings handler", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
-    vi.stubEnv("ORIGIN_SECRET", SECRET);
     vi.stubEnv("ALLOWED_ORIGINS", ALLOWED_ORIGIN);
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -91,26 +89,20 @@ describe("search-listings handler", () => {
   });
 
   it("reflects an allowlisted origin and ignores an unknown one", async () => {
-    const allowed = await invoke(undefined, {
-      "x-origin-secret": SECRET,
-      origin: ALLOWED_ORIGIN,
-    });
-    expect(allowed.headers?.["Access-Control-Allow-Origin"]).toBe(ALLOWED_ORIGIN);
+    const allowed = await invoke(undefined, { origin: ALLOWED_ORIGIN });
+    const unknown = await invoke(undefined, { origin: "https://bad.example.com" });
 
-    const unknown = await invoke(undefined, {
-      "x-origin-secret": SECRET,
-      origin: "https://badtown.example.com",
-    });
+    expect(allowed.headers?.["Access-Control-Allow-Origin"]).toBe(ALLOWED_ORIGIN);
     expect(unknown.headers?.["Access-Control-Allow-Origin"]).toBeUndefined();
     expect(unknown.headers?.Vary).toBe("Origin");
   });
 
-  it("rejects a request that did not come through CloudFront", async () => {
-    const result = await invoke(undefined, {});
-
-    expect(result.statusCode).toBe(403);
-    expect(JSON.parse(result.body as string)).toEqual({ success: false, error: "Forbidden" });
-    expect(getPoolMock).not.toHaveBeenCalled();
+  // REST API keeps the client's header casing, so the lookup must be case-insensitive.
+  it("matches the Origin header whatever its casing", async () => {
+    for (const name of ["Origin", "origin", "ORIGIN"]) {
+      const result = await invoke(undefined, { [name]: ALLOWED_ORIGIN });
+      expect(result.headers?.["Access-Control-Allow-Origin"]).toBe(ALLOWED_ORIGIN);
+    }
   });
 
   it("returns a generic 500 without leaking the database error for password failure", async () => {

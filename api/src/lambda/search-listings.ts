@@ -1,8 +1,7 @@
-import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import type { Pool } from "pg";
 import { getPool } from "./db.js";
 import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
-import { isFromCloudFront } from "./require-cloudfront.js";
 import { buildFilterClause, type FilterClause } from "./search-filters.js";
 import type { SearchParams } from "./search-params.js";
 
@@ -108,11 +107,18 @@ const parseAndConstrainPage = (raw: string | undefined): number => {
   return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, minPage), MAX_PAGE);
 };
 
+// REST API (v1) forwards header names with the casing the client used
+const headerValue = (event: APIGatewayProxyEvent, name: string): string | undefined => {
+  const headers = event.headers ?? {};
+  const key = Object.keys(headers).find((candidate) => candidate.toLowerCase() === name);
+  return key ? (headers[key] ?? undefined) : undefined;
+};
+
 const respond = (
   statusCode: number,
   body: unknown,
   origin: string | undefined,
-): APIGatewayProxyResultV2 => ({
+): APIGatewayProxyResult => ({
   statusCode,
   headers: {
     "Content-Type": "application/json",
@@ -125,11 +131,9 @@ const respond = (
   body: JSON.stringify(body),
 });
 
-export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
-  const origin = event.headers?.origin;
-  if (!isFromCloudFront(event)) {
-    return respond(403, { success: false, error: "Forbidden" }, origin);
-  }
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  // Access control is the private endpoint and its resource policy, not a header.
+  const origin = headerValue(event, "origin");
   const params: SearchParams = event.queryStringParameters ?? {};
   const search: Search = {
     location: parseLocation(params.location),
