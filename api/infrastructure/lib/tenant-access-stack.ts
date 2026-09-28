@@ -366,8 +366,7 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(searchLambda);
 
-    // apigateway v1, not v2: HTTP APIs have no private endpoint type at all, so a
-    // private API has to be a REST API. Requests arrive from OIT's load balancer
+    // Requests only arrive from OIT's load balancer
     const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
       description: "Private API (listings search, listing photos, accounts, more)",
       binaryMediaTypes: ["image/*"],
@@ -432,8 +431,6 @@ export class TenantAccessStack extends cdk.Stack {
       .addResource("search")
       .addMethod("GET", new apigateway.LambdaIntegration(searchLambda));
 
-    // Photos used to come from CloudFront via an origin access control. With the
-    // distribution gone, API Gateway reads the object itself under this role.
     const photosRole = new iam.Role(this, "PhotosIntegrationRole", {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
       description: "Lets the private API read listing photos out of S3",
@@ -441,8 +438,7 @@ export class TenantAccessStack extends cdk.Stack {
 
     imagesBucket.grantRead(photosRole, "photos/*");
 
-    // photo_keys are always photos/<uid>/<file>, so two fixed segments beat a
-    // greedy {proxy+}: a greedy match would percent-encode the inner slash.
+    // photo_keys are always photos/<uid>/<file>, so two fixed segments needed
     const photosIntegration = new apigateway.AwsIntegration({
       service: "s3",
       region: this.region,
