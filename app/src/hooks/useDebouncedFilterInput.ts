@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { type FilterKey, parseFilters, withFilter } from "@/utils/searchQuery";
+import { useSearchUpdates } from "@/hooks/useSearchUpdates";
+import { type FilterKey, parseFilters } from "@/utils/searchQuery";
 
 export const FILTER_INPUT_DEBOUNCE_MS = 600;
 
@@ -11,7 +12,8 @@ export interface DebouncedFilterInput {
 }
 
 export function useDebouncedFilterInput(name: FilterKey): DebouncedFilterInput {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const { setFilter } = useSearchUpdates();
   const inUrl = parseFilters(searchParams)[name] ?? "";
   const [value, setValue] = useState(inUrl);
   const applied = useRef(inUrl);
@@ -28,11 +30,11 @@ export function useDebouncedFilterInput(name: FilterKey): DebouncedFilterInput {
 
     const timer = setTimeout(() => {
       applied.current = value;
-      setSearchParams((current) => withFilter(current, name, value));
+      setFilter(name, value);
     }, FILTER_INPUT_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [name, value, setSearchParams]);
+  }, [name, value, setFilter]);
 
   return {
     value,

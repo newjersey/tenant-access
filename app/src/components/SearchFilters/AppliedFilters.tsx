@@ -2,20 +2,14 @@ import { useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import { appliedFilters } from "@/components/SearchFilters/filterOptions";
 import content from "@/data/content/en/search-results.json";
-import type { FilterKey } from "@/utils/searchQuery";
+import { useSearchUpdates } from "@/hooks/useSearchUpdates";
 
 function AppliedFilters() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const applied = appliedFilters(searchParams);
+  const { clearFilter } = useSearchUpdates();
 
   if (applied.length === 0) return null;
-
-  const removeFilter = (key: FilterKey) => () => {
-    const params = new URLSearchParams(searchParams);
-    params.delete(key);
-    params.delete("page");
-    setSearchParams(params);
-  };
 
   return (
     <div className="margin-bottom-2">
@@ -30,7 +24,7 @@ function AppliedFilters() {
               type="button"
               className="usa-button button-tag"
               aria-label={content.filters_remove.replace("{{filter}}", label)}
-              onClick={removeFilter(key)}
+              onClick={() => clearFilter(key)}
             >
               {label}
               <Icon icon="close" size="3" />

@@ -1,8 +1,9 @@
 import type { RefObject } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
 import content from "@/data/content/en/search-results.json";
+import { useSearchUpdates } from "@/hooks/useSearchUpdates";
 
 interface SearchControlsProps {
   location: string | null;
@@ -17,19 +18,13 @@ function SearchControls({
   onToggleFilters,
   toggleRef,
 }: SearchControlsProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { setLocation } = useSearchUpdates();
 
   const runSearch = (selected: string | undefined) => {
-    if ((selected ?? null) === location) return; // don't re-run duplicate searches
+    const next = selected ?? null; // the combo box clears to undefined, but the url uses null
+    if (next === location) return; // don't re-run duplicate searches
 
-    const params = new URLSearchParams(searchParams);
-    if (selected) {
-      params.set("location", selected);
-    } else {
-      params.delete("location");
-    }
-    params.delete("page");
-    setSearchParams(params);
+    setLocation(next);
   };
 
   return (

@@ -9,7 +9,8 @@ import {
 } from "@/components/SearchFilters/filterOptions";
 import content from "@/data/content/en/search-results.json";
 import { useDebouncedFilterInput } from "@/hooks/useDebouncedFilterInput";
-import { FILTER_KEYS, type FilterKey, parseFilters, withFilter } from "@/utils/searchQuery";
+import { useSearchUpdates } from "@/hooks/useSearchUpdates";
+import { type FilterKey, parseFilters } from "@/utils/searchQuery";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -17,28 +18,24 @@ interface FiltersPanelProps {
 }
 
 function FiltersPanel({ open, onClose }: FiltersPanelProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const { setFilter, clearFilters } = useSearchUpdates();
   const activeFilters = parseFilters(searchParams);
   const panel = useRef<HTMLElement>(null);
   const maxRent = useDebouncedFilterInput("maxRent");
 
   const changeFilter = (name: FilterKey) => (event: ChangeEvent<HTMLSelectElement>) => {
     const chosen = event.target.value;
-    setSearchParams(withFilter(searchParams, name, chosen === "any" ? "" : chosen));
+    setFilter(name, chosen === "any" ? "" : chosen);
   };
 
   const toggleFilter = (name: FilterKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchParams(withFilter(searchParams, name, event.target.checked ? "true" : ""));
+    setFilter(name, event.target.checked ? "true" : "");
   };
 
-  const clearFilters = () => {
-    const params = new URLSearchParams(searchParams);
-    for (const key of FILTER_KEYS) {
-      params.delete(key);
-    }
-    params.delete("page");
+  const clearAll = () => {
     maxRent.clear();
-    setSearchParams(params);
+    clearFilters();
   };
 
   useEffect(() => {
@@ -158,7 +155,7 @@ function FiltersPanel({ open, onClose }: FiltersPanelProps) {
         <button
           type="button"
           className="usa-button usa-button--unstyled search-filters__clear"
-          onClick={clearFilters}
+          onClick={clearAll}
         >
           {content.filters_clear}
         </button>

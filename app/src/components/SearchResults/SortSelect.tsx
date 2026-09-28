@@ -1,18 +1,15 @@
 import type { ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import content from "@/data/content/en/search-results.json";
+import { useSearchUpdates } from "@/hooks/useSearchUpdates";
 import { parseSort } from "@/utils/searchQuery";
 
 function SortSelect() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const sort = parseSort(searchParams.get("sort"));
+  const { setSort } = useSearchUpdates();
 
-  const changeSort = (event: ChangeEvent<HTMLSelectElement>) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("sort", event.target.value);
-    params.delete("page");
-    setSearchParams(params);
-  };
+  const changeSort = (event: ChangeEvent<HTMLSelectElement>) => setSort(event.target.value);
 
   return (
     <>
