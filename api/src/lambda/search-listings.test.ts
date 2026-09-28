@@ -19,7 +19,7 @@ const makeEvent = (
 ) => ({ queryStringParameters, headers }) as unknown as APIGatewayProxyEvent;
 
 const invoke = async (...args: Parameters<typeof makeEvent>) =>
-   (await handler(makeEvent(...args))) as APIGatewayProxyResult;
+  (await handler(makeEvent(...args))) as APIGatewayProxyResult;
 
 describe("search-listings handler", () => {
   beforeEach(async () => {

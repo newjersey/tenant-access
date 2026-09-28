@@ -369,7 +369,7 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(searchLambda);
 
-     // apigateway v1, not v2: HTTP APIs have no private endpoint type at all, so a
+    // apigateway v1, not v2: HTTP APIs have no private endpoint type at all, so a
     // private API has to be a REST API. Requests arrive from OIT's load balancer
     const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
       description: "Private API (listings search, listing photos, accounts, more)",
