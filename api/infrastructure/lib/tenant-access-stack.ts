@@ -22,6 +22,7 @@ export interface TenantAccessStackProps extends cdk.StackProps {
   readonly vpcId: string;
   readonly inboundCidrs: string[];
   readonly allowedOrigins: string;
+  readonly apiDomain?: { readonly name: string; readonly certificateArn: string };
 }
 
 export class TenantAccessStack extends cdk.Stack {
@@ -369,14 +370,12 @@ export class TenantAccessStack extends cdk.Stack {
     // private API has to be a REST API. Requests arrive from OIT's load balancer
     const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
       description: "Private API (listings search, listing photos, accounts, more)",
-      // Photos stream through this API now that there is no CloudFront.
       binaryMediaTypes: ["image/*"],
       endpointConfiguration: {
         types: [apigateway.EndpointType.PRIVATE],
         vpcEndpoints: [executeApiEndpoint],
       },
       deployOptions: {
-        stageName: "dev",
         throttlingRateLimit: 50,
         throttlingBurstLimit: 100,
       },
@@ -384,6 +383,49 @@ export class TenantAccessStack extends cdk.Stack {
 
     // Resource policy denying every caller that did not arrive via the endpoint.
     njHRCApi.grantInvokeFromVpcEndpointsOnly([executeApiEndpoint]);
+
+    // OIT's load balancer forwards the client's Host header, and a private API will
+    // not answer to an arbitrary name. Registering the name as a private custom
+    // domain and associating it with the endpoint is what makes it route.
+    if (props.apiDomain) {
+      const apiDomain = new apigateway.CfnDomainNameV2(this, "ApiDomainName", {
+        domainName: props.apiDomain.name,
+        certificateArn: props.apiDomain.certificateArn,
+        endpointConfiguration: { types: ["PRIVATE"] },
+        securityPolicy: "TLS_1_2",
+        policy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Principal: "*",
+              Action: "execute-api:Invoke",
+              Resource: "*",
+              Condition: {
+                StringEquals: { "aws:SourceVpce": executeApiEndpoint.vpcEndpointId },
+              },
+            },
+          ],
+        },
+      });
+
+      new apigateway.CfnDomainNameAccessAssociation(this, "ApiDomainAccessAssociation", {
+        domainNameArn: apiDomain.attrDomainNameArn,
+        accessAssociationSource: executeApiEndpoint.vpcEndpointId,
+        accessAssociationSourceType: "VPCE",
+      });
+
+      new apigateway.CfnBasePathMappingV2(this, "ApiDomainBasePathMapping", {
+        domainNameArn: apiDomain.attrDomainNameArn,
+        restApiId: njHRCApi.restApiId,
+        stage: njHRCApi.deploymentStage.stageName,
+      });
+
+      new cdk.CfnOutput(this, "ApiCustomDomainUrl", {
+        value: `https://${props.apiDomain.name}/listings/search`,
+        description: "Custom-domain form -- use this once DNS points at the endpoint",
+      });
+    }
 
     njHRCApi.root
       .addResource("listings")

@@ -19,6 +19,14 @@ if (inboundCidrs.length === 0) {
   );
 }
 
+const apiDomainName = process.env.TENANT_ACCESS_API_DOMAIN_NAME;
+const apiCertificateArn = process.env.TENANT_ACCESS_API_CERT_ARN;
+if (Boolean(apiDomainName) !== Boolean(apiCertificateArn)) {
+  throw new Error(
+    "Set both TENANT_ACCESS_API_DOMAIN_NAME and TENANT_ACCESS_API_CERT_ARN, or neither",
+  );
+}
+
 const allowedOrigins = process.env.TENANT_ACCESS_ALLOWED_ORIGINS ?? "";
 
 new TenantAccessStack(app, "TenantAccessStack", {
@@ -29,6 +37,10 @@ new TenantAccessStack(app, "TenantAccessStack", {
   vpcId,
   inboundCidrs,
   allowedOrigins,
+  apiDomain:
+    apiDomainName && apiCertificateArn
+      ? { name: apiDomainName, certificateArn: apiCertificateArn }
+      : undefined,
 });
 
 app.synth();
