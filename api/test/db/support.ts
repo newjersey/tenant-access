@@ -17,7 +17,6 @@ export const TEST_DB_ENV = {
   DB_PASSWORD: TEST_DB.password,
   DB_SSL: "disable",
   BUCKET_NAME: "test-bucket",
-  ORIGIN_SECRET: "test-origin-secret",
 };
 
 export async function testClient(): Promise<Client> {
