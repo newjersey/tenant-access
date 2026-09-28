@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createRef, StrictMode } from "react";
+import { createRef } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import SearchControls from "@/components/SearchControls/SearchControls";
@@ -15,17 +15,15 @@ function CurrentQuery() {
 const renderAt = (url: string, location: string | null = null) => {
   const onToggleFilters = vi.fn();
   render(
-    <StrictMode>
-      <MemoryRouter initialEntries={[url]}>
-        <SearchControls
-          location={location}
-          filtersOpen={false}
-          onToggleFilters={onToggleFilters}
-          toggleRef={createRef<HTMLButtonElement>()}
-        />
-        <CurrentQuery />
-      </MemoryRouter>
-    </StrictMode>,
+    <MemoryRouter initialEntries={[url]}>
+      <SearchControls
+        location={location}
+        filtersOpen={false}
+        onToggleFilters={onToggleFilters}
+        toggleRef={createRef<HTMLButtonElement>()}
+      />
+      <CurrentQuery />
+    </MemoryRouter>,
   );
   return {
     onToggleFilters,
