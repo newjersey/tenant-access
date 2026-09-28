@@ -376,7 +376,7 @@ export class TenantAccessStack extends cdk.Stack {
         vpcEndpoints: [executeApiEndpoint],
       },
       deployOptions: {
-      stageName: "dev",
+        stageName: "dev",
         throttlingRateLimit: 50,
         throttlingBurstLimit: 100,
       },
