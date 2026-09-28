@@ -1,4 +1,4 @@
-import { type RefObject, useRef } from "react";
+import type { RefObject } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
@@ -18,17 +18,13 @@ function SearchControls({
   toggleRef,
 }: SearchControlsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const applied = useRef<string | null | undefined>(undefined);
 
   const runSearch = (selected: string | undefined) => {
-    const chosen = selected ?? null;
-    const echo = applied.current === undefined || chosen === applied.current;
-    applied.current = chosen;
-    if (echo) return;
+    if ((selected ?? null) === location) return; // don't re-run duplicate searches
 
     const params = new URLSearchParams(searchParams);
-    if (chosen) {
-      params.set("location", chosen);
+    if (selected) {
+      params.set("location", selected);
     } else {
       params.delete("location");
     }

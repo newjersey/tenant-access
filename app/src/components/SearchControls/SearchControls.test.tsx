@@ -37,6 +37,7 @@ describe("SearchControls", () => {
     const { box, query } = renderAt("/search?location=Newark&page=3", "Newark");
 
     expect(box).toHaveValue("Newark");
+    expect(query).toHaveTextContent("page=3");
     await userEvent.clear(box);
     await userEvent.type(box, "Trenton{Enter}");
 
