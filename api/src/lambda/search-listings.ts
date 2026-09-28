@@ -132,7 +132,6 @@ const respond = (
 });
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  // Access control is the private endpoint and its resource policy, not a header.
   const origin = headerValue(event, "origin");
   const params: SearchParams = event.queryStringParameters ?? {};
   const search: Search = {
