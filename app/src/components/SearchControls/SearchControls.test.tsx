@@ -73,8 +73,9 @@ describe("SearchControls", () => {
   });
 
   it("filters closed at first, and button toggles", async () => {
-    const { onToggleFilters } = renderAt("/search");
+    const { onToggleFilters, query } = renderAt("/search?page=3");
 
+    expect(query).toHaveTextContent("page=3");
     const toggle = screen.getByRole("button", { name: content.filters_button });
     expect(toggle).toHaveAttribute("aria-controls", "search-filters");
     expect(toggle).toHaveAttribute("aria-expanded", "false");

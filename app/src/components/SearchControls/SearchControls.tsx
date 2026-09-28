@@ -43,7 +43,7 @@ function SearchControls({
         <h1>{content.heading}</h1>
 
         <search>
-          <label className="usa-sr-only" htmlFor="search-location">
+          <label className="usa-label" htmlFor="search-location">
             {content.search_label}
           </label>
           <LocationComboBox
