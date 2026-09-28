@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createRef } from "react";
+import { createRef, StrictMode } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import SearchControls from "@/components/SearchControls/SearchControls";
@@ -15,55 +15,55 @@ function CurrentQuery() {
 const renderAt = (url: string, location: string | null = null) => {
   const onToggleFilters = vi.fn();
   render(
-    <MemoryRouter initialEntries={[url]}>
-      <SearchControls
-        location={location}
-        filtersOpen={false}
-        onToggleFilters={onToggleFilters}
-        toggleRef={createRef<HTMLButtonElement>()}
-      />
-      <CurrentQuery />
-    </MemoryRouter>,
+    <StrictMode>
+      <MemoryRouter initialEntries={[url]}>
+        <SearchControls
+          location={location}
+          filtersOpen={false}
+          onToggleFilters={onToggleFilters}
+          toggleRef={createRef<HTMLButtonElement>()}
+        />
+        <CurrentQuery />
+      </MemoryRouter>
+    </StrictMode>,
   );
   return {
     onToggleFilters,
     box: screen.getByRole("combobox", { name: content.search_label }),
-    submit: screen.getByRole("button", { name: content.search_button }),
     query: screen.getByTestId("query"),
   };
 };
 
 describe("SearchControls", () => {
-  it("seeds box from url and starts a new search back at the first page", async () => {
-    const { box, submit, query } = renderAt("/search?location=Newark&page=3", "Newark");
+  it("searches as soon as a city is chosen, back at the first page", async () => {
+    const { box, query } = renderAt("/search?location=Newark&page=3", "Newark");
 
     expect(box).toHaveValue("Newark");
     await userEvent.clear(box);
     await userEvent.type(box, "Trenton{Enter}");
-    await userEvent.click(submit);
 
     expect(query).toHaveTextContent("location=Trenton");
     expect(query.textContent).not.toContain("page");
   });
 
   it("searches every location when the box is cleared", async () => {
-    const { box, submit, query } = renderAt("/search?location=Newark", "Newark");
+    const { box, query } = renderAt("/search?location=Newark", "Newark");
 
     await userEvent.click(screen.getByRole("button", { name: "Clear the select contents" }));
-    await userEvent.click(submit);
 
     expect(query.textContent).not.toContain("location");
     expect(box).toHaveValue("");
   });
 
-  it("refuses a city that is not on the list", async () => {
-    const { box, submit, query } = renderAt("/search");
+  it("leaves the search alone while typing a city that is not on the list", async () => {
+    const { box, query } = renderAt("/search?location=Newark", "Newark");
 
+    await userEvent.clear(box);
     await userEvent.type(box, "xyz");
     expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
 
-    await userEvent.click(submit);
-    expect(query.textContent).not.toContain("location");
+    expect(query).toHaveTextContent("location=Newark");
+    expect(box).toHaveValue("xyz");
   });
 
   it("filters closed at first, and button toggles", async () => {

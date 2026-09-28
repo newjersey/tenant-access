@@ -62,21 +62,8 @@ summary {
   padding-top: 1rem;
 }
 
-.search-controls .usa-search {
-  display: flex;
-  max-width: 30rem;
-}
-
-.search-controls .usa-combo-box {
-  flex: 1;
-}
-
 .search-controls .usa-combo-box__input {
   margin-top: 0;
-}
-
-.search-controls .usa-search [type="submit"] {
-  height: 2.5rem;
 }
 
 .search-filters {

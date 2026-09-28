@@ -1,4 +1,4 @@
-import { type RefObject, type SubmitEvent, useState } from "react";
+import { type RefObject, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
@@ -18,13 +18,17 @@ function SearchControls({
   toggleRef,
 }: SearchControlsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selected, setSelected] = useState(location ?? undefined);
+  const applied = useRef<string | null | undefined>(undefined);
 
-  const runSearch = (event: SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const runSearch = (selected: string | undefined) => {
+    const chosen = selected ?? null;
+    const echo = applied.current === undefined || chosen === applied.current;
+    applied.current = chosen;
+    if (echo) return;
+
     const params = new URLSearchParams(searchParams);
-    if (selected) {
-      params.set("location", selected);
+    if (chosen) {
+      params.set("location", chosen);
     } else {
       params.delete("location");
     }
@@ -43,19 +47,14 @@ function SearchControls({
         <h1>{content.heading}</h1>
 
         <search>
-          <form className="usa-search usa-search--small" onSubmit={runSearch}>
-            <label className="usa-sr-only" htmlFor="search-location">
-              {content.search_label}
-            </label>
-            <LocationComboBox
-              id="search-location"
-              defaultValue={location ?? undefined}
-              onChange={setSelected}
-            />
-            <button className="usa-button" type="submit" aria-label={content.search_button}>
-              <Icon icon="search" class="usa-search__submit-icon" />
-            </button>
-          </form>
+          <label className="usa-sr-only" htmlFor="search-location">
+            {content.search_label}
+          </label>
+          <LocationComboBox
+            id="search-location"
+            defaultValue={location ?? undefined}
+            onChange={runSearch}
+          />
 
           <button
             type="button"
