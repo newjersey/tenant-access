@@ -9,6 +9,16 @@ if (!vpcId?.startsWith("vpc-")) {
   throw new Error("TENANT_ACCESS_VPC_ID must be set to the VPC id for the target account");
 }
 
+const inboundCidrs = (process.env.TENANT_ACCESS_INBOUND_CIDRS ?? "")
+  .split(",")
+  .map((cidr) => cidr.trim())
+  .filter(Boolean);
+if (inboundCidrs.length === 0) {
+  throw new Error(
+    "TENANT_ACCESS_INBOUND_CIDRS must list the CIDRs allowed to reach the private API, comma-separated",
+  );
+}
+
 const allowedOrigins = process.env.TENANT_ACCESS_ALLOWED_ORIGINS ?? "";
 
 new TenantAccessStack(app, "TenantAccessStack", {
@@ -17,6 +27,7 @@ new TenantAccessStack(app, "TenantAccessStack", {
     region: process.env.CDK_DEFAULT_REGION,
   },
   vpcId,
+  inboundCidrs,
   allowedOrigins,
 });
 

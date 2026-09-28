@@ -20,6 +20,7 @@ import type { Construct } from "constructs";
 
 export interface TenantAccessStackProps extends cdk.StackProps {
   readonly vpcId: string;
+  readonly inboundCidrs: string[];
   readonly allowedOrigins: string;
 }
 
@@ -76,22 +77,17 @@ export class TenantAccessStack extends cdk.Stack {
       privateDnsEnabled: true,
     });
 
-    // OIT's load balancer subnets are the only legitimate inbound. They sit
-    // outside this VPC, so the endpoint's default "open to the VPC CIDR" rule
-    // would not cover them -- hence an explicit group with open: false.
-    const OIT_INBOUND_CIDRS = ["10.43.253.0/24", "10.43.254.0/24"];
-
     const executeApiSecurityGroup = new ec2.SecurityGroup(this, "ExecuteApiEndpointSg", {
       vpc,
       description: "execute-api endpoint: HTTPS from OIT load balancer subnets only",
       allowAllOutbound: false,
     });
 
-    for (const cidr of OIT_INBOUND_CIDRS) {
+    for (const cidr of props.inboundCidrs) {
       executeApiSecurityGroup.addIngressRule(
         ec2.Peer.ipv4(cidr),
         ec2.Port.tcp(443),
-        "OIT load balancer subnet",
+        "permitted inbound subnet",
       );
     }
 
@@ -380,7 +376,7 @@ export class TenantAccessStack extends cdk.Stack {
         vpcEndpoints: [executeApiEndpoint],
       },
       deployOptions: {
-        stageName: "prod",
+      stageName: "dev",
         throttlingRateLimit: 50,
         throttlingBurstLimit: 100,
       },
