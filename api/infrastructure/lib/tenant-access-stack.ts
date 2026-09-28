@@ -83,7 +83,7 @@ export class TenantAccessStack extends cdk.Stack {
 
     const executeApiSecurityGroup = new ec2.SecurityGroup(this, "ExecuteApiEndpointSg", {
       vpc,
-      description: "execute-api endpoint: HTTPS from OIT's load balancer subnets only",
+      description: "execute-api endpoint: HTTPS from OIT load balancer subnets only",
       allowAllOutbound: false,
     });
 
