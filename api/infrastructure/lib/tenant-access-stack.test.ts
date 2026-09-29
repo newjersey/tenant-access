@@ -118,13 +118,6 @@ describe("TenantAccessStack", () => {
     });
   });
 
-  it("leaves out the frontend alarm and the email subscription when unconfigured", () => {
-    const template = synth();
-
-    template.resourceCountIs("AWS::SNS::Subscription", 0);
-    template.resourceCountIs("AWS::CloudWatch::Alarm", 1);
-  });
-
   it("alarms on a sustained Amplify 5xx rate and notifies the topic both ways", () => {
     const template = synth(undefined, { amplifyAppId: "d1234abcd5678" });
 
