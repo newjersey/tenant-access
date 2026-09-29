@@ -18,6 +18,8 @@ console.error = (...args: Parameters<typeof console.error>) => {
   originalError(...args);
 };
 
+window.scrollTo = () => {};
+
 const mediaQueryLists = new Map<string, MediaQueryList>();
 
 window.matchMedia = (media: string): MediaQueryList => {

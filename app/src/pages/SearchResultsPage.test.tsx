@@ -80,7 +80,7 @@ describe("SearchResultsPage", () => {
     Object.assign(desktop, { matches: false }); // cleanup
   });
 
-  it("returns to the top of the page when the results page changes", async () => {
+  it("returns to the top of the page on first load or pagination but not on sorts or filters", async () => {
     const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     searchListingsMock.mockResolvedValue({
       success: true,
@@ -90,17 +90,17 @@ describe("SearchResultsPage", () => {
 
     renderAt("/search?location=Newark");
 
-    const nextPage = await screen.findByRole("link", { name: common.pagination.nextPage });
-    expect(scrollTo).not.toHaveBeenCalled();
-
-    await userEvent.click(nextPage);
-
+    expect(scrollTo).toHaveBeenCalledTimes(1);
     expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
-    await waitFor(() =>
-      expect(searchListingsMock).toHaveBeenLastCalledWith(
-        expect.objectContaining({ page: 2 }),
-        expect.any(AbortSignal),
-      ),
-    );
+
+    const nextPage = await screen.findByRole("link", { name: common.pagination.nextPage });
+    await userEvent.click(nextPage);
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+
+    await userEvent.click(screen.getByLabelText(content.filter_senior));
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+
+    await userEvent.selectOptions(screen.getByLabelText(content.sort_label), "price_desc");
+    expect(scrollTo).toHaveBeenCalledTimes(2);
   });
 });
