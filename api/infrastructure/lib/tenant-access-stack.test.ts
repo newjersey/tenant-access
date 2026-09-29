@@ -34,7 +34,10 @@ const VPC_LOOKUP_RESULT = {
   ],
 };
 
-const synth = (apiDomain?: { name: string; certificateArn: string }) =>
+const synth = (
+  apiDomain?: { name: string; certificateArn: string },
+  alerts?: { amplifyAppId?: string; alertEmail?: string },
+) =>
   Template.fromStack(
     new TenantAccessStack(
       new cdk.App({
@@ -50,6 +53,7 @@ const synth = (apiDomain?: { name: string; certificateArn: string }) =>
         inboundCidrs: ["10.0.0.0/16"],
         allowedOrigins: "https://example.com",
         apiDomain,
+        ...alerts,
       },
     ),
   );
@@ -111,6 +115,53 @@ describe("TenantAccessStack", () => {
     template.hasResourceProperties("AWS::ApiGateway::BasePathMappingV2", {
       RestApiId: { Ref: Match.stringLikeRegexp("NJHRCApi") },
       Stage: { Ref: Match.stringLikeRegexp("NJHRCApiDeploymentStage") },
+    });
+  });
+
+  it("leaves out the frontend alarm and the email subscription when unconfigured", () => {
+    const template = synth();
+
+    template.resourceCountIs("AWS::SNS::Subscription", 0);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 1);
+  });
+
+  it("alarms on a sustained Amplify 5xx rate and notifies the topic both ways", () => {
+    const template = synth(undefined, { amplifyAppId: "d1234abcd5678" });
+
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "TenantAccess-Amplify-ServerErrorRate",
+      Threshold: 5,
+      EvaluationPeriods: 3,
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      TreatMissingData: "notBreaching",
+      AlarmActions: [{ Ref: Match.stringLikeRegexp("AlertsTopic") }],
+      OKActions: [{ Ref: Match.stringLikeRegexp("AlertsTopic") }],
+      Metrics: Match.arrayWith([
+        Match.objectLike({
+          Expression: "IF(requests >= 20, 100 * serverErrors / requests, 0)",
+        }),
+        Match.objectLike({
+          MetricStat: Match.objectLike({
+            Metric: {
+              Namespace: "AWS/AmplifyHosting",
+              MetricName: "5xxErrors",
+              Dimensions: [{ Name: "App", Value: "d1234abcd5678" }],
+            },
+            Stat: "Sum",
+            Period: 300,
+          }),
+        }),
+      ]),
+    });
+  });
+
+  it("subscribes the alert address to the topic", () => {
+    const template = synth(undefined, { alertEmail: "alerts@example.com" });
+
+    template.hasResourceProperties("AWS::SNS::Subscription", {
+      Protocol: "email",
+      Endpoint: "alerts@example.com",
+      TopicArn: { Ref: Match.stringLikeRegexp("AlertsTopic") },
     });
   });
 });
