@@ -521,7 +521,7 @@ export class TenantAccessStack extends cdk.Stack {
     searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
     searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
 
-     const amplifyAppId = props.amplifyAppId;
+    const amplifyAppId = props.amplifyAppId;
     if (amplifyAppId) {
       const amplifyMetric = (metricName: string) =>
         new cloudwatch.Metric({
