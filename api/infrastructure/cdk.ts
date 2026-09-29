@@ -29,6 +29,9 @@ if (Boolean(apiDomainName) !== Boolean(apiCertificateArn)) {
 
 const allowedOrigins = process.env.TENANT_ACCESS_ALLOWED_ORIGINS ?? "";
 
+const amplifyAppId = process.env.TENANT_ACCESS_AMPLIFY_APP_ID?.trim() || undefined;
+const alertEmail = process.env.TENANT_ACCESS_ALERT_EMAIL?.trim() || undefined;
+
 new TenantAccessStack(app, "TenantAccessStack", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -37,6 +40,8 @@ new TenantAccessStack(app, "TenantAccessStack", {
   vpcId,
   inboundCidrs,
   allowedOrigins,
+  amplifyAppId,
+  alertEmail,
   apiDomain:
     apiDomainName && apiCertificateArn
       ? { name: apiDomainName, certificateArn: apiCertificateArn }
