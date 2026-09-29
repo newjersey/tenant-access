@@ -18,6 +18,8 @@ function Pagination({ page, total }: PaginationProps) {
     return null;
   }
 
+  const backToTop = () => window.scrollTo({ top: 0 });
+
   const hrefFor = (target: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(target));
@@ -33,6 +35,7 @@ function Pagination({ page, total }: PaginationProps) {
               to={hrefFor(page - 1)}
               className="usa-pagination__link usa-pagination__previous-page"
               aria-label={labels.previousPage}
+              onClick={backToTop}
             >
               <Icon icon="navigate_before" />
               <span className="usa-pagination__link-text">{labels.previous}</span>
@@ -62,6 +65,7 @@ function Pagination({ page, total }: PaginationProps) {
                 className={`usa-pagination__button${isCurrent ? " usa-current" : ""}`}
                 aria-label={labels.page.replace("{{page}}", String(slot))}
                 aria-current={isCurrent ? "page" : undefined}
+                onClick={isCurrent ? undefined : backToTop}
               >
                 {slot}
               </Link>
@@ -75,6 +79,7 @@ function Pagination({ page, total }: PaginationProps) {
               to={hrefFor(page + 1)}
               className="usa-pagination__link usa-pagination__next-page"
               aria-label={labels.nextPage}
+              onClick={backToTop}
             >
               <span className="usa-pagination__link-text">{labels.next}</span>
               <Icon icon="navigate_next" />

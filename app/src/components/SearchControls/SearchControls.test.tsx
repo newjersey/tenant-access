@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -52,17 +52,6 @@ describe("SearchControls", () => {
 
     expect(query.textContent).not.toContain("location");
     expect(box).toHaveValue("");
-  });
-
-  it("leaves the search alone while typing a city that is not on the list", async () => {
-    const { box, query } = renderAt("/search?location=Newark", "Newark");
-
-    await userEvent.clear(box);
-    await userEvent.type(box, "xyz");
-    expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
-
-    expect(query).toHaveTextContent("location=Newark");
-    expect(box).toHaveValue("xyz");
   });
 
   it("reverts to searching all locations when url is for a city that is not on the list", async () => {

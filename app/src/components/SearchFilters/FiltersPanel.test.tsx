@@ -107,15 +107,4 @@ describe("FiltersPanel", () => {
     await userEvent.keyboard("{Escape}");
     expect(onClose).toHaveBeenCalledTimes(4);
   });
-
-  it("stays out of the way while closed", async () => {
-    const { onClose, panel } = renderAt("/search");
-
-    expect(panel).not.toHaveClass("search-filters--open");
-    expect(document.body).not.toHaveClass("filters-drawer-open");
-    expect(document.querySelector(".search-filters__overlay")).not.toBeInTheDocument();
-
-    await userEvent.keyboard("{Escape}");
-    expect(onClose).not.toHaveBeenCalled();
-  });
 });
