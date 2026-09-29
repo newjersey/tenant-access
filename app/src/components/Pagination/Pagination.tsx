@@ -65,6 +65,7 @@ function Pagination({ page, total }: PaginationProps) {
                 className={`usa-pagination__button${isCurrent ? " usa-current" : ""}`}
                 aria-label={labels.page.replace("{{page}}", String(slot))}
                 aria-current={isCurrent ? "page" : undefined}
+                onClick={isCurrent ? undefined : backToTop}
               >
                 {slot}
               </Link>

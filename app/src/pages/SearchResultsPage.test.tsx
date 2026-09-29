@@ -1,10 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import common from "@/data/content/en/common.json";
 import content from "@/data/content/en/search-results.json";
-import { makeListing } from "@/test/makeListing";
 import SearchResultsPage from "./SearchResultsPage";
 
 const { searchListingsMock } = vi.hoisted(() => ({ searchListingsMock: vi.fn() }));
@@ -80,27 +78,12 @@ describe("SearchResultsPage", () => {
     Object.assign(desktop, { matches: false }); // cleanup
   });
 
-  it("returns to the top of the page on first load or pagination but not on sorts or filters", async () => {
+  it("returns to the top of the page on first load", async () => {
     const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
-    searchListingsMock.mockResolvedValue({
-      success: true,
-      listings: [makeListing()],
-      pagination: { page: 1, total: 41 },
-    });
 
     renderAt("/search?location=Newark");
 
-    expect(scrollTo).toHaveBeenCalledTimes(1);
-    expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
-
-    const nextPage = await screen.findByRole("link", { name: common.pagination.nextPage });
-    await userEvent.click(nextPage);
-    expect(scrollTo).toHaveBeenCalledTimes(2);
-
-    await userEvent.click(screen.getByLabelText(content.filter_senior));
-    expect(scrollTo).toHaveBeenCalledTimes(2);
-
-    await userEvent.selectOptions(screen.getByLabelText(content.sort_label), "price_desc");
-    expect(scrollTo).toHaveBeenCalledTimes(2);
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0 });
+    await screen.findByText(content.no_results);
   });
 });

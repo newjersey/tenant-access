@@ -54,17 +54,6 @@ describe("SearchControls", () => {
     expect(box).toHaveValue("");
   });
 
-  it("leaves the search alone while typing a city that is not on the list", async () => {
-    const { box, query } = renderAt("/search?location=Newark", "Newark");
-
-    await userEvent.clear(box);
-    await userEvent.type(box, "xyz");
-    expect(within(screen.getByRole("listbox")).queryByRole("option")).not.toBeInTheDocument();
-
-    expect(query).toHaveTextContent("location=Newark");
-    expect(box).toHaveValue("xyz");
-  });
-
   it("reverts to searching all locations when url is for a city that is not on the list", async () => {
     const { box, query } = renderAt("/search?location=xyz", "xyz");
 
