@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import Pagination from "@/components/Pagination/Pagination";
 
 const renderAt = (url: string, page: number, total: number) =>
@@ -11,6 +12,10 @@ const renderAt = (url: string, page: number, total: number) =>
   );
 
 describe("Pagination", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders nothing when everything fits on one page", () => {
     renderAt("/search", 1, 12);
 
@@ -69,5 +74,22 @@ describe("Pagination", () => {
       "href",
       "/search?location=Long+Branch&page=3",
     );
+  });
+
+  it("returns to the top for a new page, but not for the page already shown", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    renderAt("/search?page=2", 2, 41);
+
+    await userEvent.click(screen.getByRole("link", { name: "Previous page" }));
+    expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0 });
+
+    await userEvent.click(screen.getByRole("link", { name: "Next page" }));
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+
+    await userEvent.click(screen.getByRole("link", { name: "Page 3" }));
+    expect(scrollTo).toHaveBeenCalledTimes(3);
+
+    await userEvent.click(screen.getByRole("link", { name: "Page 2" }));
+    expect(scrollTo).toHaveBeenCalledTimes(3);
   });
 });
