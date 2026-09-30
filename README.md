@@ -11,9 +11,10 @@ A affordable housing application for the New Jersey Housing and Mortgage Finance
 5. [Usage](#usage)
 6. [Testing](#testing)
 7. [Code Quality](#code-quality)
-8. [License](#license)
+8. [Monitoring](#monitoring)
 9. [Analytics and Feedback](#analytics-and-feedback)
-10. [Disclaimer](#disclaimer)
+10. [License](#license)
+11. [Disclaimer](#disclaimer)
 
 ## Architecture
 
@@ -58,6 +59,8 @@ The `api` workspace is configured for a Node runtime (its own `tsconfig.json`, s
 
 ## Installation
 
+Securely obtain `api/.env.dev`, `api/.env.prod`, and `app/.env.local` from a teammate.
+
 ### Prerequisites
 
 - Node.js (version specified in `.nvmrc`)
@@ -66,13 +69,10 @@ The `api` workspace is configured for a Node runtime (its own `tsconfig.json`, s
 ### Setup
 
 ```bash
-# Clone this repository
 git clone https://github.com/newjersey/tenant-access
 
-# Go into the repository
 cd tenant-access
 
-# Install dependencies
 npm install
 ```
 
@@ -155,41 +155,25 @@ flowchart TD
 
 ### Application Backend
 
-Once per environment, the following line needs to be run so that there's a secret that allows the Lambdas to check that all requests must go through CloudFront so they hit all the security rules.
-
-```
-aws secretsmanager create-secret --name tenant-access/origin-secret \
-  --secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
-```
-
-Security considerations:
-* IP-based rate limiting
-* AWS-managed IP reputation check (`AWSManagedRulesAmazonIpReputationList`)
-* AWS-managed threat check (`AWSManagedRulesCommonRuleSet`)
-* A secret header passed by CloudFront that is checked by the Lambda and never seen by the browser (so everyone has to go in the front door, no climbing up into the bedroom window like a teen in a movie)
-
 Performance considerations:
-* CloudFront will cache results and return them when it can
 * Searches only return 20 results at a time
 * Pagination and counting only go 1001 deep into results
-* Lambda instances are capped to not make our costs explode in a worst-case scenario
+* Lambda instances and DB connections are capped to not make our costs explode in a worst-case scenario
 
 ```mermaid
 flowchart TD
   A@{ shape: sl-rect, label: "Request" }
-  B@{ shape: cloud, label: "CloudFront" }
-  C@{ shape: cross-circ }
-  D@{ shape: trapezoid, label: "API Gateway"}
-  F@{ shape: rounded, label: "Search Lambda"}
-  G@{ shape: cyl, label: "ListingsDatabase
-  RDS Postgres" }
+  B@{ shape: trapezoid, label: "API Gateway"}
+  C@{ shape: rounded, label: "Search Lambda"}
+  D@{ shape: cyl, label: "ListingsDatabase RDS Postgres" }
+  E@{ shape: rounded, label: "Photos Lambda"}
+  F@{ shape: lin-cyl, label: "ListingImagesBucket" }
 
-  A --> |searches| B
-  B --> |if fails WAF rules| C
-  B --> D
-  B -.-> |cached result| B
-  D --> |within rate limit| F
-  F --> |if from CloudFront| G
+  A --> B
+  B --> |within rate limit| C
+  C --> |queries| D
+  B --> |within rate limit| E
+  E --> |queries| F
 ```
 
 ### Endpoints
@@ -202,6 +186,12 @@ Returns JSON of max-20 listings, plus the total count (max 1001) of listings tha
 Increment `page` to get later pages of results. Any number above 50 reverts to 50.
 
 Change `location` (ONLY searches by city name right now), or make it blank to return all locationss
+</details>
+
+<details>
+<summary><code>/photos/{listing_uid}/{image_id}.jpg</code></summary>
+
+Returns image from S3 bucket
 </details>
 
 ### Frontend Hosting
@@ -343,7 +333,11 @@ npm run lint:fix
 npm run check:fix
 ```
 
-Git hooks are configured via Husky to automatically run code quality checks on commit.
+Git hooks are configured via Husky to automatically run typechecks on commit. GitHub Actions will run the linting alongside automated tests on Pull Requests.
+
+### Test Coverage
+
+Testing coverage mandated at a 90% minimum for all measurement types for frontend and backend files. Backend DB tests also have 97% line coverage mandated. Your judgment on test coverage is important beyond meeting these guideline metrics.
 
 ### Development Principles
 
@@ -352,13 +346,17 @@ Git hooks are configured via Husky to automatically run code quality checks on c
 - Accessibility (WCAG 2.2 AA compliance)
 - Simple, maintainable solutions over clever complexity
 
-## License
+## Monitoring
 
-This project is licensed under the MIT license. For more information, see [LICENSE](LICENSE).
+AWS CloudWatch is configured by the CDK to send a message to the team's Slack channel if something looks wrong with either the backend or frontend. Re-running the CDK won't spam the Slack channel as long as it is re-run with the same values. If that starts happening, we can remove from CDK and describe the one-time process here.
 
 ## Analytics and Feedback
 
 This app uses Google Analytics and the NJ Feedback Widget. Two separate G-XXX IDs are loaded into AWS Amplify as environment variables (one for production, one for dev).
+
+## License
+
+This project is licensed under the MIT license. For more information, see [LICENSE](LICENSE).
 
 ## Disclaimer
 
