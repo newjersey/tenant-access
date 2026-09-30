@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "infrastructure/lib/*.test.ts"],
     env: { DB_USER: "", DB_PASSWORD: "" },
     exclude: [
       "**/node_modules/**",
@@ -16,8 +16,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/**/*.ts"],
-      exclude: ["src/**/*.d.ts", "src/**/*.test.ts", "dist/**"],
+      include: ["src/**/*.ts", "infrastructure/lib/*.ts"],
+      exclude: ["src/**/*.d.ts", "src/**/*.test.ts", "infrastructure/lib/*.test.ts", "dist/**"],
       thresholds: {
         statements: 90,
         branches: 90,

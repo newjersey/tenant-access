@@ -1,55 +1,65 @@
 # Tenant Access
 
-A tenant access application for the New Jersey Innovation Authority. This application provides secure access management and interfaces for tenants.
+A affordable housing application for the New Jersey Housing and Mortgage Finance Agency (NJHMFA) developed with the New Jersey Innovation Authority (NJIA). This application provides a searchable list of properties for potential tenants. Future features may include property manager and tenant accounts, and listing management.
 
 ## Table of Contents
 
 1. [Architecture](#architecture)
 2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Testing](#testing)
-5. [Code Quality](#code-quality)
-6. [License](#license)
-7. [Disclaimer](#disclaimer)
+3. [Infrastructure](#infrastructure)
+4. [Database Migrations](#database-migrations)
+5. [Usage](#usage)
+6. [Testing](#testing)
+7. [Code Quality](#code-quality)
+8. [Monitoring](#monitoring)
+9. [Analytics and Feedback](#analytics-and-feedback)
+10. [License](#license)
+11. [Disclaimer](#disclaimer)
 
 ## Architecture
 
-This is a modern React application built with Vite and TypeScript, organized as an npm workspace monorepo. The project emphasizes type safety, testing, and code quality through automated tooling.
+This is a monorepo with npm, with both frontend and backend in Typescript. The frontend, in `app/`, is a React application. The backend, in `api/`, is AWS CDK-managed infrastructure.
 
 ### Built With
 
-- [React 19](https://react.dev/) - UI library
-- [React Router 7](https://reactrouter.com/) - Client-side routing
-- [TypeScript 7](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Vite 8](https://vite.dev/) - Build tool and dev server
-- [Vitest 4](https://vitest.dev/) - Unit testing framework
+- [AWS CDK](https://aws.amazon.com/cdk/) - Amazon Web Services Cloud Development Kit
+- [PostgreSQL](https://www.postgresql.org/) - SQL database
+- [React](https://react.dev/) - UI library
+- [React Router](https://reactrouter.com/) - Client-side routing
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Vite](https://vite.dev/) - Build tool and dev server
+- [Vitest](https://vitest.dev/) - Unit testing framework
 - [Testing Library](https://testing-library.com/) - Component testing utilities
+- [Playwright](https://playwright.dev/) - End-to-end frontend testing
 - [Biome](https://biomejs.dev/) - Linting and formatting
 - [Husky](https://typicode.github.io/husky/) - Git hooks
+
+See the package.json for the full list of dependencies and versions.
 
 ### Project Structure
 
 ```
 tenant-access/
-├── app/              # Frontend application workspace (React + Vite)
-│   ├── src/          # Application source code
-│   ├── public/       # Static assets
-│   └── package.json  # App-specific dependencies
-├── api/              # Backend workspace (AWS Lambda, TypeScript)
-│   ├── src/          # Lambda handler source code
-│   └── package.json  # API-specific dependencies
-├── .github/          # GitHub workflows and templates
-├── .husky/           # Git hooks
-└── package.json      # Root workspace configuration
+├── app/                # Frontend application workspace (React + Vite)
+│   ├── src/            # Application source code
+│   ├── public/         # Static assets
+│   └── package.json    # App-specific dependencies
+├── api/                # Backend workspace (AWS Lambda, TypeScript)
+    ├── fixtures/       # Example HTML and JSON for use in backend tests
+    ├── infrastructure/ # CDK
+    ├── migrations/     # SQL database migrations
+│   ├── src/            # Lambda handler source code
+│   └── package.json    # API-specific dependencies
+├── .github/            # GitHub workflows and templates
+├── .husky/             # Git hooks (typecheck)
+└── package.json        # Root workspace configuration
 ```
 
-The `api` workspace is a minimal skeleton for the planned backend: a Lambda
-that communicates with a PostgreSQL database. It is configured for a Node
-runtime (its own `tsconfig.json`, separate from the frontend) with a
-placeholder handler. Build tooling, database client, and deployment are not
-yet chosen. Build/typecheck it with `npm run build:api`.
+The `api` workspace is configured for a Node runtime (its own `tsconfig.json`, separate from the frontend).
 
 ## Installation
+
+Securely obtain `api/.env.dev`, `api/.env.prod`, and `app/.env.local` from a teammate.
 
 ### Prerequisites
 
@@ -59,13 +69,10 @@ yet chosen. Build/typecheck it with `npm run build:api`.
 ### Setup
 
 ```bash
-# Clone this repository
 git clone https://github.com/newjersey/tenant-access
 
-# Go into the repository
 cd tenant-access
 
-# Install dependencies
 npm install
 ```
 
@@ -106,7 +113,7 @@ If any new file imports a DB connection, it will be automatically added to the D
 
 ## Infrastructure
 
-This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
+This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then, with AWS credentials for the target account in your environment, run `bash scripts/deploy.sh dev` or `bash scripts/deploy.sh prod` from the `api` directory. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects. Any extra arguments are passed through to `cdk deploy`.
 
 ### Temporary Data Infrastructure
 
@@ -148,41 +155,25 @@ flowchart TD
 
 ### Application Backend
 
-Once per environment, the following line needs to be run so that there's a secret that allows the Lambdas to check that all requests must go through CloudFront so they hit all the security rules.
-
-```
-aws secretsmanager create-secret --name tenant-access/origin-secret \
-  --secret-string "$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-32)"
-```
-
-Security considerations:
-* IP-based rate limiting
-* AWS-managed IP reputation check (`AWSManagedRulesAmazonIpReputationList`)
-* AWS-managed threat check (`AWSManagedRulesCommonRuleSet`)
-* A secret header passed by CloudFront that is checked by the Lambda and never seen by the browser (so everyone has to go in the front door, no climbing up into the bedroom window like a teen in a movie)
-
 Performance considerations:
-* CloudFront will cache results and return them when it can
 * Searches only return 20 results at a time
 * Pagination and counting only go 1001 deep into results
-* Lambda instances are capped to not make our costs explode in a worst-case scenario
+* Lambda instances and DB connections are capped to not make our costs explode in a worst-case scenario
 
 ```mermaid
 flowchart TD
   A@{ shape: sl-rect, label: "Request" }
-  B@{ shape: cloud, label: "CloudFront" }
-  C@{ shape: cross-circ }
-  D@{ shape: trapezoid, label: "API Gateway"}
-  F@{ shape: rounded, label: "Search Lambda"}
-  G@{ shape: cyl, label: "ListingsDatabase
-  RDS Postgres" }
+  B@{ shape: trapezoid, label: "API Gateway"}
+  C@{ shape: rounded, label: "Search Lambda"}
+  D@{ shape: cyl, label: "ListingsDatabase RDS Postgres" }
+  E@{ shape: rounded, label: "Photos Lambda"}
+  F@{ shape: lin-cyl, label: "ListingImagesBucket" }
 
-  A --> |searches| B
-  B --> |if fails WAF rules| C
-  B --> D
-  B -.-> |cached result| B
-  D --> |within rate limit| F
-  F --> |if from CloudFront| G
+  A --> B
+  B --> |within rate limit| C
+  C --> |queries| D
+  B --> |within rate limit| E
+  E --> |queries| F
 ```
 
 ### Endpoints
@@ -195,6 +186,12 @@ Returns JSON of max-20 listings, plus the total count (max 1001) of listings tha
 Increment `page` to get later pages of results. Any number above 50 reverts to 50.
 
 Change `location` (ONLY searches by city name right now), or make it blank to return all locationss
+</details>
+
+<details>
+<summary><code>/photos/{listing_uid}/{image_id}.jpg</code></summary>
+
+Returns image from S3 bucket
 </details>
 
 ### Frontend Hosting
@@ -214,7 +211,12 @@ Pushing to one of those branches triggers an Amplify build automatically through
 
 Both environments are currently password-protected because the application is not ready for launch. The Prod restriction should be removed at launch; Dev can keep it indefinitely. The username and password are available in `Project Info` in the `#tenant-access` Innovation Slack channel.
 
-`VITE_API_BASE_URL` is set as an Environment Variable on Amplify.
+<strong>Environment Variables set on Amplify</strong>
+
+Each has one value for Production and a separate value for Development:
+
+* `VITE_API_BASE_URL`
+* `VITE_GA_MEASUREMENT_ID`
 
 ## Database Migrations
 
@@ -237,10 +239,10 @@ bash api/scripts/create_migration.sh <description>
 
 1. The Migration Lambda in the `tenant-access-stack.ts` CDK config file is bundled with the whole `api/migrations` directory. Even thought the Lambda's code itself will rarely change, we need to do a CDK deployment to include any new migration files.
 
-2. Run `npx cdk deploy` to package the Lambda with the updated directory of migrations.
+2. Run `npm run deploy:dev` / `npm run deploy:prod` from the `api` directory to package the Lambda with the updated directory of migrations.
 
-3. Note the `MigrationLambdaName` in the output of `npx cdk deploy`.
-For example, `TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo`
+3. Note the `MigrationLambdaName` in the deployment output. For example:
+`TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1234A1A0-AbCdEFG`
 
 3. Run the lambda with its name and the filename for the new migration.
 
@@ -254,7 +256,7 @@ aws lambda invoke \
 # For example:
 
 aws lambda invoke \
-    --function-name TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo \
+    --function-name TenantAccessStack-MigrationFunction1234A1A0-AbCdEFG \
     --cli-binary-format raw-in-base64-out \
     --payload '{"migrationFile":"20260804110544_create_listings_table.sql"}' \
     /tmp/out.json && cat /tmp/out.json
@@ -331,7 +333,11 @@ npm run lint:fix
 npm run check:fix
 ```
 
-Git hooks are configured via Husky to automatically run code quality checks on commit.
+Git hooks are configured via Husky to automatically run typechecks on commit. GitHub Actions will run the linting alongside automated tests on Pull Requests.
+
+### Test Coverage
+
+Testing coverage mandated at a 90% minimum for all measurement types for frontend and backend files. Backend DB tests also have 97% line coverage mandated. Your judgment on test coverage is important beyond meeting these guideline metrics.
 
 ### Development Principles
 
@@ -340,13 +346,17 @@ Git hooks are configured via Husky to automatically run code quality checks on c
 - Accessibility (WCAG 2.2 AA compliance)
 - Simple, maintainable solutions over clever complexity
 
-## License
+## Monitoring
 
-This project is licensed under the MIT license. For more information, see [LICENSE](LICENSE).
+AWS CloudWatch is configured by the CDK to send a message to the team's Slack channel if something looks wrong with either the backend or frontend. Re-running the CDK won't spam the Slack channel as long as it is re-run with the same values. If that starts happening, we can remove from CDK and describe the one-time process here.
 
 ## Analytics and Feedback
 
 This app uses Google Analytics and the NJ Feedback Widget. Two separate G-XXX IDs are loaded into AWS Amplify as environment variables (one for production, one for dev).
+
+## License
+
+This project is licensed under the MIT license. For more information, see [LICENSE](LICENSE).
 
 ## Disclaimer
 

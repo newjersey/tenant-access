@@ -15,6 +15,7 @@ import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sns from "aws-cdk-lib/aws-sns";
+import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import type { Construct } from "constructs";
 
@@ -22,7 +23,9 @@ export interface TenantAccessStackProps extends cdk.StackProps {
   readonly vpcId: string;
   readonly inboundCidrs: string[];
   readonly allowedOrigins: string;
-  readonly apiDomain?: { readonly name: string; readonly certificateArn: string };
+  readonly apiDomain: { readonly name: string; readonly certificateArn: string };
+  readonly amplifyAppId: string;
+  readonly alertEmail: string;
 }
 
 export class TenantAccessStack extends cdk.Stack {
@@ -386,45 +389,43 @@ export class TenantAccessStack extends cdk.Stack {
     // OIT's load balancer forwards the client's Host header, and a private API will
     // not answer to an arbitrary name. Registering the name as a private custom
     // domain and associating it with the endpoint is what makes it route.
-    if (props.apiDomain) {
-      const apiDomain = new apigateway.CfnDomainNameV2(this, "ApiDomainName", {
-        domainName: props.apiDomain.name,
-        certificateArn: props.apiDomain.certificateArn,
-        endpointConfiguration: { types: ["PRIVATE"] },
-        securityPolicy: "TLS_1_2",
-        policy: {
-          Version: "2012-10-17",
-          Statement: [
-            {
-              Effect: "Allow",
-              Principal: "*",
-              Action: "execute-api:Invoke",
-              Resource: "*",
-              Condition: {
-                StringEquals: { "aws:SourceVpce": executeApiEndpoint.vpcEndpointId },
-              },
+    const apiDomain = new apigateway.CfnDomainNameV2(this, "ApiDomainName", {
+      domainName: props.apiDomain.name,
+      certificateArn: props.apiDomain.certificateArn,
+      endpointConfiguration: { types: ["PRIVATE"] },
+      securityPolicy: "TLS_1_2",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Principal: "*",
+            Action: "execute-api:Invoke",
+            Resource: "*",
+            Condition: {
+              StringEquals: { "aws:SourceVpce": executeApiEndpoint.vpcEndpointId },
             },
-          ],
-        },
-      });
+          },
+        ],
+      },
+    });
 
-      new apigateway.CfnDomainNameAccessAssociation(this, "ApiDomainAccessAssociation", {
-        domainNameArn: apiDomain.attrDomainNameArn,
-        accessAssociationSource: executeApiEndpoint.vpcEndpointId,
-        accessAssociationSourceType: "VPCE",
-      });
+    new apigateway.CfnDomainNameAccessAssociation(this, "ApiDomainAccessAssociation", {
+      domainNameArn: apiDomain.attrDomainNameArn,
+      accessAssociationSource: executeApiEndpoint.vpcEndpointId,
+      accessAssociationSourceType: "VPCE",
+    });
 
-      new apigateway.CfnBasePathMappingV2(this, "ApiDomainBasePathMapping", {
-        domainNameArn: apiDomain.attrDomainNameArn,
-        restApiId: njHRCApi.restApiId,
-        stage: njHRCApi.deploymentStage.stageName,
-      });
+    new apigateway.CfnBasePathMappingV2(this, "ApiDomainBasePathMapping", {
+      domainNameArn: apiDomain.attrDomainNameArn,
+      restApiId: njHRCApi.restApiId,
+      stage: njHRCApi.deploymentStage.stageName,
+    });
 
-      new cdk.CfnOutput(this, "ApiCustomDomainUrl", {
-        value: `https://${props.apiDomain.name}/listings/search`,
-        description: "Custom-domain form -- use this once DNS points at the endpoint",
-      });
-    }
+    new cdk.CfnOutput(this, "ApiCustomDomainUrl", {
+      value: `https://${props.apiDomain.name}/listings/search`,
+      description: "Custom-domain form -- use this once DNS points at the endpoint",
+    });
 
     njHRCApi.root
       .addResource("listings")
@@ -490,6 +491,8 @@ export class TenantAccessStack extends cdk.Stack {
       displayName: "Tenant Access alerts",
     });
 
+    alertsTopic.addSubscription(new subscriptions.EmailSubscription(props.alertEmail));
+
     const searchErrorRate = new cloudwatch.MathExpression({
       expression: "IF(requests >= 20, 100 * (clientErrors + serverErrors) / requests, 0)",
       usingMetrics: {
@@ -514,21 +517,39 @@ export class TenantAccessStack extends cdk.Stack {
     searchErrorRateAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
     searchErrorRateAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
 
-    // TODO: turn on once stable
-    // const detailsDlqAlarm = new cloudwatch.Alarm(this, "ScrapeDetailsDlqAlarm", {
-    //   alarmName: "TenantAccess-ScrapeDetails-DeadLetters",
-    //   alarmDescription: "A detail page failed three times. The message body names the uid.",
-    //   metric: detailsDlq.metricApproximateNumberOfMessagesVisible({
-    //     period: cdk.Duration.minutes(5),
-    //     statistic: "Maximum",
-    //   }),
-    //   threshold: 0,
-    //   evaluationPeriods: 1,
-    //   comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-    //   treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
-    // });
+    const amplifyAppId = props.amplifyAppId;
+    const amplifyMetric = (metricName: string) =>
+      new cloudwatch.Metric({
+        namespace: "AWS/AmplifyHosting",
+        metricName,
+        dimensionsMap: { App: amplifyAppId },
+        statistic: "Sum",
+        period: cdk.Duration.minutes(5),
+      });
 
-    // detailsDlqAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+    const amplifyServerErrorRate = new cloudwatch.MathExpression({
+      expression: "IF(requests >= 20, 100 * serverErrors / requests, 0)",
+      usingMetrics: {
+        requests: amplifyMetric("Requests"),
+        serverErrors: amplifyMetric("5xxErrors"),
+      },
+      period: cdk.Duration.minutes(5),
+      label: "Amplify 5xx rate (quiet periods ignored)",
+    });
+
+    const amplifyServerErrorAlarm = new cloudwatch.Alarm(this, "AmplifyServerErrorRateAlarm", {
+      alarmName: "TenantAccess-Amplify-ServerErrorRate",
+      alarmDescription:
+        "5xx rate on the Amplify-hosted frontend stayed above 5% for fifteen minutes.",
+      metric: amplifyServerErrorRate,
+      threshold: 5,
+      evaluationPeriods: 3, // 3 x 5min
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    amplifyServerErrorAlarm.addAlarmAction(new cwActions.SnsAction(alertsTopic));
+    amplifyServerErrorAlarm.addOkAction(new cwActions.SnsAction(alertsTopic));
 
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
