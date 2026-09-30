@@ -113,7 +113,7 @@ If any new file imports a DB connection, it will be automatically added to the D
 
 ## Infrastructure
 
-This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then run `npx cdk deploy` with the proper AWS credentials in your environment variables.
+This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then, with AWS credentials for the target account in your environment, run `bash scripts/deploy.sh dev` or `bash scripts/deploy.sh prod` from the `api` directory. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects. Any extra arguments are passed through to `cdk deploy`.
 
 ### Temporary Data Infrastructure
 
@@ -239,10 +239,10 @@ bash api/scripts/create_migration.sh <description>
 
 1. The Migration Lambda in the `tenant-access-stack.ts` CDK config file is bundled with the whole `api/migrations` directory. Even thought the Lambda's code itself will rarely change, we need to do a CDK deployment to include any new migration files.
 
-2. Run `npx cdk deploy` to package the Lambda with the updated directory of migrations.
+2. Run `npm run deploy:dev` / `npm run deploy:prod` from the `api` directory to package the Lambda with the updated directory of migrations.
 
-3. Note the `MigrationLambdaName` in the output of `npx cdk deploy`.
-For example, `TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo`
+3. Note the `MigrationLambdaName` in the deployment output. For example:
+`TenantAccessStack.MigrationLambdaName = TenantAccessStack-MigrationFunction1234A1A0-AbCdEFG`
 
 3. Run the lambda with its name and the filename for the new migration.
 
@@ -256,7 +256,7 @@ aws lambda invoke \
 # For example:
 
 aws lambda invoke \
-    --function-name TenantAccessStack-MigrationFunction1060F2E0-DfbZthsVWubo \
+    --function-name TenantAccessStack-MigrationFunction1234A1A0-AbCdEFG \
     --cli-binary-format raw-in-base64-out \
     --payload '{"migrationFile":"20260804110544_create_listings_table.sql"}' \
     /tmp/out.json && cat /tmp/out.json

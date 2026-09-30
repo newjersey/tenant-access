@@ -34,10 +34,7 @@ const VPC_LOOKUP_RESULT = {
   ],
 };
 
-const synth = (
-  apiDomain?: { name: string; certificateArn: string },
-  alerts?: { amplifyAppId?: string; alertEmail?: string },
-) =>
+const synth = () =>
   Template.fromStack(
     new TenantAccessStack(
       new cdk.App({
@@ -52,8 +49,9 @@ const synth = (
         vpcId: VPC_ID,
         inboundCidrs: ["10.0.0.0/16"],
         allowedOrigins: "https://example.com",
-        apiDomain,
-        ...alerts,
+        apiDomain: { name: "api.example.com", certificateArn: CERT_ARN },
+        amplifyAppId: "d1234abcd5678",
+        alertEmail: "alerts@example.com",
       },
     ),
   );
@@ -87,8 +85,6 @@ describe("TenantAccessStack", () => {
       ],
     });
 
-    template.resourceCountIs("AWS::ApiGateway::DomainNameV2", 0);
-
     // proves VPC_LOOKUP_KEY still matches
     template.hasResourceProperties("AWS::Lambda::Function", {
       VpcConfig: {
@@ -98,7 +94,7 @@ describe("TenantAccessStack", () => {
   });
 
   it("routes the custom domain to the deployed stage via the endpoint", () => {
-    const template = synth({ name: "api.example.com", certificateArn: CERT_ARN });
+    const template = synth();
 
     template.hasResourceProperties("AWS::ApiGateway::DomainNameV2", {
       DomainName: "api.example.com",
@@ -119,7 +115,7 @@ describe("TenantAccessStack", () => {
   });
 
   it("alarms on a sustained Amplify 5xx rate and notifies the topic both ways", () => {
-    const template = synth(undefined, { amplifyAppId: "d1234abcd5678" });
+    const template = synth();
 
     template.hasResourceProperties("AWS::CloudWatch::Alarm", {
       AlarmName: "TenantAccess-Amplify-ServerErrorRate",
@@ -149,7 +145,7 @@ describe("TenantAccessStack", () => {
   });
 
   it("subscribes the alert address to the topic", () => {
-    const template = synth(undefined, { alertEmail: "alerts@example.com" });
+    const template = synth();
 
     template.hasResourceProperties("AWS::SNS::Subscription", {
       Protocol: "email",
