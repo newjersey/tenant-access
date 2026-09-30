@@ -1,53 +1,60 @@
 # Tenant Access
 
-A tenant access application for the New Jersey Innovation Authority. This application provides secure access management and interfaces for tenants.
+A affordable housing application for the New Jersey Housing and Mortgage Finance Agency (NJHMFA) developed with the New Jersey Innovation Authority (NJIA). This application provides a searchable list of properties for potential tenants. Future features may include property manager and tenant accounts, and listing management.
 
 ## Table of Contents
 
 1. [Architecture](#architecture)
 2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Testing](#testing)
-5. [Code Quality](#code-quality)
-6. [License](#license)
-7. [Disclaimer](#disclaimer)
+3. [Infrastructure](#infrastructure)
+4. [Database Migrations](#database-migrations)
+5. [Usage](#usage)
+6. [Testing](#testing)
+7. [Code Quality](#code-quality)
+8. [License](#license)
+9. [Analytics and Feedback](#analytics-and-feedback)
+10. [Disclaimer](#disclaimer)
 
 ## Architecture
 
-This is a modern React application built with Vite and TypeScript, organized as an npm workspace monorepo. The project emphasizes type safety, testing, and code quality through automated tooling.
+This is a monorepo with npm, with both frontend and backend in Typescript. The frontend, in `app/`, is a React application. The backend, in `api/`, is AWS CDK-managed infrastructure.
 
 ### Built With
 
-- [React 19](https://react.dev/) - UI library
-- [React Router 7](https://reactrouter.com/) - Client-side routing
-- [TypeScript 7](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Vite 8](https://vite.dev/) - Build tool and dev server
-- [Vitest 4](https://vitest.dev/) - Unit testing framework
+- [AWS CDK](https://aws.amazon.com/cdk/) - Amazon Web Services Cloud Development Kit
+- [PostgreSQL](https://www.postgresql.org/) - SQL database
+- [React](https://react.dev/) - UI library
+- [React Router](https://reactrouter.com/) - Client-side routing
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Vite](https://vite.dev/) - Build tool and dev server
+- [Vitest](https://vitest.dev/) - Unit testing framework
 - [Testing Library](https://testing-library.com/) - Component testing utilities
+- [Playwright](https://playwright.dev/) - End-to-end frontend testing
 - [Biome](https://biomejs.dev/) - Linting and formatting
 - [Husky](https://typicode.github.io/husky/) - Git hooks
+
+See the package.json for the full list of dependencies and versions.
 
 ### Project Structure
 
 ```
 tenant-access/
-├── app/              # Frontend application workspace (React + Vite)
-│   ├── src/          # Application source code
-│   ├── public/       # Static assets
-│   └── package.json  # App-specific dependencies
-├── api/              # Backend workspace (AWS Lambda, TypeScript)
-│   ├── src/          # Lambda handler source code
-│   └── package.json  # API-specific dependencies
-├── .github/          # GitHub workflows and templates
-├── .husky/           # Git hooks
-└── package.json      # Root workspace configuration
+├── app/                # Frontend application workspace (React + Vite)
+│   ├── src/            # Application source code
+│   ├── public/         # Static assets
+│   └── package.json    # App-specific dependencies
+├── api/                # Backend workspace (AWS Lambda, TypeScript)
+    ├── fixtures/       # Example HTML and JSON for use in backend tests
+    ├── infrastructure/ # CDK
+    ├── migrations/     # SQL database migrations
+│   ├── src/            # Lambda handler source code
+│   └── package.json    # API-specific dependencies
+├── .github/            # GitHub workflows and templates
+├── .husky/             # Git hooks (typecheck)
+└── package.json        # Root workspace configuration
 ```
 
-The `api` workspace is a minimal skeleton for the planned backend: a Lambda
-that communicates with a PostgreSQL database. It is configured for a Node
-runtime (its own `tsconfig.json`, separate from the frontend) with a
-placeholder handler. Build tooling, database client, and deployment are not
-yet chosen. Build/typecheck it with `npm run build:api`.
+The `api` workspace is configured for a Node runtime (its own `tsconfig.json`, separate from the frontend).
 
 ## Installation
 
@@ -214,7 +221,12 @@ Pushing to one of those branches triggers an Amplify build automatically through
 
 Both environments are currently password-protected because the application is not ready for launch. The Prod restriction should be removed at launch; Dev can keep it indefinitely. The username and password are available in `Project Info` in the `#tenant-access` Innovation Slack channel.
 
-`VITE_API_BASE_URL` is set as an Environment Variable on Amplify.
+<strong>Environment Variables set on Amplify</strong>
+
+Each has one value for Production and a separate value for Development:
+
+* `VITE_API_BASE_URL`
+* `VITE_GA_MEASUREMENT_ID`
 
 ## Database Migrations
 
