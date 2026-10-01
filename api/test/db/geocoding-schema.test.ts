@@ -67,7 +67,7 @@ describe("search centers", () => {
     const { rows } = await db.query(
       `SELECT count(*)::int AS total, count(*) FILTER (WHERE ${IN_NJ})::int AS in_nj FROM city_counties`,
     );
-    expect(rows[0]).toEqual({ total: 353, in_nj: 353 });
+    expect(rows[0]).toEqual({ total: 356, in_nj: 356 });
   });
 
   it("puts every city near its own county's center", async () => {
