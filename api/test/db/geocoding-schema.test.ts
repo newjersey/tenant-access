@@ -146,8 +146,8 @@ describe("listing geocode constraints", () => {
   });
 
   it("rejects a match that has no coordinates when no match", async () => {
-    await expect(setGeocode({ geocode_match: "no_match", geocoded_at: new Date() })).rejects.toThrow(
-      /listings_coords_match_check/,
-    );
+    await expect(
+      setGeocode({ geocode_match: "no_match", geocoded_at: new Date() }),
+    ).rejects.toThrow(/listings_coords_match_check/);
   });
 });
