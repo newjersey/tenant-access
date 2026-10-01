@@ -20,10 +20,12 @@ interface Search {
 const PAGE_SIZE = 20;
 const CACHE_SECONDS = 300;
 const MAX_PARAM_LENGTH = 100;
+export const RADIUS_MILES = 5;
 
 const CITY_PLACEHOLDER = 1;
 const COUNTY_PLACEHOLDER = 2;
-const FIRST_FILTER_PLACEHOLDER = 3;
+const RADIUS_PLACEHOLDER = 3;
+const FIRST_FILTER_PLACEHOLDER = 4;
 
 // For performance, stop counting or searching past this many.
 // The frontend shows "over 1000 results" rather than an exact figure.
@@ -47,17 +49,30 @@ function parseSort(raw: string | undefined): SortKey {
   return raw !== undefined && raw in SORT_ORDERS ? (raw as SortKey) : DEFAULT_SORT;
 }
 
+const centerSql = `
+  LEFT JOIN (
+    SELECT latitude AS center_latitude, longitude AS center_longitude
+      FROM city_counties WHERE lower(city) = lower($${CITY_PLACEHOLDER})
+    UNION ALL
+    SELECT latitude, longitude
+      FROM counties WHERE lower(name) = lower($${COUNTY_PLACEHOLDER})
+  ) center ON TRUE`;
+
 const whereSql = (filters: FilterClause) => `
   WHERE shown_to_public
-    AND ($${CITY_PLACEHOLDER}::text IS NULL OR lower(city) = lower($${CITY_PLACEHOLDER}))
-    AND ($${COUNTY_PLACEHOLDER}::text IS NULL OR lower(city) IN (
-      SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($${COUNTY_PLACEHOLDER})
-    ))${filters.sql}`;
+    AND (
+      ($${CITY_PLACEHOLDER}::text IS NULL AND $${COUNTY_PLACEHOLDER}::text IS NULL)
+      OR lower(city) = lower($${CITY_PLACEHOLDER})
+      OR lower(city) IN (
+        SELECT lower(cc.city) FROM city_counties cc WHERE lower(cc.county) = lower($${COUNTY_PLACEHOLDER})
+      )
+      OR miles_between(latitude, longitude, center_latitude, center_longitude) <= $${RADIUS_PLACEHOLDER}
+    )${filters.sql}`;
 
 const resultsSql = (sort: SortKey, filters: FilterClause) => `
   SELECT
     ${LISTING_SELECT_COLUMNS}
-  FROM listings${whereSql(filters)}
+  FROM listings${centerSql}${whereSql(filters)}
   ORDER BY ${SORT_ORDERS[sort]}
   LIMIT $${FIRST_FILTER_PLACEHOLDER + filters.values.length}
   OFFSET $${FIRST_FILTER_PLACEHOLDER + filters.values.length + 1}
@@ -67,7 +82,7 @@ const countSql = (filters: FilterClause) => `
   SELECT COUNT(*) AS total
   FROM (
     SELECT 1
-    FROM listings${whereSql(filters)}
+    FROM listings${centerSql}${whereSql(filters)}
     LIMIT ${RESULT_CAP}
   )
 `;
@@ -84,6 +99,7 @@ async function queryResults(pool: Pool, search: Search) {
   const result = await pool.query<ListingRow>(resultsSql(search.sort, search.filters), [
     search.location.city,
     search.location.county,
+    RADIUS_MILES,
     ...search.filters.values,
     PAGE_SIZE,
     (search.page - 1) * PAGE_SIZE,
@@ -95,6 +111,7 @@ async function queryTotalResultsCount(pool: Pool, search: Search) {
   const result = await pool.query<{ total: string }>(countSql(search.filters), [
     search.location.city,
     search.location.county,
+    RADIUS_MILES,
     ...search.filters.values,
   ]);
   return Number(result.rows[0].total);
