@@ -3,7 +3,6 @@
 
 -- Geocoded point for each listing
 -- geocode_match to capture API's confidence
--- Unmatched listings keep NULL coordinates and fall back to plain city/county matching in search.
 ALTER TABLE listings
   ADD COLUMN latitude DOUBLE PRECISION,
   ADD COLUMN longitude DOUBLE PRECISION,
@@ -15,7 +14,7 @@ ALTER TABLE listings
   ADD CONSTRAINT listings_geocoded_at_with_match_check
     CHECK ((geocoded_at IS NULL) = (geocode_match IS NULL)),
   ADD CONSTRAINT listings_coords_match_check
-    CHECK (geocode_match IS NULL OR (geocode_match = 'no_match') = (latitude IS NULL));
+    CHECK ((geocode_match IS NULL) = (latitude IS NULL));
 
 -- Haversine formula for distance
 CREATE FUNCTION miles_between(

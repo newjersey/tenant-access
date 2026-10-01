@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { TenantAccessStack } from "./tenant-access-stack.js";
 
 const ACCOUNT = "123456789012";
@@ -152,5 +152,35 @@ describe("TenantAccessStack", () => {
       Endpoint: "alerts@example.com",
       TopicArn: { Ref: Match.stringLikeRegexp("AlertsTopic") },
     });
+  });
+
+  it("writes geocode JSON from outside the VPC, and loads it into the database from inside", () => {
+    const template = synth();
+
+    template.hasResourceProperties("Custom::S3BucketNotifications", {
+      NotificationConfiguration: {
+        LambdaFunctionConfigurations: Match.arrayWith([
+          Match.objectLike({
+            LambdaFunctionArn: {
+              "Fn::GetAtt": [Match.stringLikeRegexp("UpdateGeocodesFunction"), "Arn"],
+            },
+            Filter: {
+              Key: {
+                FilterRules: [
+                  { Name: "suffix", Value: ".json" },
+                  { Name: "prefix", Value: "geocode/" },
+                ],
+              },
+            },
+          }),
+        ]),
+      },
+    });
+
+    const functions = template.findResources("AWS::Lambda::Function");
+    const byId = (prefix: string) =>
+      Object.entries(functions).find(([id]) => id.startsWith(prefix))?.[1].Properties;
+    expect(byId("GeocodeListingFunction")?.VpcConfig).toBeUndefined();
+    expect(byId("UpdateGeocodesFunction")?.VpcConfig).toBeDefined();
   });
 });

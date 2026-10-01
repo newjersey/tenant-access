@@ -116,12 +116,6 @@ describe("listing geocode constraints", () => {
     ).resolves.toMatchObject({ rowCount: 1 });
   });
 
-  it("accepts a no_match without coordinates", async () => {
-    await expect(
-      setGeocode({ geocode_match: "no_match", geocoded_at: new Date() }),
-    ).resolves.toMatchObject({ rowCount: 1 });
-  });
-
   it("rejects a latitude without a longitude", async () => {
     await expect(
       setGeocode({ latitude: 40.22, geocode_match: "exact", geocoded_at: new Date() }),
@@ -145,19 +139,14 @@ describe("listing geocode constraints", () => {
     ).rejects.toThrow(/listings_geocoded_at_with_match_check/);
   });
 
-  it("rejects a no_match that has coordinates", async () => {
-    await expect(
-      setGeocode({
-        latitude: 40.22,
-        longitude: -74.76,
-        geocode_match: "no_match",
-        geocoded_at: new Date(),
-      }),
-    ).rejects.toThrow(/listings_coords_match_check/);
+  it("rejects a match that has no coordinates when exact", async () => {
+    await expect(setGeocode({ geocode_match: "exact", geocoded_at: new Date() })).rejects.toThrow(
+      /listings_coords_match_check/,
+    );
   });
 
-  it("rejects a match that has no coordinates", async () => {
-    await expect(setGeocode({ geocode_match: "exact", geocoded_at: new Date() })).rejects.toThrow(
+  it("rejects a match that has no coordinates when no match", async () => {
+    await expect(setGeocode({ geocode_match: "no_match", geocoded_at: new Date() })).rejects.toThrow(
       /listings_coords_match_check/,
     );
   });
