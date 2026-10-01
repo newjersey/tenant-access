@@ -113,7 +113,12 @@ If any new file imports a DB connection, it will be automatically added to the D
 
 ## Infrastructure
 
-This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then, with AWS credentials for the target account in your environment, run `bash scripts/deploy.sh dev` or `bash scripts/deploy.sh prod` from the `api` directory. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects. Any extra arguments are passed through to `cdk deploy`.
+This project uses the AWS CDK to deploy its infrastructure. To make updates:
+
+1. Edit `api/infrastructure/lib/tenant-access-stack.ts`
+2. With AWS credentials for the target account in your environment, run `npm run deploy:dev` or `npm run deploy:prod` from the `api` directory.
+  2a. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects.
+  2b. Any extra arguments are passed through to `cdk deploy`.
 
 ### Temporary Data Infrastructure
 
