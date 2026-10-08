@@ -12,6 +12,7 @@ const ALLOWED_ORIGIN = "http://localhost:5173";
 
 // ALLOWED_ORIGINS is read once at module load, so the env has to be set before the import.
 let handler: typeof import("./search-listings.js").handler;
+let RADIUS_MILES: number;
 
 const makeEvent = (
   queryStringParameters?: Record<string, string>,
@@ -34,7 +35,7 @@ describe("search-listings handler", () => {
     );
 
     vi.resetModules();
-    ({ handler } = await import("./search-listings.js"));
+    ({ handler, RADIUS_MILES } = await import("./search-listings.js"));
   });
 
   it("returns listings and pagination", async () => {
@@ -59,19 +60,19 @@ describe("search-listings handler", () => {
       ([sql]) => !sql.includes("COUNT(*)"),
     ) as [string, unknown[]];
     expect(resultsSql).toContain("shown_to_public");
-    expect(resultsParams).toEqual(["Newark", null, 20, 40]);
+    expect(resultsParams).toEqual(["Newark", null, RADIUS_MILES, 20, 40]);
 
     const [, countParams] = queryMock.mock.calls.find(([sql]) => sql.includes("COUNT(*)")) as [
       string,
       unknown[],
     ];
-    expect(countParams).toEqual(["Newark", null]);
+    expect(countParams).toEqual(["Newark", null, RADIUS_MILES]);
   });
 
   it("treats a blank location as no filter", async () => {
     await invoke({ location: "   " });
 
-    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [null, null, 20, 0]);
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [null, null, RADIUS_MILES, 20, 0]);
   });
 
   it("distinguishes a county from the city that shares its name", async () => {
@@ -83,8 +84,8 @@ describe("search-listings handler", () => {
       .map(([, p]) => p);
 
     expect(params).toEqual([
-      ["Camden", null, 20, 0],
-      [null, "Camden", 20, 0],
+      ["Camden", null, RADIUS_MILES, 20, 0],
+      [null, "Camden", RADIUS_MILES, 20, 0],
     ]);
   });
 
