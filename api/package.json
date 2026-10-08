@@ -33,7 +33,7 @@
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^5.0.0",
     "aws-cdk": "^2.1143.0",
-    "aws-cdk-lib": "^2.270.0",
+    "aws-cdk-lib": "^2.272.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.28.2",
     "tsx": "^4.23.1",
