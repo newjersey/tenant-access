@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import LocationSearch from "@/components/LocationSearch/LocationSearch";
 import content from "@/data/content/en/home.json";
+import { isNjZip } from "@/utils/searchQuery";
 
 function HomePage() {
   const [location, setLocation] = useState<string | undefined>();
@@ -12,6 +13,7 @@ function HomePage() {
 
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (zip && !isNjZip(zip)) return;
     const params = [];
     if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (zip) params.push(`zip=${zip}`);

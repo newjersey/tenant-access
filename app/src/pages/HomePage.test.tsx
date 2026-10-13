@@ -52,7 +52,10 @@ describe("HomePage", () => {
   it("searches by ZIP code and can leave out nearby listings", async () => {
     renderPage();
 
-    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "08-608");
+    await userEvent.type(
+      screen.getByRole("textbox", { name: common.locationSearch.zip }),
+      "08-608",
+    );
     await userEvent.click(screen.getByRole("checkbox", { name: common.locationSearch.nearby }));
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
@@ -63,5 +66,17 @@ describe("HomePage", () => {
     renderPage();
 
     expect(screen.getByRole("checkbox", { name: common.locationSearch.nearby })).toBeChecked();
+  });
+
+  it("explains a ZIP that isn't in New Jersey instead of searching it", async () => {
+    renderPage();
+
+    const zip = screen.getByRole("textbox", { name: common.locationSearch.zip });
+    await userEvent.type(zip, "99999");
+    await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(common.locationSearch.zipError);
+    expect(zip).toHaveAccessibleDescription(common.locationSearch.zipError);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

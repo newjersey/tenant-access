@@ -1,6 +1,6 @@
 import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
 import content from "@/data/content/en/common.json";
-import { ZIP_DIGITS } from "@/utils/searchQuery";
+import { isNjZip, ZIP_DIGITS } from "@/utils/searchQuery";
 
 interface LocationSearchProps {
   id: string;
@@ -25,6 +25,11 @@ function LocationSearch({
   onZipChange,
   onNearbyChange,
 }: LocationSearchProps) {
+  const zipError = zip.length === ZIP_DIGITS && !isNjZip(zip);
+  const zipClassName = ["usa-input", "usa-input--small", zipError && "usa-input--error"]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <>
       <label className="usa-label" htmlFor={id}>
@@ -37,8 +42,13 @@ function LocationSearch({
       <label className="usa-label margin-top-1" htmlFor={`${id}-zip`}>
         {content.locationSearch.zip}
       </label>
+      {zipError && (
+        <span className="usa-error-message" id={`${id}-zip-error`} role="alert">
+          {content.locationSearch.zipError}
+        </span>
+      )}
       <input
-        className="usa-input usa-input--small"
+        className={zipClassName}
         id={`${id}-zip`}
         name="zip"
         type="text"
@@ -47,10 +57,12 @@ function LocationSearch({
         pattern="[0-9]{5}"
         maxLength={ZIP_DIGITS}
         value={zip}
+        aria-invalid={zipError}
+        aria-describedby={zipError ? `${id}-zip-error` : undefined}
         onChange={(event) => onZipChange(zipDigits(event.target.value))}
       />
 
-      <div className="usa-checkbox margin-top-2">
+      <div className="usa-checkbox bg-transparent margin-top-2">
         <input
           className="usa-checkbox__input"
           id={`${id}-nearby`}

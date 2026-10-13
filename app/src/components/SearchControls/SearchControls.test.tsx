@@ -109,4 +109,20 @@ describe("SearchControls", () => {
     expect(nearby).toBeChecked();
     expect(query.textContent).not.toContain("nearby");
   });
+
+  it("explains a ZIP that isn't in New Jersey instead of searching it", async () => {
+    const { query } = renderAt("/search?page=3");
+
+    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "99999");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(common.locationSearch.zipError);
+    expect(query).toHaveTextContent("page=3");
+    expect(query.textContent).not.toContain("zip");
+  });
+
+  it("flags a non-NJ ZIP that arrives in the url", () => {
+    renderAt("/search?zip=99999");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(common.locationSearch.zipError);
+  });
 });

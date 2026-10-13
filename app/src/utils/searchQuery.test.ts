@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSearchQuery, wholeDollars } from "./searchQuery";
+import { isNjZip, parseSearchQuery, wholeDollars } from "./searchQuery";
 
 const parse = (query: string) => parseSearchQuery(new URLSearchParams(query));
 
@@ -98,5 +98,16 @@ describe("wholeDollars", () => {
     expect(wholeDollars("00123")).toBe("123");
     expect(wholeDollars("12345678")).toBe("123456");
     expect(wholeDollars("abc")).toBe("");
+  });
+});
+
+describe("isNjZip", () => {
+  it("accepts NJ ZIPs and rejects everything else", () => {
+    expect(isNjZip("08608")).toBe(true);
+    expect(isNjZip("07001")).toBe(true);
+    expect(isNjZip("07000")).toBe(false);
+    expect(isNjZip("99999")).toBe(false);
+    expect(isNjZip("10001")).toBe(false);
+    expect(isNjZip("0860")).toBe(false);
   });
 });

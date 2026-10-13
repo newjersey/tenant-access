@@ -1,3 +1,4 @@
+import njZipCodes from "@/data/locations/zip-codes.json";
 export const SORT_OPTIONS = ["updated", "price_asc", "price_desc"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 const DEFAULT_SORT: SortOption = "updated";
@@ -12,6 +13,8 @@ export const DOLLAR_AMOUNT_DIGITS = 6;
 export const DOLLAR_AMOUNT_PATTERN = /^[1-9]\d{0,5}$/; // One to six digits, no leading zero
 export const ZIP_DIGITS = 5;
 export const ZIP_PATTERN = /^\d{5}$/;
+const NJ_ZIPS = new Set(njZipCodes);
+export const isNjZip = (zip: string): boolean => NJ_ZIPS.has(zip);
 
 export const wholeDollars = (raw: string): string =>
   raw.split(".")[0].replace(/\D/g, "").replace(/^0+/, "").slice(0, DOLLAR_AMOUNT_DIGITS);

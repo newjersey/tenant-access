@@ -222,3 +222,20 @@ summary {
 .usa-hero .usa-checkbox__input:checked + .usa-checkbox__label::before {
   box-shadow: 0 0 0 2px white;
 }
+
+.usa-hero .usa-checkbox__label {
+  color: white;
+}
+
+.usa-hero .usa-checkbox__input:checked + .usa-checkbox__label::before {
+  box-shadow: 0 0 0 2px white;
+}
+
+/* The default error red is too dark to read on the hero's navy */
+.usa-hero .usa-error-message {
+  color: #fd8ba0;
+}
+
+.usa-hero .usa-input--error {
+  border-color: #fd8ba0;
+}

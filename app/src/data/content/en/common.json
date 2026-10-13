@@ -10,6 +10,7 @@
   "locationSearch": {
     "or": "OR",
     "zip": "ZIP code",
+    "zipError": "Enter a New Jersey ZIP code",
     "nearby": "Include nearby"
   },
   "pagination": {

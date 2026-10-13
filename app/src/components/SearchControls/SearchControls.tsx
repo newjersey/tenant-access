@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
 import LocationSearch from "@/components/LocationSearch/LocationSearch";
 import content from "@/data/content/en/search-results.json";
-import { parseSearchQuery, withFilter, ZIP_PATTERN } from "@/utils/searchQuery";
+import { isNjZip, parseSearchQuery, withFilter } from "@/utils/searchQuery";
 
 interface SearchControlsProps {
   location: string | null;
@@ -42,11 +42,11 @@ function SearchControls({
     setSearchParams(params);
   };
 
-  // Only search once the ZIP is complete or cleared, not on every keystroke
+  // Only search once the ZIP is a complete NJ one or cleared, not on every keystroke
   const changeZip = (value: string) => {
     setZipDraft(value);
     if (value === (zip ?? "")) return;
-    if (value === "" || ZIP_PATTERN.test(value)) {
+    if (value === "" || isNjZip(value)) {
       setSearchParams((current) => withFilter(current, "zip", value));
     }
   };
