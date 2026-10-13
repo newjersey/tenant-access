@@ -60,19 +60,26 @@ describe("search-listings handler", () => {
       ([sql]) => !sql.includes("COUNT(*)"),
     ) as [string, unknown[]];
     expect(resultsSql).toContain("shown_to_public");
-    expect(resultsParams).toEqual(["Newark", null, RADIUS_MILES, 20, 40]);
+    expect(resultsParams).toEqual(["Newark", null, null, RADIUS_MILES, 20, 40]);
 
     const [, countParams] = queryMock.mock.calls.find(([sql]) => sql.includes("COUNT(*)")) as [
       string,
       unknown[],
     ];
-    expect(countParams).toEqual(["Newark", null, RADIUS_MILES]);
+    expect(countParams).toEqual(["Newark", null, null, RADIUS_MILES]);
   });
 
   it("treats a blank location as no filter", async () => {
     await invoke({ location: "   " });
 
-    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [null, null, RADIUS_MILES, 20, 0]);
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [
+      null,
+      null,
+      null,
+      RADIUS_MILES,
+      20,
+      0,
+    ]);
   });
 
   it("distinguishes a county from the city that shares its name", async () => {
@@ -84,9 +91,41 @@ describe("search-listings handler", () => {
       .map(([, p]) => p);
 
     expect(params).toEqual([
-      ["Camden", null, RADIUS_MILES, 20, 0],
-      [null, "Camden", RADIUS_MILES, 20, 0],
+      ["Camden", null, null, RADIUS_MILES, 20, 0],
+      [null, "Camden", null, RADIUS_MILES, 20, 0],
     ]);
+  });
+
+  it("searches by ZIP alone when both a ZIP and a location are given", async () => {
+    await invoke({ location: "Newark", zip: " 08608 " });
+
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [
+      null,
+      null,
+      "08608",
+      RADIUS_MILES,
+      20,
+      0,
+    ]);
+  });
+
+  it("falls back to the location when the ZIP isn't five digits", async () => {
+    await invoke({ location: "Newark", zip: "0860" });
+
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), [
+      "Newark",
+      null,
+      null,
+      RADIUS_MILES,
+      20,
+      0,
+    ]);
+  });
+
+  it("drops the radius when nearby is turned off", async () => {
+    await invoke({ location: "Newark", nearby: "false" });
+
+    expect(queryMock).toHaveBeenCalledWith(expect.any(String), ["Newark", null, null, null, 20, 0]);
   });
 
   it("reflects an allowlisted origin and ignores an unknown one", async () => {

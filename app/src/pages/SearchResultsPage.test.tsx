@@ -39,6 +39,8 @@ describe("SearchResultsPage", () => {
     expect(searchListingsMock).toHaveBeenCalledWith(
       {
         location: "Newark",
+        zip: null,
+        nearby: true,
         page: 3,
         sort: "updated",
         filters: { bedrooms: "studio", bathrooms: "2" },

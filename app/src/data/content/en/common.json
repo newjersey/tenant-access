@@ -7,6 +7,11 @@
     "placeholder": "Search by county or city",
     "noResults": "No matching cities"
   },
+  "locationSearch": {
+    "or": "OR",
+    "zip": "ZIP code",
+    "nearby": "Include nearby"
+  },
   "pagination": {
     "label": "Pagination",
     "previous": "Previous",

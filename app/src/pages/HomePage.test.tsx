@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import common from "@/data/content/en/common.json";
 import content from "@/data/content/en/home.json";
 import HomePage from "./HomePage";
 
@@ -46,5 +47,21 @@ describe("HomePage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/search?location=Trenton");
+  });
+
+  it("searches by ZIP code and can leave out nearby listings", async () => {
+    renderPage();
+
+    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "08-608");
+    await userEvent.click(screen.getByRole("checkbox", { name: common.locationSearch.nearby }));
+    await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/search?zip=08608&nearby=false");
+  });
+
+  it("includes nearby listings by default", () => {
+    renderPage();
+
+    expect(screen.getByRole("checkbox", { name: common.locationSearch.nearby })).toBeChecked();
   });
 });

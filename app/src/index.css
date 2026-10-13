@@ -210,3 +210,15 @@ summary {
 .usa-footer__primary-section {
   background-color: #dfe1e2;
 }
+
+.usa-hero .usa-checkbox {
+  background: transparent;
+}
+
+.usa-hero .usa-checkbox__label {
+  color: white;
+}
+
+.usa-hero .usa-checkbox__input:checked + .usa-checkbox__label::before {
+  box-shadow: 0 0 0 2px white;
+}

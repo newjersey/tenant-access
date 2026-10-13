@@ -1,8 +1,9 @@
-import type { RefObject } from "react";
+import { type RefObject, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
-import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
+import LocationSearch from "@/components/LocationSearch/LocationSearch";
 import content from "@/data/content/en/search-results.json";
+import { parseSearchQuery, withFilter, ZIP_PATTERN } from "@/utils/searchQuery";
 
 interface SearchControlsProps {
   location: string | null;
@@ -18,6 +19,15 @@ function SearchControls({
   toggleRef,
 }: SearchControlsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { zip, nearby } = parseSearchQuery(searchParams);
+  const [zipDraft, setZipDraft] = useState(zip ?? ""); // "draft" is to not register change until complete
+  const [appliedZip, setAppliedZip] = useState(zip);
+
+  // Pick up a ZIP that changed in the URL some other way, e.g. back navigation
+  if (zip !== appliedZip) {
+    setAppliedZip(zip);
+    setZipDraft(zip ?? "");
+  }
 
   const runSearch = (selected: string | undefined) => {
     if ((selected ?? null) === location) return; // don't re-run duplicate searches
@@ -32,6 +42,19 @@ function SearchControls({
     setSearchParams(params);
   };
 
+  // Only search once the ZIP is complete or cleared, not on every keystroke
+  const changeZip = (value: string) => {
+    setZipDraft(value);
+    if (value === (zip ?? "")) return;
+    if (value === "" || ZIP_PATTERN.test(value)) {
+      setSearchParams((current) => withFilter(current, "zip", value));
+    }
+  };
+
+  const changeNearby = (checked: boolean) => {
+    setSearchParams((current) => withFilter(current, "nearby", checked ? "" : "false"));
+  };
+
   return (
     <div className="search-controls">
       <div className="grid-container">
@@ -43,13 +66,15 @@ function SearchControls({
         <h1>{content.heading}</h1>
 
         <search>
-          <label className="usa-label" htmlFor="search-location">
-            {content.search_label}
-          </label>
-          <LocationComboBox
+          <LocationSearch
             id="search-location"
-            defaultValue={location ?? undefined}
-            onChange={runSearch}
+            label={content.search_label}
+            defaultLocation={location ?? undefined}
+            zip={zipDraft}
+            nearby={nearby ?? true}
+            onLocationChange={runSearch}
+            onZipChange={changeZip}
+            onNearbyChange={changeNearby}
           />
 
           <button

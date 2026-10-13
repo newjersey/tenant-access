@@ -66,6 +66,12 @@ export async function searchListings(
   if (query.location) {
     params.push(`location=${encodeURIComponent(query.location)}`);
   }
+  if (query.zip) {
+    params.push(`zip=${encodeURIComponent(query.zip)}`);
+  }
+  if (query.nearby === false) {
+    params.push("nearby=false");
+  }
   if (query.sort) {
     params.push(`sort=${encodeURIComponent(query.sort)}`);
   }

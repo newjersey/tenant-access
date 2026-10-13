@@ -1,16 +1,22 @@
 import { type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/Icon/Icon";
-import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
+import LocationSearch from "@/components/LocationSearch/LocationSearch";
 import content from "@/data/content/en/home.json";
 
 function HomePage() {
   const [location, setLocation] = useState<string | undefined>();
+  const [zip, setZip] = useState("");
+  const [nearby, setNearby] = useState(true);
   const navigate = useNavigate();
 
   const handleSearch = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void navigate(location ? `/search?location=${encodeURIComponent(location)}` : "/search");
+    const params = [];
+    if (location) params.push(`location=${encodeURIComponent(location)}`);
+    if (zip) params.push(`zip=${zip}`);
+    if (!nearby) params.push("nearby=false");
+    void navigate(params.length > 0 ? `/search?${params.join("&")}` : "/search");
   };
 
   return (
@@ -21,10 +27,15 @@ function HomePage() {
             <h1 className="usa-hero__heading">{content.heading}</h1>
             <p>{content.search_instructions}</p>
             <form className="usa-form maxw-none" onSubmit={handleSearch}>
-              <label htmlFor="location" className="usa-label">
-                {content.location}
-              </label>
-              <LocationComboBox id="location" onChange={setLocation} />
+              <LocationSearch
+                id="location"
+                label={content.location}
+                zip={zip}
+                nearby={nearby}
+                onLocationChange={setLocation}
+                onZipChange={setZip}
+                onNearbyChange={setNearby}
+              />
               <button
                 type="submit"
                 className="usa-button display-inline-flex flex-align-center width-full"

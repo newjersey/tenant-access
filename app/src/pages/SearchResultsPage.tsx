@@ -9,11 +9,11 @@ import { parseSearchQuery } from "@/utils/searchQuery";
 
 function SearchResultsPage() {
   const [searchParams] = useSearchParams();
-  const { location, page, sort, filters } = useMemo(
+  const { location, zip, nearby, page, sort, filters } = useMemo(
     () => parseSearchQuery(searchParams),
     [searchParams],
   );
-  const search = useSearchListings({ location, page, sort, filters });
+  const search = useSearchListings({ location, zip, nearby, page, sort, filters });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filterToggle = useRef<HTMLButtonElement>(null);
 

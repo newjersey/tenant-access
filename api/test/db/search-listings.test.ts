@@ -53,6 +53,7 @@ function uids(result: SearchBody) {
 
 const TRENTON = { latitude: 40.24934, longitude: -74.789968 };
 const SOMERSET_COUNTY = { latitude: 40.565527, longitude: -74.619938 };
+const ZIP_08608 = { latitude: 40.219081, longitude: -74.766843 };
 
 const MILES_PER_DEGREE = 69.09;
 const INSIDE_RADIUS = (RADIUS_MILES * 0.9) / MILES_PER_DEGREE;
@@ -300,5 +301,48 @@ describe("search-listings against a real database", () => {
     await seedListing(db, makeListing(200, { bedrooms: 1 }));
 
     expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
+  });
+
+    it("matches a ZIP exactly, plus listings within the radius of its center", async () => {
+    await seedListing(db, makeListing(100, { zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { zipCode: "08540" }));
+    await seedListing(db, makeListing(300, { zipCode: "08540" }));
+    await seedListing(db, makeListing(400, { zipCode: "08540" }));
+    await place(200, ZIP_08608, INSIDE_RADIUS);
+    await place(300, ZIP_08608, OUTSIDE_RADIUS);
+
+    const result = await search({ zip: "08608" });
+
+    expect(uids(result)).toEqual([100, 200]);
+    expect(result.pagination?.total).toBe(2);
+  });
+
+  it("uses only the ZIP when a location is also given", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton", zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { city: "Newark", zipCode: "07102" }));
+
+    const result = await search({ location: "Newark", zip: "08608" });
+
+    expect(uids(result)).toEqual([100]);
+  });
+
+  it("still matches a ZIP exactly when it has no known center", async () => {
+    await seedListing(db, makeListing(100, { zipCode: "08999" }));
+    await seedListing(db, makeListing(200, { zipCode: "08608" }));
+
+    const result = await search({ zip: "08999" });
+
+    expect(uids(result)).toEqual([100]);
+  });
+
+  it("leaves out nearby listings when nearby is turned off", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton", zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { city: "Princeton", zipCode: "08540" }));
+
+    await place(200, TRENTON, INSIDE_RADIUS);
+    expect(uids(await search({ location: "Trenton", nearby: "false" }))).toEqual([100]);
+
+    await place(200, ZIP_08608, INSIDE_RADIUS);
+    expect(uids(await search({ zip: "08608", nearby: "false" }))).toEqual([100]);
   });
 });

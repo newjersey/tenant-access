@@ -10,12 +10,16 @@ export const DOLLAR_AMOUNT_FILTER_KEYS: readonly FilterKey[] = ["maxRent"];
 
 export const DOLLAR_AMOUNT_DIGITS = 6;
 export const DOLLAR_AMOUNT_PATTERN = /^[1-9]\d{0,5}$/; // One to six digits, no leading zero
+export const ZIP_DIGITS = 5;
+export const ZIP_PATTERN = /^\d{5}$/;
 
 export const wholeDollars = (raw: string): string =>
   raw.split(".")[0].replace(/\D/g, "").replace(/^0+/, "").slice(0, DOLLAR_AMOUNT_DIGITS);
 
 export interface SearchQuery {
   location: string | null;
+  zip?: string | null;
+  nearby?: boolean;
   page: number;
   sort?: SortOption;
   filters?: SearchFilters;
@@ -42,7 +46,7 @@ export function parseFilters(params: URLSearchParams): SearchFilters {
 
 export function withFilter(
   current: URLSearchParams,
-  name: FilterKey,
+  name: FilterKey | "zip" | "nearby",
   value: string,
 ): URLSearchParams {
   const params = new URLSearchParams(current);
@@ -57,9 +61,12 @@ export function withFilter(
 
 export function parseSearchQuery(params: URLSearchParams): SearchQuery {
   const parsedPage = Number.parseInt(params.get("page") ?? "", 10);
+  const zip = params.get("zip")?.trim();
 
   return {
     location: params.get("location")?.trim() || null,
+    zip: zip && ZIP_PATTERN.test(zip) ? zip : null,
+    nearby: params.get("nearby") !== "false",
     page: Number.isNaN(parsedPage) ? 1 : Math.max(parsedPage, 1),
     sort: parseSort(params.get("sort")),
     filters: parseFilters(params),
