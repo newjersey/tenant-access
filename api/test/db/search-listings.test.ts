@@ -303,7 +303,7 @@ describe("search-listings against a real database", () => {
     expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
   });
 
-    it("matches a ZIP exactly, plus listings within the radius of its center", async () => {
+  it("matches a ZIP exactly, plus listings within the radius of its center", async () => {
     await seedListing(db, makeListing(100, { zipCode: "08608" }));
     await seedListing(db, makeListing(200, { zipCode: "08540" }));
     await seedListing(db, makeListing(300, { zipCode: "08540" }));
