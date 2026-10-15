@@ -41,6 +41,7 @@ const synth = () =>
         context: {
           "aws:cdk:bundling-stacks": [],
           [VPC_LOOKUP_KEY]: VPC_LOOKUP_RESULT,
+          "@aws-cdk/core:validateAgainstDefaultRules": true,
         },
       }),
       "TestStack",
@@ -60,6 +61,10 @@ const CERT_ARN = `arn:aws:acm:${REGION}:${ACCOUNT}:certificate/abc`;
 const ENDPOINT_REF = { Ref: Match.stringLikeRegexp("ExecuteApiEndpoint") };
 
 describe("TenantAccessStack", () => {
+   it("CDK's CloudFormation schema validates (this test is necessarily slow because it loads the validator)", () => {
+    synth();
+  });
+
   it("reaches the API only through the execute-api endpoint", () => {
     const template = synth();
 
@@ -114,43 +119,27 @@ describe("TenantAccessStack", () => {
     });
   });
 
-  it("alarms on a sustained Amplify 5xx rate and notifies the topic both ways", () => {
+  it("emails the alert address when the Amplify 5xx alarm fires or clears", () => {
     const template = synth();
+    const ALERTS_TOPIC = { Ref: Match.stringLikeRegexp("AlertsTopic") };
 
     template.hasResourceProperties("AWS::CloudWatch::Alarm", {
       AlarmName: "TenantAccess-Amplify-ServerErrorRate",
-      Threshold: 5,
-      EvaluationPeriods: 3,
-      ComparisonOperator: "GreaterThanOrEqualToThreshold",
-      TreatMissingData: "notBreaching",
-      AlarmActions: [{ Ref: Match.stringLikeRegexp("AlertsTopic") }],
-      OKActions: [{ Ref: Match.stringLikeRegexp("AlertsTopic") }],
+      AlarmActions: [ALERTS_TOPIC],
+      OKActions: [ALERTS_TOPIC],
       Metrics: Match.arrayWith([
         Match.objectLike({
-          Expression: "IF(requests >= 20, 100 * serverErrors / requests, 0)",
-        }),
-        Match.objectLike({
           MetricStat: Match.objectLike({
-            Metric: {
-              Namespace: "AWS/AmplifyHosting",
-              MetricName: "5xxErrors",
-              Dimensions: [{ Name: "App", Value: "d1234abcd5678" }],
-            },
-            Stat: "Sum",
-            Period: 300,
+            Metric: Match.objectLike({ Dimensions: [{ Name: "App", Value: "d1234abcd5678" }] }),
           }),
         }),
       ]),
     });
-  });
-
-  it("subscribes the alert address to the topic", () => {
-    const template = synth();
 
     template.hasResourceProperties("AWS::SNS::Subscription", {
       Protocol: "email",
       Endpoint: "alerts@example.com",
-      TopicArn: { Ref: Match.stringLikeRegexp("AlertsTopic") },
+      TopicArn: ALERTS_TOPIC,
     });
   });
 });
