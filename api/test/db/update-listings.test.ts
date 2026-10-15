@@ -4,13 +4,27 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import type { Listing } from "../../src/scraper/parser.js";
 import { makeListing, testClient, truncateAll } from "./support.js";
 
-const { s3Body } = vi.hoisted(() => ({ s3Body: { json: "[]" } }));
+const { s3Body, requested } = vi.hoisted(() => ({
+  s3Body: { json: "[]" },
+  requested: [] as { uid: number; zipCode: string }[][],
+}));
 
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: class {
-    send = async () => ({ Body: { transformToString: async () => s3Body.json } });
+    send = async (command: { input: { Body?: string } }) => {
+      if (command.input.Body !== undefined) {
+        requested.push(JSON.parse(command.input.Body));
+        return {};
+      }
+      return { Body: { transformToString: async () => s3Body.json } };
+    };
   },
-  GetObjectCommand: class {},
+  GetObjectCommand: class {
+    constructor(public input: object) {}
+  },
+  PutObjectCommand: class {
+    constructor(public input: object) {}
+  },
 }));
 
 const { sent, sqsFailures } = vi.hoisted(() => ({
@@ -53,6 +67,7 @@ afterAll(async () => {
 beforeEach(async () => {
   process.env.DETAILS_QUEUE_URL = "https://sqs.test/details";
   sent.length = 0;
+  requested.length = 0;
   sqsFailures.ids = [];
   await truncateAll(db);
 });
@@ -66,6 +81,7 @@ async function runUpdate(listings: Listing[]) {
     hidden?: number;
     restored?: number;
     enqueued?: number;
+    geocodeRequested?: number;
   };
   return { statusCode: response.statusCode, ...body };
 }
@@ -133,5 +149,22 @@ describe("update-listings against a real database", () => {
     expect(result).toMatchObject({ statusCode: 200, upserted: 1200 });
     // 120 batches, each reporting one rejection.
     expect(result.enqueued).toBe(1080);
+  });
+
+  it("requests geocodes only for shown listings that have none", async () => {
+    // on first run, nothing is geocoded yet, so every listing goes in one request file.
+    expect((await runUpdate(FULL)).geocodeRequested).toBe(1200);
+    expect(requested).toHaveLength(1);
+    expect(requested[0][0]).toMatchObject({ uid: 1000, zipCode: "08608" });
+
+    await db.query(
+      `UPDATE listings SET latitude = 40.2, longitude = -74.7, geocode_match = 'exact',
+         geocoded_at = NOW() WHERE uid NOT IN (1500, 2199)`,
+    );
+    requested.length = 0;
+
+    // 2199 drops out of the feed, so only 1500 still needs a geocode
+    expect((await runUpdate(FULL.slice(0, 1199))).geocodeRequested).toBe(1);
+    expect(requested.map((rows) => rows.map((row) => row.uid))).toEqual([[1500]]);
   });
 });

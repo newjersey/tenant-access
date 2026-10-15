@@ -5,10 +5,10 @@ const MATCHES = new Set(["exact", "non_exact", "no_match"]);
 
 const SQL = `UPDATE listings l
   SET latitude = CASE WHEN g.match = 'no_match'
-      THEN (SELECT cc.latitude FROM city_counties cc WHERE lower(cc.city) = lower(l.city))
+      THEN (SELECT z.latitude FROM zip_codes z WHERE z.zip = l.zip_code)
       ELSE g.latitude END,
     longitude = CASE WHEN g.match = 'no_match'
-      THEN (SELECT cc.longitude FROM city_counties cc WHERE lower(cc.city) = lower(l.city))
+      THEN (SELECT z.longitude FROM zip_codes z WHERE z.zip = l.zip_code)
       ELSE g.longitude END,
     geocode_match = g.match,
     geocoded_at = NOW()

@@ -82,12 +82,12 @@ describe("update-geocodes against a real database", () => {
     expect((await read(300)).at).not.toBeNull();
   });
 
-  it("puts a no_match listing at its city's center", async () => {
-    await seedListing(db, makeListing(400, { city: "NEWARK" }));
+  it("puts a no_match listing at its ZIP code's center", async () => {
+    await seedListing(db, makeListing(400, { city: "Newark", zipCode: "07102" }));
 
     await handler(event(stage("geocode/all.json", [NO_MATCH, { ...NO_MATCH, uid: 400 }])));
 
-    expect(await read(300)).toMatchObject({ latitude: 40.24934, longitude: -74.789968 });
+    expect(await read(300)).toMatchObject({ latitude: 40.219081, longitude: -74.766843 });
     expect(await read(400)).toMatchObject({ latitude: 40.735659, longitude: -74.173605 });
   });
 
@@ -96,7 +96,7 @@ describe("update-geocodes against a real database", () => {
       event(stage("geocode/300.json", [{ ...NO_MATCH, latitude: 40, longitude: -74 }])),
     );
 
-    expect(await read(300)).toMatchObject({ latitude: 40.24934, longitude: -74.789968 });
+    expect(await read(300)).toMatchObject({ latitude: 40.219081, longitude: -74.766843 });
   });
 
   it("replaces an earlier geocode", async () => {
@@ -118,9 +118,9 @@ describe("update-geocodes against a real database", () => {
 
   it.each([
     ["a match without coordinates", { ...EXACT, uid: 200, latitude: null, longitude: null }],
-    ["a no_match in a city with no center", NO_MATCH],
+    ["a no_match in a ZIP code with no center", NO_MATCH],
   ])("writes nothing from a file with %s", async (_name, geocode) => {
-    await db.query("UPDATE listings SET city = 'Atlantis' WHERE uid = 300");
+    await db.query("UPDATE listings SET zip_code = '99999' WHERE uid = 300");
 
     const key = stage("geocode/all.json", [EXACT, geocode]);
 

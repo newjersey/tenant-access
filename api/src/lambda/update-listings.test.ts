@@ -1,5 +1,6 @@
 import type { S3Event } from "aws-lambda";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { GeocodeAddress } from "../geocoder/census.js";
 import type { Listing } from "../scraper/parser.js";
 import { handler } from "./update-listings.js";
 
@@ -19,6 +20,9 @@ vi.mock("@aws-sdk/client-s3", () => ({
   },
   GetObjectCommand: class {
     constructor(readonly input: { Bucket: string; Key: string }) {}
+  },
+  PutObjectCommand: class {
+    constructor(readonly input: { Bucket: string; Key: string; Body: string }) {}
   },
 }));
 
@@ -48,10 +52,17 @@ function serve(rows: Listing[]) {
   });
 }
 
-function shownCount(count: number, needsDetails: number[] = []) {
+function shownCount(
+  count: number,
+  needsDetails: number[] = [],
+  needsGeocode: GeocodeAddress[] = [],
+) {
   queryMock.mockImplementation((sql: string) => {
     if (String(sql).startsWith("SELECT COUNT(*)")) {
       return Promise.resolve({ rows: [{ count: String(count) }] });
+    }
+    if (String(sql).includes("geocoded_at IS NULL")) {
+      return Promise.resolve({ rows: needsGeocode });
     }
     if (String(sql).startsWith("SELECT uid")) {
       return Promise.resolve({ rows: needsDetails.map((uid) => ({ uid })) });
@@ -157,5 +168,43 @@ describe("update-listings handler", () => {
     sqsSendMock.mockResolvedValue({ Failed: [{ Id: "500" }] });
 
     expect(JSON.parse((await handler(event())).body)).toMatchObject({ enqueued: 1 });
+  });
+
+  it("writes no geocode request when every listing has a geocode", async () => {
+    const result = await handler(event());
+
+    expect(JSON.parse(result.body)).toMatchObject({ geocodeRequested: 0 });
+    expect(s3SendMock).toHaveBeenCalledOnce();
+  });
+
+  it("writes listings missing a geocode to geocode-requests/", async () => {
+    const needsGeocode: GeocodeAddress[] = [
+      { uid: 600, address: "1 Main St", city: "Trenton", state: "NJ", zipCode: "08608" },
+    ];
+    shownCount(0, [], needsGeocode);
+
+    const result = await handler(event());
+
+    expect(JSON.parse(result.body)).toMatchObject({ geocodeRequested: 1 });
+    expect(s3SendMock.mock.calls[1][0].input).toEqual({
+      Bucket: "test-bucket",
+      Key: expect.stringMatching(/^geocode-requests\/.+\.json$/),
+      Body: JSON.stringify(needsGeocode),
+      ContentType: "application/json",
+    });
+  });
+
+  it("fails the run when the geocode request can't be written", async () => {
+    shownCount(0, [500], [{ uid: 600 } as GeocodeAddress]);
+    s3SendMock
+      .mockResolvedValueOnce({
+        Body: { transformToString: async () => JSON.stringify(listings(2)) },
+      })
+      .mockRejectedValueOnce(new Error("AccessDenied"));
+
+    await expect(handler(event())).rejects.toThrow("AccessDenied");
+    // details were already on their way; only the geocode step is retried
+    expect(sqsSendMock).toHaveBeenCalledOnce();
+    expect(endMock).toHaveBeenCalledOnce();
   });
 });

@@ -249,6 +249,7 @@ export class TenantAccessStack extends cdk.Stack {
     });
 
     dataBucket.grantRead(updateLambda, "parsed/*");
+    dataBucket.grantPut(updateLambda, "geocode-requests/*");
     updateLambda.addEnvironment("BUCKET_NAME", dataBucket.bucketName);
     database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(updateLambda);
@@ -325,7 +326,7 @@ export class TenantAccessStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_24_X,
       entry: "src/lambda/geocode-listing.ts",
       handler: "handler",
-      timeout: cdk.Duration.minutes(1),
+      timeout: cdk.Duration.minutes(15),
       memorySize: 256,
       environment: {
         BUCKET_NAME: dataBucket.bucketName,
@@ -337,6 +338,7 @@ export class TenantAccessStack extends cdk.Stack {
       },
     });
 
+    dataBucket.grantRead(geocodeListingLambda, "geocode-requests/*");
     dataBucket.grantPut(geocodeListingLambda, "geocode/*");
 
     const updateGeocodesLambda = new NodejsFunction(this, "UpdateGeocodesFunction", {
@@ -598,7 +600,13 @@ export class TenantAccessStack extends cdk.Stack {
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
     // todo: once stable, add scrapeDetailsLambda and updateDetailsLambda
-    for (const fn of [scrapeLambda, parseLambda, updateLambda]) {
+    for (const fn of [
+      scrapeLambda,
+      parseLambda,
+      updateLambda,
+      geocodeListingLambda,
+      updateGeocodesLambda,
+    ]) {
       fn.configureAsyncInvoke({ onFailure: alertsDestination });
     }
 
@@ -618,6 +626,12 @@ export class TenantAccessStack extends cdk.Stack {
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(updateDetailsLambda),
       { prefix: "details/", suffix: ".json" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(geocodeListingLambda),
+      { prefix: "geocode-requests/", suffix: ".json" },
     );
 
     dataBucket.addEventNotification(
@@ -726,11 +740,6 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ScrapeDetailsQueueUrl", {
       value: detailsQueue.queueUrl,
       description: 'Detail-scrape work queue -- send {"uid": N} to re-scrape one listing',
-    });
-
-    new cdk.CfnOutput(this, "GeocodeListingLambdaName", {
-      value: geocodeListingLambda.functionName,
-      description: "Invoke with {uid, address, city, state, zipCode} to geocode one listing",
     });
   }
 }

@@ -1,7 +1,8 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { SendMessageBatchCommand, SQSClient } from "@aws-sdk/client-sqs";
 import type { S3Event } from "aws-lambda";
 import type { Client } from "pg";
+import type { GeocodeAddress } from "../geocoder/census.js";
 import type { Listing } from "../scraper/parser.js";
 import { getClient } from "./db.js";
 
@@ -18,6 +19,10 @@ const NEEDS_DETAILS_SQL = `SELECT uid FROM listings
       OR last_updated::date >= (details_scraped_at AT TIME ZONE 'America/New_York')::date
     )
   ORDER BY details_scraped_at NULLS FIRST, last_updated DESC`;
+
+const NEEDS_GEOCODE_SQL = `SELECT uid, address, city, state, zip_code AS "zipCode" FROM listings
+  WHERE shown_to_public AND geocoded_at IS NULL
+  ORDER BY uid`;
 
 // Guards against hiding the whole catalog when a scrape or parse degrades:
 // the site could change markup, rate-limit us, or return a partial page.
@@ -127,6 +132,24 @@ async function enqueueDetailScrapes(client: Client, queueUrl: string): Promise<n
   return rows.length - failed;
 }
 
+async function requestGeocodes(client: Client, bucket: string): Promise<number> {
+  const { rows } = await client.query<GeocodeAddress>(NEEDS_GEOCODE_SQL);
+  if (rows.length === 0) return 0;
+
+  const key = `geocode-requests/${new Date().toISOString()}.json`;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: JSON.stringify(rows),
+      ContentType: "application/json",
+    }),
+  );
+
+  console.log(`Requested geocodes for ${rows.length} listing(s) in ${key}`);
+  return rows.length;
+}
+
 export const handler = async (event: S3Event) => {
   const bucket = process.env.BUCKET_NAME;
   if (!bucket) throw new Error("BUCKET_NAME is not set");
@@ -195,6 +218,7 @@ export const handler = async (event: S3Event) => {
     console.log(`Upserted ${listings.length}, hid ${hidden.rowCount}, restored ${shown.rowCount}`);
 
     const enqueued = await enqueueDetailScrapes(client, queueUrl);
+    const geocodeRequested = await requestGeocodes(client, bucket);
 
     return {
       statusCode: 200,
@@ -204,6 +228,7 @@ export const handler = async (event: S3Event) => {
         hidden: hidden.rowCount,
         restored: shown.rowCount,
         enqueued,
+        geocodeRequested,
       }),
     };
   } catch (error) {
