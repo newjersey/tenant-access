@@ -143,6 +143,10 @@ flowchart TD
     I@{ shape: rect, label: "UpdateDetailsFunction" }
     J@{ shape: lin-cyl, label: "ListingImagesBucket" }
     K@{ shape: sm-circ }
+    L@{ shape: rect, label: "GeocodeListingFunction" }
+    M@{ shape: rect, label: "UpdateGeocodesFunction" }
+    N@{ shape: cloud, label: "Census Geocoder
+    batch API" }
 
     A --> |midnight Eastern triggers| B
     B --> |writes ~14MB raw/YYYY-MM-DD/listings.html| C
@@ -156,6 +160,12 @@ flowchart TD
     C --> |OBJECT_CREATED in details/ triggers| I
     I --> |uploads images| J
     I --> |saves details| F
+    E --> |writes geocode-requests/TIMESTAMP.json| C
+    C --> |OBJECT_CREATED in geocode-requests/ triggers| L
+    L --> |gets lat/lngs for addresses| N
+    L --> |writes geocode/TIMESTAMP.json| C
+    C --> |OBJECT_CREATED in geocode/ triggers| M
+    M --> |saves lat/lng| F
 ```
 
 ### Application Backend
