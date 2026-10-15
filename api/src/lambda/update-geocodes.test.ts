@@ -1,4 +1,3 @@
-
 import type { S3Event } from "aws-lambda";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

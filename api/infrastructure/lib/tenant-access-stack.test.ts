@@ -61,7 +61,7 @@ const CERT_ARN = `arn:aws:acm:${REGION}:${ACCOUNT}:certificate/abc`;
 const ENDPOINT_REF = { Ref: Match.stringLikeRegexp("ExecuteApiEndpoint") };
 
 describe("TenantAccessStack", () => {
-   it("CDK's CloudFormation schema validates (this test is necessarily slow because it loads the validator)", () => {
+  it("CDK's CloudFormation schema validates (this test is necessarily slow because it loads the validator)", () => {
     synth();
   });
 
