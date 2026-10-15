@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@newjersey/feedback-widget": "^0.7.1",
-    "@newjersey/njwds": "^2.9.1",
+    "@newjersey/njwds": "^2.10.1",
     "@splidejs/react-splide": "^0.7.12",
     "@trussworks/react-uswds": "^12.0.0",
     "react": "^19.3.0",
