@@ -42,25 +42,27 @@ function LocationSearch({
       <label className="usa-label margin-top-1" htmlFor={`${id}-zip`}>
         {content.locationSearch.zip}
       </label>
-      {zipError && (
-        <span className="usa-error-message" id={`${id}-zip-error`} role="alert">
-          {content.locationSearch.zipError}
-        </span>
-      )}
-      <input
-        className={zipClassName}
-        id={`${id}-zip`}
-        name="zip"
-        type="text"
-        inputMode="numeric"
-        autoComplete="postal-code"
-        pattern="[0-9]{5}"
-        maxLength={ZIP_DIGITS}
-        value={zip}
-        aria-invalid={zipError}
-        aria-describedby={zipError ? `${id}-zip-error` : undefined}
-        onChange={(event) => onZipChange(zipDigits(event.target.value))}
-      />
+      <div className="location-search__zip-row">
+        <input
+          className={zipClassName}
+          id={`${id}-zip`}
+          name="zip"
+          type="text"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          pattern="[0-9]{5}"
+          maxLength={ZIP_DIGITS}
+          value={zip}
+          aria-invalid={zipError}
+          aria-describedby={zipError ? `${id}-zip-error` : undefined}
+          onChange={(event) => onZipChange(zipDigits(event.target.value))}
+        />
+        {zipError && (
+          <span className="usa-error-message" id={`${id}-zip-error`} role="alert">
+            {content.locationSearch.zipError}
+          </span>
+        )}
+      </div>
 
       <div className="usa-checkbox bg-transparent margin-top-2">
         <input
