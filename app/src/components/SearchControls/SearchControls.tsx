@@ -33,7 +33,7 @@ function SearchControls({
     if ((selected ?? null) === location) return; // don't re-run duplicate searches
 
     const params = new URLSearchParams(searchParams);
-     if (selected) {
+    if (selected) {
       params.set("location", selected);
       params.delete("zip");
     } else {
