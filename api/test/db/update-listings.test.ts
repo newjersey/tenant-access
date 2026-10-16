@@ -167,4 +167,22 @@ describe("update-listings against a real database", () => {
     expect((await runUpdate(FULL.slice(0, 1199))).geocodeRequested).toBe(1);
     expect(requested.map((rows) => rows.map((row) => row.uid))).toEqual([[1500]]);
   });
+
+  it("re-requests geocodes for listings updated since they were geocoded", async () => {
+    await runUpdate(FULL);
+    await db.query(
+      `UPDATE listings SET latitude = 40.2, longitude = -74.7, geocode_match = 'exact',
+         geocoded_at = NOW()`,
+    );
+    requested.length = 0;
+
+    // 3 listings get updated today, so their addresses may have changed
+    const today = new Date().toISOString().slice(0, 10);
+    const touched = FULL.map((listing, index) =>
+      index < 3 ? { ...listing, lastUpdated: today } : listing,
+    );
+
+    expect((await runUpdate(touched)).geocodeRequested).toBe(3);
+    expect(requested.map((rows) => rows.map((row) => row.uid))).toEqual([[1000, 1001, 1002]]);
+  });
 });

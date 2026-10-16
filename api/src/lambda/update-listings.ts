@@ -21,7 +21,11 @@ const NEEDS_DETAILS_SQL = `SELECT uid FROM listings
   ORDER BY details_scraped_at NULLS FIRST, last_updated DESC`;
 
 const NEEDS_GEOCODE_SQL = `SELECT uid, address, city, state, zip_code AS "zipCode" FROM listings
-  WHERE shown_to_public AND geocoded_at IS NULL
+  WHERE shown_to_public
+    AND (
+      geocoded_at IS NULL
+      OR last_updated::date >= (geocoded_at AT TIME ZONE 'America/New_York')::date
+    )
   ORDER BY uid`;
 
 // Guards against hiding the whole catalog when a scrape or parse degrades:
