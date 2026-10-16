@@ -27,26 +27,26 @@ export function toCensusCsv(addresses: GeocodeAddress[]): string {
 
 function parseCsvLine(line: string): string[] {
   const fields: string[] = [];
-  let i = 0;
+  let field = "";
+  let inQuotes = false;
 
-  while (i <= line.length) {
-    if (line[i] === '"') {
-      let value = "";
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (inQuotes && char === '"' && line[i + 1] === '"') {
+      field += '"'; // escaped quote
       i++;
-      while (i < line.length && !(line[i] === '"' && line[i + 1] !== '"')) {
-        value += line[i];
-        i += line[i] === '"' ? 2 : 1;
-      }
-      fields.push(value);
-      i += 2; // closing quote and comma
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      fields.push(field);
+      field = "";
     } else {
-      const comma = line.indexOf(",", i);
-      const end = comma === -1 ? line.length : comma;
-      fields.push(line.slice(i, end));
-      i = end + 1;
+      field += char;
     }
   }
 
+  fields.push(field);
   return fields;
 }
 
