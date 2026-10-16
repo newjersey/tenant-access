@@ -4,7 +4,6 @@ import { isNjZip, ZIP_DIGITS } from "@/utils/searchQuery";
 
 interface LocationSearchProps {
   id: string;
-  label: string;
   defaultLocation?: string;
   zip: string;
   nearby: boolean;
@@ -17,7 +16,6 @@ const zipDigits = (raw: string): string => raw.replace(/\D/g, "").slice(0, ZIP_D
 
 function LocationSearch({
   id,
-  label,
   defaultLocation,
   zip,
   nearby,
@@ -33,7 +31,7 @@ function LocationSearch({
   return (
     <>
       <label className="usa-label" htmlFor={id}>
-        {label}
+        {content.locationComboBox.prompt}
       </label>
       <LocationComboBox
         key={defaultLocation ?? ""}

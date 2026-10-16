@@ -31,7 +31,6 @@ function HomePage() {
             <form className="usa-form maxw-none" onSubmit={handleSearch}>
               <LocationSearch
                 id="location"
-                label={content.location}
                 zip={zip}
                 nearby={nearby}
                 onLocationChange={setLocation}

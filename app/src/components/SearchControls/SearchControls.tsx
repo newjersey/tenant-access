@@ -73,7 +73,6 @@ function SearchControls({
         <search>
           <LocationSearch
             id="search-location"
-            label={content.search_label}
             defaultLocation={location ?? undefined}
             zip={zipDraft}
             nearby={nearby ?? true}

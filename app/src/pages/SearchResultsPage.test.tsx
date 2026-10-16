@@ -56,7 +56,7 @@ describe("SearchResultsPage", () => {
     const zip = await screen.findByRole("textbox", { name: common.locationSearch.zip });
     await userEvent.type(zip, "08608");
 
-    expect(screen.getByRole("combobox", { name: content.search_label })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: common.locationComboBox.prompt })).toHaveValue("");
     expect(zip).toHaveFocus();
     expect(searchListingsMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ location: null, zip: "08608" }),

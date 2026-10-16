@@ -33,7 +33,7 @@ const LocationComboBox = memo(function LocationComboBox({
       defaultValue={defaultValue}
       onChange={onChange}
       noResults={content.locationComboBox.noResults}
-      inputProps={{ placeholder: content.locationComboBox.placeholder }}
+      inputProps={{ placeholder: content.locationComboBox.prompt }}
     />
   );
 });

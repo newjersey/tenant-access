@@ -42,7 +42,7 @@ describe("HomePage", () => {
   it("searches within the chosen location", async () => {
     renderPage();
 
-    const box = screen.getByRole("combobox", { name: content.location });
+    const box = screen.getByRole("combobox", { name: common.locationComboBox.prompt });
     await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
@@ -66,7 +66,7 @@ describe("HomePage", () => {
     renderPage();
 
     await userEvent.type(
-      screen.getByRole("combobox", { name: content.location }),
+      screen.getByRole("combobox", { name: common.locationComboBox.prompt }),
       "Trenton{Enter}",
     );
     await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "08608");
