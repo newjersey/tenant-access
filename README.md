@@ -113,7 +113,12 @@ If any new file imports a DB connection, it will be automatically added to the D
 
 ## Infrastructure
 
-This project uses the AWS CDK to deploy its infrastructure. To make updates, edit `api/infrastructure/lib/tenant-access-stack.ts` and then, with AWS credentials for the target account in your environment, run `bash scripts/deploy.sh dev` or `bash scripts/deploy.sh prod` from the `api` directory. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects. Any extra arguments are passed through to `cdk deploy`.
+This project uses the AWS CDK to deploy its infrastructure. To make updates:
+
+1. Edit `api/infrastructure/lib/tenant-access-stack.ts`
+2. With AWS credentials for the target account in your environment, run `npm run deploy:dev` or `npm run deploy:prod` from the `api` directory.
+  2a. Don't run `npx cdk deploy` directly; the script loads the matching `api/.env.dev` or `api/.env.prod` and fails if your AWS credentials are for a different account than that file expects.
+  2b. Any extra arguments are passed through to `cdk deploy`.
 
 ### Temporary Data Infrastructure
 
@@ -138,6 +143,10 @@ flowchart TD
     I@{ shape: rect, label: "UpdateDetailsFunction" }
     J@{ shape: lin-cyl, label: "ListingImagesBucket" }
     K@{ shape: sm-circ }
+    L@{ shape: rect, label: "GeocodeListingFunction" }
+    M@{ shape: rect, label: "UpdateGeocodesFunction" }
+    N@{ shape: cloud, label: "Census Geocoder
+    batch API" }
 
     A --> |midnight Eastern triggers| B
     B --> |writes ~14MB raw/YYYY-MM-DD/listings.html| C
@@ -151,6 +160,12 @@ flowchart TD
     C --> |OBJECT_CREATED in details/ triggers| I
     I --> |uploads images| J
     I --> |saves details| F
+    E --> |writes geocode-requests/TIMESTAMP.json| C
+    C --> |OBJECT_CREATED in geocode-requests/ triggers| L
+    L --> |gets lat/lngs for addresses| N
+    L --> |writes geocode/TIMESTAMP.json| C
+    C --> |OBJECT_CREATED in geocode/ triggers| M
+    M --> |saves lat/lng| F
 ```
 
 ### Application Backend

@@ -1,0 +1,84 @@
+import LocationComboBox from "@/components/LocationComboBox/LocationComboBox";
+import content from "@/data/content/en/common.json";
+import { isNjZip, ZIP_DIGITS } from "@/utils/searchQuery";
+
+interface LocationSearchProps {
+  id: string;
+  label: string;
+  defaultLocation?: string;
+  zip: string;
+  nearby: boolean;
+  onLocationChange: (location: string | undefined) => void;
+  onZipChange: (zip: string) => void;
+  onNearbyChange: (nearby: boolean) => void;
+}
+
+const zipDigits = (raw: string): string => raw.replace(/\D/g, "").slice(0, ZIP_DIGITS);
+
+function LocationSearch({
+  id,
+  label,
+  defaultLocation,
+  zip,
+  nearby,
+  onLocationChange,
+  onZipChange,
+  onNearbyChange,
+}: LocationSearchProps) {
+  const zipError = zip.length === ZIP_DIGITS && !isNjZip(zip);
+  const zipClassName = ["usa-input", "usa-input--small", zipError && "usa-input--error"]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <>
+      <label className="usa-label" htmlFor={id}>
+        {label}
+      </label>
+      <LocationComboBox id={id} defaultValue={defaultLocation} onChange={onLocationChange} />
+
+      <p className="text-bold margin-top-2 margin-bottom-0">{content.locationSearch.or}</p>
+
+      <label className="usa-label margin-top-1" htmlFor={`${id}-zip`}>
+        {content.locationSearch.zip}
+      </label>
+      <div className="location-search__zip-row">
+        <input
+          className={zipClassName}
+          id={`${id}-zip`}
+          name="zip"
+          type="text"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          pattern="[0-9]{5}"
+          maxLength={ZIP_DIGITS}
+          value={zip}
+          aria-invalid={zipError}
+          aria-describedby={zipError ? `${id}-zip-error` : undefined}
+          onChange={(event) => onZipChange(zipDigits(event.target.value))}
+        />
+        {zipError && (
+          <span className="usa-error-message" id={`${id}-zip-error`} role="alert">
+            {content.locationSearch.zipError}
+          </span>
+        )}
+      </div>
+
+      <div className="usa-checkbox bg-transparent margin-top-2">
+        <input
+          className="usa-checkbox__input"
+          id={`${id}-nearby`}
+          type="checkbox"
+          name="nearby"
+          checked={nearby}
+          onChange={(event) => onNearbyChange(event.target.checked)}
+        />
+        <label className="usa-checkbox__label" htmlFor={`${id}-nearby`}>
+          {content.locationSearch.nearby}
+        </label>
+      </div>
+    </>
+  );
+}
+
+export default LocationSearch;

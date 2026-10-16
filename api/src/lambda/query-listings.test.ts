@@ -1,14 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handler } from "./query-listings.js";
 
-const { getClientMock, queryMock, endMock } = vi.hoisted(() => ({
+const { getClientMock, queryMock, endMock, s3SendMock } = vi.hoisted(() => ({
   getClientMock: vi.fn(),
   queryMock: vi.fn(),
   endMock: vi.fn(),
+  s3SendMock: vi.fn(),
 }));
 
 vi.mock("./db.js", () => ({
   getClient: getClientMock,
+}));
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: class {
+    send = s3SendMock;
+  },
+  PutObjectCommand: class {
+    constructor(public input: { Bucket: string; Key: string; Body: string }) {}
+  },
 }));
 
 const sampleRow = {
@@ -25,6 +35,7 @@ const sampleRow = {
 describe("query-listings handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.BUCKET_NAME = "test-bucket";
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -32,17 +43,20 @@ describe("query-listings handler", () => {
     getClientMock.mockResolvedValue({ query: queryMock, end: endMock });
     queryMock.mockResolvedValue({ rowCount: 1, rows: [sampleRow] });
     endMock.mockResolvedValue(undefined);
+    s3SendMock.mockResolvedValue({});
   });
 
-  it("returns a 200 with the count and rows", async () => {
+  it("writes the rows to S3 and returns the count and location", async () => {
     const result = await handler();
 
     expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body)).toEqual({
-      success: true,
-      count: 1,
-      listings: [sampleRow],
-    });
+    const body = JSON.parse(result.body);
+    expect(body).toMatchObject({ success: true, count: 1 });
+    expect(body.location).toMatch(/^s3:\/\/test-bucket\/query-results\/.+\.json$/);
+
+    const { input } = s3SendMock.mock.calls[0][0];
+    expect(`s3://${input.Bucket}/${input.Key}`).toBe(body.location);
+    expect(JSON.parse(input.Body)).toEqual([sampleRow]);
     expect(endMock).toHaveBeenCalledOnce();
   });
 

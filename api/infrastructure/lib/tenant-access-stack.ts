@@ -41,6 +41,7 @@ export class TenantAccessStack extends cdk.Stack {
       lifecycleRules: [
         { id: "expire-raw-html", prefix: "raw/", expiration: cdk.Duration.days(7) },
         { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
+        { id: "expire-query-results", prefix: "query-results/", expiration: cdk.Duration.days(7) },
         {
           id: "abort-incomplete-uploads",
           abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
@@ -249,6 +250,7 @@ export class TenantAccessStack extends cdk.Stack {
     });
 
     dataBucket.grantRead(updateLambda, "parsed/*");
+    dataBucket.grantPut(updateLambda, "geocode-requests/*");
     updateLambda.addEnvironment("BUCKET_NAME", dataBucket.bucketName);
     database.connections.allowFrom(updateLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(updateLambda);
@@ -321,6 +323,51 @@ export class TenantAccessStack extends cdk.Stack {
     detailsQueue.grantSendMessages(updateLambda);
     updateLambda.addEnvironment("DETAILS_QUEUE_URL", detailsQueue.queueUrl);
 
+    const geocodeListingLambda = new NodejsFunction(this, "GeocodeListingFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/geocode-listing.ts",
+      handler: "handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 256,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        GEOCODE_PREFIX: "geocode/",
+      },
+      bundling: {
+        nodeModules: ["@aws-sdk/client-s3"],
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    dataBucket.grantRead(geocodeListingLambda, "geocode-requests/*");
+    dataBucket.grantPut(geocodeListingLambda, "geocode/*");
+
+    const updateGeocodesLambda = new NodejsFunction(this, "UpdateGeocodesFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/update-geocodes.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.minutes(1),
+      memorySize: 512,
+      reservedConcurrentExecutions: 5,
+      environment: {
+        BUCKET_NAME: dataBucket.bucketName,
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    dataBucket.grantRead(updateGeocodesLambda, "geocode/*");
+    database.connections.allowFrom(updateGeocodesLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(updateGeocodesLambda);
+
     const queryLambda = new NodejsFunction(this, "QueryListingsFunction", {
       runtime: lambda.Runtime.NODEJS_24_X,
       entry: "src/lambda/query-listings.ts",
@@ -334,13 +381,15 @@ export class TenantAccessStack extends cdk.Stack {
       environment: {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
+        BUCKET_NAME: dataBucket.bucketName,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
         externalModules: ["aws-sdk", "pg-native"],
       },
     });
 
+    dataBucket.grantPut(queryLambda, "query-results/*");
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
@@ -554,7 +603,13 @@ export class TenantAccessStack extends cdk.Stack {
     const alertsDestination = new destinations.SnsDestination(alertsTopic);
 
     // todo: once stable, add scrapeDetailsLambda and updateDetailsLambda
-    for (const fn of [scrapeLambda, parseLambda, updateLambda]) {
+    for (const fn of [
+      scrapeLambda,
+      parseLambda,
+      updateLambda,
+      geocodeListingLambda,
+      updateGeocodesLambda,
+    ]) {
       fn.configureAsyncInvoke({ onFailure: alertsDestination });
     }
 
@@ -574,6 +629,18 @@ export class TenantAccessStack extends cdk.Stack {
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(updateDetailsLambda),
       { prefix: "details/", suffix: ".json" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(geocodeListingLambda),
+      { prefix: "geocode-requests/", suffix: ".json" },
+    );
+
+    dataBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(updateGeocodesLambda),
+      { prefix: "geocode/", suffix: ".json" },
     );
 
     new scheduler.Schedule(this, "NightlyScrapeSchedule", {

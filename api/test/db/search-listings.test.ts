@@ -2,7 +2,7 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import type { Client } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getPool } from "../../src/lambda/db.js";
-import { handler } from "../../src/lambda/search-listings.js";
+import { handler, RADIUS_MILES } from "../../src/lambda/search-listings.js";
 import { makeListing, seedListing, seedManyListings, testClient, truncateAll } from "./support.js";
 
 type SearchBody = {
@@ -51,6 +51,23 @@ function uids(result: SearchBody) {
   return (result.listings ?? []).map((row) => row.uid);
 }
 
+const TRENTON = { latitude: 40.24934, longitude: -74.789968 };
+const SOMERSET_COUNTY = { latitude: 40.565527, longitude: -74.619938 };
+const ZIP_08608 = { latitude: 40.219081, longitude: -74.766843 };
+
+const MILES_PER_DEGREE = 69.09;
+const INSIDE_RADIUS = (RADIUS_MILES * 0.9) / MILES_PER_DEGREE;
+const OUTSIDE_RADIUS = (RADIUS_MILES * 1.1) / MILES_PER_DEGREE;
+
+async function place(uid: number, center: typeof TRENTON, latitudeOffset: number) {
+  await db.query(
+    `UPDATE listings
+        SET latitude = $2, longitude = $3, geocode_match = 'exact', geocoded_at = NOW()
+      WHERE uid = $1`,
+    [uid, center.latitude + latitudeOffset, center.longitude],
+  );
+}
+
 describe("search-listings against a real database", () => {
   it("returns every visible listing when no location is given", async () => {
     await seedListing(db, makeListing(100, { city: "Newark" }));
@@ -89,6 +106,44 @@ describe("search-listings against a real database", () => {
     const result = await search({ location: "Somerset County" });
 
     expect(uids(result)).toEqual([100, 200]);
+  });
+
+  it("also matches listings within the radius of the searched city's center", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton" }));
+    await seedListing(db, makeListing(200, { city: "Princeton" }));
+    await seedListing(db, makeListing(300, { city: "New Brunswick" }));
+    await seedListing(db, makeListing(400, { city: "Princeton" }));
+    await place(200, TRENTON, INSIDE_RADIUS);
+    await place(300, TRENTON, OUTSIDE_RADIUS);
+
+    const result = await search({ location: "trenton" });
+
+    expect(uids(result)).toEqual([100, 200]);
+    expect(result.pagination?.total).toBe(2);
+  });
+
+  it("also matches listings within the radius of the searched county's center", async () => {
+    await seedListing(db, makeListing(100, { city: "Somerville" }));
+    await seedListing(db, makeListing(200, { city: "Flemington" }));
+    await seedListing(db, makeListing(300, { city: "Newark" }));
+    await place(200, SOMERSET_COUNTY, -INSIDE_RADIUS);
+    await place(300, SOMERSET_COUNTY, OUTSIDE_RADIUS);
+
+    const result = await search({ location: "Somerset County" });
+
+    expect(uids(result)).toEqual([100, 200]);
+  });
+
+  it("applies filters and visibility to nearby listings too", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton" }));
+    await seedListing(db, makeListing(200, { city: "Princeton", bedrooms: 1 }));
+    await seedListing(db, makeListing(300, { city: "Princeton" }), { shownToPublic: false });
+    await seedListing(db, makeListing(400, { city: "Princeton" }));
+    for (const uid of [200, 300, 400]) await place(uid, TRENTON, INSIDE_RADIUS);
+
+    const result = await search({ location: "Trenton", bedrooms: "2" });
+
+    expect(uids(result)).toEqual([100, 400]);
   });
 
   it("returns an empty page when nothing matches", async () => {
@@ -246,5 +301,48 @@ describe("search-listings against a real database", () => {
     await seedListing(db, makeListing(200, { bedrooms: 1 }));
 
     expect(uids(await search({ bedrooms: "studio" }))).toEqual([100]);
+  });
+
+  it("matches a ZIP exactly, plus listings within the radius of its center", async () => {
+    await seedListing(db, makeListing(100, { zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { zipCode: "08540" }));
+    await seedListing(db, makeListing(300, { zipCode: "08540" }));
+    await seedListing(db, makeListing(400, { zipCode: "08540" }));
+    await place(200, ZIP_08608, INSIDE_RADIUS);
+    await place(300, ZIP_08608, OUTSIDE_RADIUS);
+
+    const result = await search({ zip: "08608" });
+
+    expect(uids(result)).toEqual([100, 200]);
+    expect(result.pagination?.total).toBe(2);
+  });
+
+  it("uses only the ZIP when a location is also given", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton", zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { city: "Newark", zipCode: "07102" }));
+
+    const result = await search({ location: "Newark", zip: "08608" });
+
+    expect(uids(result)).toEqual([100]);
+  });
+
+  it("still matches a ZIP exactly when it has no known center", async () => {
+    await seedListing(db, makeListing(100, { zipCode: "08999" }));
+    await seedListing(db, makeListing(200, { zipCode: "08608" }));
+
+    const result = await search({ zip: "08999" });
+
+    expect(uids(result)).toEqual([100]);
+  });
+
+  it("leaves out nearby listings when nearby is turned off", async () => {
+    await seedListing(db, makeListing(100, { city: "Trenton", zipCode: "08608" }));
+    await seedListing(db, makeListing(200, { city: "Princeton", zipCode: "08540" }));
+
+    await place(200, TRENTON, INSIDE_RADIUS);
+    expect(uids(await search({ location: "Trenton", nearby: "false" }))).toEqual([100]);
+
+    await place(200, ZIP_08608, INSIDE_RADIUS);
+    expect(uids(await search({ zip: "08608", nearby: "false" }))).toEqual([100]);
   });
 });

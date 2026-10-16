@@ -14,6 +14,8 @@ const ERROR: SearchListingsState = { status: "error" };
 
 export function useSearchListings({
   location,
+  zip,
+  nearby,
   page,
   sort,
   filters,
@@ -24,7 +26,7 @@ export function useSearchListings({
     const controller = new AbortController();
     setState(LOADING);
 
-    searchListings({ location, page, sort, filters }, controller.signal)
+    searchListings({ location, zip, nearby, page, sort, filters }, controller.signal)
       .then((response) => {
         setState({
           status: "ready",
@@ -39,7 +41,7 @@ export function useSearchListings({
       });
 
     return () => controller.abort();
-  }, [location, page, sort, filters]);
+  }, [location, zip, nearby, page, sort, filters]);
 
   return state;
 }

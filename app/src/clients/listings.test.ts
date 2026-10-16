@@ -50,6 +50,16 @@ describe("searchListings", () => {
     );
   });
 
+  it("sends a ZIP, and nearby only when it's turned off", async () => {
+    await searchListings({ location: null, zip: "08608", nearby: true, page: 1 });
+    await searchListings({ location: null, zip: "08608", nearby: false, page: 1 });
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      `${BASE_URL}/listings/search?page=1&zip=08608`,
+      `${BASE_URL}/listings/search?page=1&zip=08608&nearby=false`,
+    ]);
+  });
+
   it("passes the abort signal through", async () => {
     const controller = new AbortController();
     await searchListings({ location: null, page: 1 }, controller.signal);

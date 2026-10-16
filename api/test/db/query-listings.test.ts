@@ -1,12 +1,26 @@
 import type { Client } from "pg";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { handler } from "../../src/lambda/query-listings.js";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeListing, seedListing, testClient, truncateAll } from "./support.js";
+
+const { written } = vi.hoisted(() => ({ written: { body: "[]" } }));
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: class {
+    send = async (command: { input: { Body: string } }) => {
+      written.body = command.input.Body;
+      return {};
+    };
+  },
+  PutObjectCommand: class {
+    constructor(public input: object) {}
+  },
+}));
+
+const { handler } = await import("../../src/lambda/query-listings.js");
 
 type QueryBody = {
   success: boolean;
   count?: number;
-  listings?: Record<string, unknown>[];
   error?: string | false;
 };
 
@@ -29,8 +43,8 @@ async function query() {
   return { statusCode: response.statusCode, ...(JSON.parse(response.body) as QueryBody) };
 }
 
-function uids(result: QueryBody) {
-  return (result.listings ?? []).map((row) => row.uid);
+function writtenUids() {
+  return (JSON.parse(written.body) as { uid: number }[]).map((row) => row.uid);
 }
 
 describe("query-listings against a real database", () => {
@@ -41,7 +55,7 @@ describe("query-listings against a real database", () => {
     const result = await query();
 
     expect(result.count).toBe(2);
-    expect(uids(result)).toEqual([100, 200]);
+    expect(writtenUids()).toEqual([100, 200]);
   });
 
   it("returns 500 when the schema no longer matches the query", async () => {

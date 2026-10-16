@@ -210,3 +210,50 @@ summary {
 .usa-footer__primary-section {
   background-color: #dfe1e2;
 }
+
+.usa-hero .usa-checkbox {
+  background: transparent;
+}
+
+.usa-hero .usa-checkbox__label {
+  color: white;
+}
+
+.usa-hero .usa-checkbox__input:checked + .usa-checkbox__label::before {
+  box-shadow: 0 0 0 2px white;
+}
+
+.usa-hero .usa-checkbox__label {
+  color: white;
+}
+
+.usa-hero .usa-checkbox__input:checked + .usa-checkbox__label::before {
+  box-shadow: 0 0 0 2px white;
+}
+
+/* The default error red is too dark to read on the hero's navy */
+.usa-hero .usa-error-message {
+  color: #fd8ba0;
+}
+
+.usa-hero .usa-input--error {
+  border-color: #fd8ba0;
+}
+
+.location-search__zip-row {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.location-search__zip-row .usa-input {
+  flex: none;
+  margin-top: 0;
+}
+
+.location-search__zip-row .usa-error-message {
+  font-size: 0.875rem;
+  line-height: 1.2;
+  padding: 0;
+}
