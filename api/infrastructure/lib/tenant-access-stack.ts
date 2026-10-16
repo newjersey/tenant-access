@@ -41,6 +41,7 @@ export class TenantAccessStack extends cdk.Stack {
       lifecycleRules: [
         { id: "expire-raw-html", prefix: "raw/", expiration: cdk.Duration.days(7) },
         { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
+        { id: "expire-query-results", prefix: "query-results/", expiration: cdk.Duration.days(7) },
         {
           id: "abort-incomplete-uploads",
           abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
@@ -380,13 +381,15 @@ export class TenantAccessStack extends cdk.Stack {
       environment: {
         DB_HOST: database.instanceEndpoint.hostname,
         DB_SECRET_ARN: dbCredentials.secretArn,
+        BUCKET_NAME: dataBucket.bucketName,
       },
       bundling: {
-        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        nodeModules: ["pg", "@aws-sdk/client-s3", "@aws-sdk/client-secrets-manager"],
         externalModules: ["aws-sdk", "pg-native"],
       },
     });
 
+    dataBucket.grantPut(queryLambda, "query-results/*");
     database.connections.allowFrom(queryLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(queryLambda);
 
