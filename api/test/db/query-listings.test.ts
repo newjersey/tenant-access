@@ -55,7 +55,7 @@ describe("query-listings against a real database", () => {
     const result = await query();
 
     expect(result.count).toBe(2);
-     expect(writtenUids()).toEqual([100, 200]);
+    expect(writtenUids()).toEqual([100, 200]);
   });
 
   it("returns 500 when the schema no longer matches the query", async () => {
