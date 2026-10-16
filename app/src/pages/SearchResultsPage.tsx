@@ -39,7 +39,6 @@ function SearchResultsPage() {
   return (
     <div>
       <SearchControls
-        key={location ?? ""}
         location={location}
         filtersOpen={filtersOpen}
         onToggleFilters={() => setFiltersOpen((open) => !open)}

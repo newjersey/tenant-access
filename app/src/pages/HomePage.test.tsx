@@ -62,6 +62,19 @@ describe("HomePage", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/search?zip=08608&nearby=false");
   });
 
+  it("sends only the ZIP when both a location and a ZIP are filled in", async () => {
+    renderPage();
+
+    await userEvent.type(
+      screen.getByRole("combobox", { name: content.location }),
+      "Trenton{Enter}",
+    );
+    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "08608");
+    await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/search?zip=08608");
+  });
+
   it("includes nearby listings by default", () => {
     renderPage();
 

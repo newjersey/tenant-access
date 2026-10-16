@@ -35,7 +35,12 @@ function LocationSearch({
       <label className="usa-label" htmlFor={id}>
         {label}
       </label>
-      <LocationComboBox id={id} defaultValue={defaultLocation} onChange={onLocationChange} />
+      <LocationComboBox
+        key={defaultLocation ?? ""}
+        id={id}
+        defaultValue={defaultLocation}
+        onChange={onLocationChange}
+      />
 
       <p className="text-bold margin-top-2 margin-bottom-0">{content.locationSearch.or}</p>
 

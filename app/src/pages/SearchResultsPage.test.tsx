@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import common from "@/data/content/en/common.json";
 import content from "@/data/content/en/search-results.json";
 import SearchResultsPage from "./SearchResultsPage";
 
@@ -45,6 +46,20 @@ describe("SearchResultsPage", () => {
         sort: "updated",
         filters: { bedrooms: "studio", bathrooms: "2" },
       },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("clears the location box when a ZIP replaces it, keeping focus in the ZIP field", async () => {
+    renderAt("/search?location=Newark");
+
+    const zip = await screen.findByRole("textbox", { name: common.locationSearch.zip });
+    await userEvent.type(zip, "08608");
+
+    expect(screen.getByRole("combobox", { name: content.search_label })).toHaveValue("");
+    expect(zip).toHaveFocus();
+    expect(searchListingsMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ location: null, zip: "08608" }),
       expect.any(AbortSignal),
     );
   });

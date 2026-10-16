@@ -33,8 +33,9 @@ function SearchControls({
     if ((selected ?? null) === location) return; // don't re-run duplicate searches
 
     const params = new URLSearchParams(searchParams);
-    if (selected) {
+     if (selected) {
       params.set("location", selected);
+      params.delete("zip");
     } else {
       params.delete("location");
     }
@@ -47,7 +48,11 @@ function SearchControls({
     setZipDraft(value);
     if (value === (zip ?? "")) return;
     if (value === "" || isNjZip(value)) {
-      setSearchParams((current) => withFilter(current, "zip", value));
+      setSearchParams((current) => {
+        const params = withFilter(current, "zip", value);
+        params.delete("location");
+        return params;
+      });
     }
   };
 

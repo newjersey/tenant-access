@@ -15,8 +15,8 @@ function HomePage() {
     event.preventDefault();
     if (zip && !isNjZip(zip)) return;
     const params = [];
-    if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (zip) params.push(`zip=${zip}`);
+    else if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (!nearby) params.push("nearby=false");
     void navigate(params.length > 0 ? `/search?${params.join("&")}` : "/search");
   };
