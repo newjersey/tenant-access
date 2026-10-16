@@ -28,7 +28,7 @@ const renderAt = (url: string, location: string | null = null) => {
   );
   return {
     onToggleFilters,
-    box: screen.getByRole("combobox", { name: content.search_label }),
+    box: screen.getByRole("combobox", { name: common.locationComboBox.prompt }),
     query: screen.getByTestId("query"),
   };
 };
