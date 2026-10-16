@@ -28,7 +28,7 @@ const renderAt = (url: string, location: string | null = null) => {
   );
   return {
     onToggleFilters,
-    box: screen.getByRole("combobox", { name: content.search_label }),
+    box: screen.getByRole("combobox", { name: common.locationComboBox.prompt }),
     query: screen.getByTestId("query"),
   };
 };
@@ -88,6 +88,26 @@ describe("SearchControls", () => {
 
     await userEvent.clear(zip);
     expect(query.textContent).not.toContain("zip");
+  });
+
+  it("drops the location when a ZIP is entered, since the ZIP is what gets searched", async () => {
+    const { query } = renderAt("/search?location=Newark", "Newark");
+    const zip = screen.getByRole("textbox", { name: common.locationSearch.zip });
+
+    await userEvent.type(zip, "08608");
+
+    expect(query).toHaveTextContent("zip=08608");
+    expect(query.textContent).not.toContain("location");
+  });
+
+  it("drops the ZIP when a location is chosen", async () => {
+    const { box, query } = renderAt("/search?zip=08608");
+
+    await userEvent.type(box, "Trenton{Enter}");
+
+    expect(query).toHaveTextContent("location=Trenton");
+    expect(query.textContent).not.toContain("zip");
+    expect(screen.getByRole("textbox", { name: common.locationSearch.zip })).toHaveValue("");
   });
 
   it("fills the ZIP from the url", () => {

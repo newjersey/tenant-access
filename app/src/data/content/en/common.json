@@ -4,12 +4,12 @@
   "govUrl": "https://nj.gov",
   "govAboutUrl": "https://nj.gov/governor/admin/about/",
   "locationComboBox": {
-    "placeholder": "Search by county or city",
+    "prompt": "Search by County or City",
     "noResults": "No matching cities"
   },
   "locationSearch": {
-    "or": "OR",
-    "zip": "ZIP code",
+    "or": "-OR-",
+    "zip": "Search by ZIP code",
     "zipError": "Enter a New Jersey ZIP code",
     "nearby": "Include nearby"
   },

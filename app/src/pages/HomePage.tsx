@@ -15,8 +15,8 @@ function HomePage() {
     event.preventDefault();
     if (zip && !isNjZip(zip)) return;
     const params = [];
-    if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (zip) params.push(`zip=${zip}`);
+    else if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (!nearby) params.push("nearby=false");
     void navigate(params.length > 0 ? `/search?${params.join("&")}` : "/search");
   };
@@ -31,7 +31,6 @@ function HomePage() {
             <form className="usa-form maxw-none" onSubmit={handleSearch}>
               <LocationSearch
                 id="location"
-                label={content.location}
                 zip={zip}
                 nearby={nearby}
                 onLocationChange={setLocation}

@@ -42,7 +42,7 @@ describe("HomePage", () => {
   it("searches within the chosen location", async () => {
     renderPage();
 
-    const box = screen.getByRole("combobox", { name: content.location });
+    const box = screen.getByRole("combobox", { name: common.locationComboBox.prompt });
     await userEvent.type(box, "Trenton{Enter}");
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
@@ -60,6 +60,19 @@ describe("HomePage", () => {
     await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
 
     expect(mockNavigate).toHaveBeenCalledWith("/search?zip=08608&nearby=false");
+  });
+
+  it("sends only the ZIP when both a location and a ZIP are filled in", async () => {
+    renderPage();
+
+    await userEvent.type(
+      screen.getByRole("combobox", { name: common.locationComboBox.prompt }),
+      "Trenton{Enter}",
+    );
+    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "08608");
+    await userEvent.click(screen.getByRole("button", { name: content.search_rentals }));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/search?zip=08608");
   });
 
   it("includes nearby listings by default", () => {
