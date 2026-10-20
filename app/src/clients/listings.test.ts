@@ -85,3 +85,59 @@ describe("searchListings", () => {
     );
   });
 });
+
+describe("getListing", () => {
+  let getListing: typeof import("./listings").getListing;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    vi.stubEnv("VITE_API_BASE_URL", BASE_URL);
+    vi.stubGlobal("fetch", fetchMock);
+
+    vi.resetModules();
+    ({ getListing } = await import("./listings"));
+  });
+
+  it("fetches the listing by uid, passing the abort signal through", async () => {
+    const controller = new AbortController();
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, listing: { uid: 7 } }),
+    });
+
+    await expect(getListing("7", controller.signal)).resolves.toEqual({ uid: 7 });
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/listings/7`, {
+      signal: controller.signal,
+    });
+  });
+
+  it("percent-encodes whatever is in the URL", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404 });
+
+    await getListing("../search");
+
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE_URL}/listings/..%2Fsearch`);
+  });
+
+  it("resolves to null for a missing or hidden listing", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404 });
+
+    await expect(getListing("7")).resolves.toBeNull();
+  });
+
+  it("rejects on any other non-2xx response", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 });
+
+    await expect(getListing("7")).rejects.toThrow("Listing request failed with status 500");
+  });
+
+  it("rejects when the base URL is not configured", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    vi.resetModules();
+    ({ getListing } = await import("./listings"));
+
+    await expect(getListing("7")).rejects.toThrow("VITE_API_BASE_URL is not set");
+  });
+});
