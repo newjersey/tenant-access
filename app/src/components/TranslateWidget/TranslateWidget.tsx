@@ -1,10 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import content from "@/data/content/en/common.json";
 
 const SCRIPT_SRC = "https://www.nj.gov/nj/design/js/translate-widget.js";
 const CONTAINER_ID = "translate-widget-container";
 const DISCLAIMER_URL = "https://www.nj.gov/nj/about/translator/";
 const RETRANSLATE_DEBOUNCE_MS = 500;
+const SAVED_LANGUAGE_KEY = "nj-translate-language";
+
+const OFFERED_LANGUAGES: Record<string, string> = {
+  en: "English",
+  es: "Español/Spanish",
+  pt: "Português/Portuguese (Brazil)",
+  ko: "한국어/Korean",
+  gu: "ગુજરાતી/Gujarati",
+  zh: "中文（简体）/Chinese (Simplified)",
+  "zh-TW": "中文（繁體）/Chinese (Traditional)",
+  ht: "Kreyòl Ayisyen/Haitian Creole",
+  ar: "العربية/Arabic",
+};
 
 type NJTranslateWidget = {
   init: () => void;
@@ -13,7 +26,7 @@ type NJTranslateWidget = {
   currentURL: string;
   cachedInputJson: unknown;
   cachedNodeMap: unknown;
-  config: { defaultLanguage: string };
+  config: { defaultLanguage: string; supportedLanguages: Record<string, string> };
 };
 
 declare global {
@@ -38,6 +51,13 @@ function loadWidget(): Promise<NJTranslateWidget> {
   return loadPromise;
 }
 
+function restrictLanguages(widget: NJTranslateWidget) {
+  widget.config.supportedLanguages = OFFERED_LANGUAGES;
+  // A language saved before we narrowed the list would translate with no matching option.
+  const saved = localStorage.getItem(SAVED_LANGUAGE_KEY);
+  if (saved && !(saved in OFFERED_LANGUAGES)) localStorage.removeItem(SAVED_LANGUAGE_KEY);
+}
+
 // The widget snapshots the DOM once and never refreshes it, which breaks on SPA navigation
 // and async results. Restore the old snapshot to English first so persistent chrome
 // (header/footer) isn't re-extracted as already-translated "source" text.
@@ -51,14 +71,22 @@ function retranslate(widget: NJTranslateWidget) {
 }
 
 const TranslateWidget = () => {
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
+    let cancelled = false;
     let observer: MutationObserver | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     loadWidget()
       .then((widget) => {
-        // The script self-inits on DOMContentLoaded if it beat us there; StrictMode also double-mounts.
-        if (!document.getElementById(CONTAINER_ID)?.hasChildNodes()) widget.init();
+        // StrictMode unmounts before the script loads; without this the first mount leaks an observer.
+        if (cancelled) return;
+        // The script self-inits on DOMContentLoaded if it beat us there.
+        if (!document.getElementById(CONTAINER_ID)?.hasChildNodes()) {
+          restrictLanguages(widget);
+          widget.init();
+        }
 
         const root = document.getElementById("root");
         if (!root) return;
@@ -69,13 +97,19 @@ const TranslateWidget = () => {
         });
         observer.observe(root, { childList: true, subtree: true });
       })
-      .catch((error) => console.error(error));
+      .catch(() => {
+        // A disclaimer link with no dropdown is just confusing.
+        if (!cancelled) setFailed(true);
+      });
 
     return () => {
+      cancelled = true;
       observer?.disconnect();
       clearTimeout(timer);
     };
   }, []);
+
+  if (failed) return null;
 
   return (
     <div className="njhmf-translate">

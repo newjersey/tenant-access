@@ -35,7 +35,7 @@ function ListingCard({ listing }: { listing: Listing }) {
       }
     >
       {unitSummary && <p>{unitSummary}</p>}
-      <p>{address}</p>
+      <p translate="no">{address}</p>
     </ListingCardFrame>
   );
 }

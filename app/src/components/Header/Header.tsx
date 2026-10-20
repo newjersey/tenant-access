@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import "@/components/Header/Header.css";
-import content from "@/data/content/en/common.json";
 import TranslateWidget from "@/components/TranslateWidget/TranslateWidget";
+import content from "@/data/content/en/common.json";
 
 const Header = () => {
   return (
