@@ -15,7 +15,7 @@ function BackLink() {
       onClick={(event) => {
         if (cameFromApp) {
           event.preventDefault();
-          navigate(-1);
+          void navigate(-1);
         }
       }}
     >

@@ -1,5 +1,5 @@
-import { MemoryRouter } from "react-router-dom";
 import { render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ListingCard from "@/components/ListingCard/ListingCard";
 import content from "@/data/content/en/search-results.json";
@@ -56,7 +56,6 @@ describe("ListingCard", () => {
     expect(links[0]).not.toHaveAttribute("target");
     expect(links[0]).toHaveAccessibleName("$1,200/month, 221 King Street, Clifton, NJ 08608");
   });
-
 
   it("for now, falls back to the legacy photo when s3 not available yet", () => {
     renderCard(makeListing({ imageUrl: "https://example.gov/photo.jpg" }));
