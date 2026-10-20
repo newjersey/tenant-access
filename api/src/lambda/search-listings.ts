@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import type { Pool } from "pg";
-import { headerValue, respond } from "./http-response.js";
 import { getPool } from "./db.js";
+import { headerValue, respond } from "./http-response.js";
 import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 import { buildFilterClause, type FilterClause } from "./search-filters.js";
 import type { SearchParams } from "./search-params.js";
