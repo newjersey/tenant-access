@@ -86,3 +86,25 @@ export async function searchListings(
 
   return response.json();
 }
+
+export interface GetListingResponse {
+  success: true;
+  listing: Listing;
+}
+
+export async function getListing(uid: string, signal?: AbortSignal): Promise<Listing | null> {
+  if (!API_BASE_URL) {
+    throw new Error("VITE_API_BASE_URL is not set");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/listings/${encodeURIComponent(uid)}`, { signal });
+  if (response.status === 404) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error(`Listing request failed with status ${response.status}`);
+  }
+
+  const body: GetListingResponse = await response.json();
+  return body.listing;
+}

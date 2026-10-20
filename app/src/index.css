@@ -257,3 +257,57 @@ summary {
   line-height: 1.2;
   padding: 0;
 }
+
+.listing-detail__back {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.listing-detail__availability,
+.listing-detail__icon-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.listing-detail__checklist li {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.listing-detail__checklist .usa-icon {
+  flex-shrink: 0;
+}
+
+.listing-detail__photo {
+  aspect-ratio: 16 / 9;
+  border-radius: 0.5rem;
+  display: block;
+  max-height: 28rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.listing-detail__facts dt {
+  font-weight: 700;
+}
+
+.listing-detail__facts dd {
+  margin: 0 0 0.75rem;
+}
+
+.listing-detail__card {
+  border: 2px solid #dfe1e2;
+  border-radius: 0.5rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+}
+
+@media (min-width: 64em) {
+  .listing-detail__sidebar {
+    padding-top: 1rem;
+  }
+}
