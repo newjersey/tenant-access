@@ -418,6 +418,31 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(searchLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(searchLambda);
 
+    const getListingLambda = new NodejsFunction(this, "GetListingFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/get-listing.ts",
+      handler: "handler",
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 512,
+      reservedConcurrentExecutions: 10,
+      environment: {
+        DB_HOST: database.instanceEndpoint.hostname,
+        DB_SECRET_ARN: dbCredentials.secretArn,
+        ALLOWED_ORIGINS: props.allowedOrigins,
+      },
+      bundling: {
+        nodeModules: ["pg", "@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk", "pg-native"],
+      },
+    });
+
+    database.connections.allowFrom(getListingLambda, ec2.Port.tcp(5432));
+    dbCredentials.grantRead(getListingLambda);
+
     // Requests only arrive from OIT's load balancer
     const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
       description: "Private API (listings search, listing photos, accounts, more)",
@@ -476,10 +501,15 @@ export class TenantAccessStack extends cdk.Stack {
       description: "Custom-domain form -- use this once DNS points at the endpoint",
     });
 
-    njHRCApi.root
-      .addResource("listings")
+    const listingsResource = njHRCApi.root.addResource("listings");
+
+    listingsResource
       .addResource("search")
       .addMethod("GET", new apigateway.LambdaIntegration(searchLambda));
+
+    listingsResource
+      .addResource("{uid}")
+      .addMethod("GET", new apigateway.LambdaIntegration(getListingLambda));
 
     const photosRole = new iam.Role(this, "PhotosIntegrationRole", {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
