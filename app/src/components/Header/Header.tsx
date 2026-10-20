@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import "@/components/Header/Header.css";
 import content from "@/data/content/en/common.json";
+import TranslateWidget from "@/components/TranslateWidget/TranslateWidget";
 
 const Header = () => {
   return (
@@ -22,6 +23,7 @@ const Header = () => {
               </Link>
             </em>
           </div>
+          <TranslateWidget />
         </div>
       </div>
     </header>

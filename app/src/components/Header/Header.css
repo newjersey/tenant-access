@@ -16,3 +16,17 @@
     width: 100%;
   }
 }
+
+.usa-header--basic .njhmf-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.njhmf-translate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  max-width: 14rem;
+}
