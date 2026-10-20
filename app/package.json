@@ -19,7 +19,7 @@
     "@newjersey/feedback-widget": "^0.7.1",
     "@newjersey/njwds": "^2.10.1",
     "@splidejs/react-splide": "^0.7.12",
-    "@trussworks/react-uswds": "^12.0.0",
+    "@trussworks/react-uswds": "^13.0.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-error-boundary": "^6.1.2",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
