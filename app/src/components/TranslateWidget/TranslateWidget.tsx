@@ -53,14 +53,10 @@ function loadWidget(): Promise<NJTranslateWidget> {
 
 function restrictLanguages(widget: NJTranslateWidget) {
   widget.config.supportedLanguages = OFFERED_LANGUAGES;
-  // A language saved before we narrowed the list would translate with no matching option.
   const saved = localStorage.getItem(SAVED_LANGUAGE_KEY);
   if (saved && !(saved in OFFERED_LANGUAGES)) localStorage.removeItem(SAVED_LANGUAGE_KEY);
 }
 
-// The widget snapshots the DOM once and never refreshes it, which breaks on SPA navigation
-// and async results. Restore the old snapshot to English first so persistent chrome
-// (header/footer) isn't re-extracted as already-translated "source" text.
 function retranslate(widget: NJTranslateWidget) {
   const translated = widget.currentLanguage !== widget.config.defaultLanguage;
   if (translated) void widget.translateFullPage(widget.config.defaultLanguage);
@@ -80,9 +76,7 @@ const TranslateWidget = () => {
 
     loadWidget()
       .then((widget) => {
-        // StrictMode unmounts before the script loads; without this the first mount leaks an observer.
         if (cancelled) return;
-        // The script self-inits on DOMContentLoaded if it beat us there.
         if (!document.getElementById(CONTAINER_ID)?.hasChildNodes()) {
           restrictLanguages(widget);
           widget.init();
@@ -90,7 +84,6 @@ const TranslateWidget = () => {
 
         const root = document.getElementById("root");
         if (!root) return;
-        // childList only: the widget writes characterData/attributes, so this can't loop on itself.
         observer = new MutationObserver(() => {
           clearTimeout(timer);
           timer = setTimeout(() => retranslate(widget), RETRANSLATE_DEBOUNCE_MS);
@@ -98,7 +91,6 @@ const TranslateWidget = () => {
         observer.observe(root, { childList: true, subtree: true });
       })
       .catch(() => {
-        // A disclaimer link with no dropdown is just confusing.
         if (!cancelled) setFailed(true);
       });
 
