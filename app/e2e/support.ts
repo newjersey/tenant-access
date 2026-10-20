@@ -1,7 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    await page.route("https://www.nj.gov/**", (route) => route.abort()); // mock translation widget
+    await use(page);
+  },
+});
 
 export async function expectNoAxeViolations(page: Page): Promise<void> {
   const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();

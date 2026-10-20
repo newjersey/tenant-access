@@ -34,6 +34,8 @@ const LocationComboBox = memo(function LocationComboBox({
       onChange={onChange}
       noResults={content.locationComboBox.noResults}
       inputProps={{ placeholder: content.locationComboBox.prompt }}
+      selectProps={{ translate: "no" }}
+      ulProps={{ translate: "no" }}
     />
   );
 });
