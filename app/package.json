@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@newjersey/feedback-widget": "^0.7.1",
+    "@newjersey/feedback-widget": "^0.8.0",
     "@newjersey/njwds": "^2.10.1",
     "@splidejs/react-splide": "^0.7.12",
     "@trussworks/react-uswds": "^13.0.0",
