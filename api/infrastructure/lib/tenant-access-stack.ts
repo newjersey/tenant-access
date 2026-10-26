@@ -43,7 +43,11 @@ export class TenantAccessStack extends cdk.Stack {
         { id: "expire-parsed-json", prefix: "parsed/", expiration: cdk.Duration.days(90) },
         { id: "expire-details-json", prefix: "details/", expiration: cdk.Duration.days(90) },
         { id: "expire-geocode-json", prefix: "geocode/", expiration: cdk.Duration.days(90) },
-        { id: "expire-geocode-requests-json", prefix: "geocode-requests/", expiration: cdk.Duration.days(90) },
+        {
+          id: "expire-geocode-requests-json",
+          prefix: "geocode-requests/",
+          expiration: cdk.Duration.days(90),
+        },
         { id: "expire-query-results", prefix: "query-results/", expiration: cdk.Duration.days(7) },
         {
           id: "abort-incomplete-uploads",
