@@ -283,12 +283,9 @@ summary {
 }
 
 .listing-detail__photo {
-  aspect-ratio: 16 / 9;
   border-radius: 0.5rem;
   display: block;
   max-height: 28rem;
-  object-fit: cover;
-  width: 100%;
 }
 
 .listing-detail__facts dt {
@@ -304,13 +301,4 @@ summary {
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   padding: 1.5rem;
-}
-
-@media (max-width: 63.99em) {
-  .listing-detail__photo {
-    border-radius: 0;
-    margin-left: -1rem;
-    max-width: none;
-    width: calc(100% + 2rem);
-  }
 }
