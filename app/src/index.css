@@ -302,12 +302,15 @@ summary {
 .listing-detail__card {
   border: 2px solid #dfe1e2;
   border-radius: 0.5rem;
-  margin-top: 2rem;
+  margin-bottom: 1rem;
   padding: 1.5rem;
 }
 
-@media (min-width: 64em) {
-  .listing-detail__sidebar {
-    padding-top: 1rem;
+@media (max-width: 63.99em) {
+  .listing-detail__photo {
+    border-radius: 0;
+    margin-left: -1rem;
+    max-width: none;
+    width: calc(100% + 2rem);
   }
 }

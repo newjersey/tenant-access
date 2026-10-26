@@ -9,19 +9,22 @@ import ListingSummary from "@/components/ListingDetail/ListingSummary";
 import content from "@/data/content/en/listing-detail.json";
 import { useListing } from "@/hooks/useListing";
 import { listingDetails } from "@/utils/listingDetails";
+import { listingImageUrl } from "@/utils/listingPhotos";
 
 function ListingDetail({ listing }: { listing: Listing }) {
   const details = useMemo(() => listingDetails(listing), [listing]);
+  const photo = listingImageUrl(listing);
 
   return (
     <>
       <ListingSummary listing={listing} availability={details.availability} />
-      <div className="grid-container padding-bottom-5">
+      <div className="grid-container desktop:padding-top-4 padding-bottom-5">
         <div className="grid-row grid-gap">
           <div className="grid-col-12 desktop:grid-col-8">
+            {photo && <img className="listing-detail__photo" src={photo} alt="" />}
             <ListingSections listing={listing} details={details} />
           </div>
-          <div className="grid-col-12 desktop:grid-col-4 listing-detail__sidebar">
+          <div className="grid-col-12 desktop:grid-col-4 margin-top-4 desktop:margin-top-0">
             <ListingSidebar listing={listing} details={details} />
           </div>
         </div>
