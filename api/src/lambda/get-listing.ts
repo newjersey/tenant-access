@@ -3,10 +3,8 @@ import { getPool } from "./db.js";
 import { headerValue, respond } from "./http-response.js";
 import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 
-// uid is a Postgres INTEGER, so anything past 9 digits could overflow it and 500
 const UID_PATTERN = /^\d{1,9}$/;
 
-// Hidden listings 404 rather than 410, since a listing can be taken down and come back
 const SELECT_SQL = `
   SELECT
     ${LISTING_SELECT_COLUMNS}
