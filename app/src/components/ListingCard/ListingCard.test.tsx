@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ListingCard from "@/components/ListingCard/ListingCard";
 import content from "@/data/content/en/search-results.json";
@@ -6,9 +7,11 @@ import { makeListing } from "@/test/makeListing";
 
 const renderCard = (listing = makeListing()) =>
   render(
-    <ul>
-      <ListingCard listing={listing} />
-    </ul>,
+    <MemoryRouter>
+      <ul>
+        <ListingCard listing={listing} />
+      </ul>
+    </MemoryRouter>,
   );
 
 describe("ListingCard", () => {
@@ -43,13 +46,14 @@ describe("ListingCard", () => {
     expect(screen.getByText("221 King Street, Clifton, NJ 08608")).toBeInTheDocument();
   });
 
-  it("makes the whole card a single link to the full listing", () => {
-    renderCard(makeListing({ fullListingUrl: "https://example.gov/listing/7" }));
+  it("makes the whole card a single link to the listing's detail page", () => {
+    renderCard(makeListing({ uid: 7 }));
 
     const card = screen.getByRole("listitem");
     const links = within(card).getAllByRole("link");
     expect(links).toHaveLength(1);
-    expect(links[0]).toHaveAttribute("href", "https://example.gov/listing/7");
+    expect(links[0]).toHaveAttribute("href", "/listings/7");
+    expect(links[0]).not.toHaveAttribute("target");
     expect(links[0]).toHaveAccessibleName("$1,200/month, 221 King Street, Clifton, NJ 08608");
   });
 

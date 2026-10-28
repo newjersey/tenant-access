@@ -1,6 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import type { Pool } from "pg";
 import { getPool } from "./db.js";
+import { headerValue, respond } from "./http-response.js";
 import { LISTING_SELECT_COLUMNS, type ListingRow } from "./listing-columns.js";
 import { buildFilterClause, type FilterClause } from "./search-filters.js";
 import type { SearchParams } from "./search-params.js";
@@ -20,7 +21,6 @@ interface Search {
 }
 
 const PAGE_SIZE = 20;
-const CACHE_SECONDS = 300;
 const MAX_PARAM_LENGTH = 100;
 export const RADIUS_MILES = 5;
 const ZIP_PATTERN = /^\d{5}$/;
@@ -35,11 +35,6 @@ const FIRST_FILTER_PLACEHOLDER = 5;
 // The frontend shows "over 1000 results" rather than an exact figure.
 const RESULT_CAP = 1001;
 const MAX_PAGE = 50; // 50 pages * 20 results per page = 1000
-
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
 
 const SORT_ORDERS = {
   updated: "last_updated DESC NULLS LAST, uid",
@@ -139,30 +134,6 @@ const parseAndConstrainPage = (raw: string | undefined): number => {
   const parsed = Number.parseInt(raw ?? "", 10);
   return Number.isNaN(parsed) ? fallback : Math.min(Math.max(parsed, minPage), MAX_PAGE);
 };
-
-// REST API (v1) forwards header names with the casing the client used
-const headerValue = (event: APIGatewayProxyEvent, name: string): string | undefined => {
-  const headers = event.headers ?? {};
-  const key = Object.keys(headers).find((candidate) => candidate.toLowerCase() === name);
-  return key ? (headers[key] ?? undefined) : undefined;
-};
-
-const respond = (
-  statusCode: number,
-  body: unknown,
-  origin: string | undefined,
-): APIGatewayProxyResult => ({
-  statusCode,
-  headers: {
-    "Content-Type": "application/json",
-    "Cache-Control": statusCode === 200 ? `public, max-age=${CACHE_SECONDS}` : "no-store",
-    Vary: "Origin",
-    ...(origin && ALLOWED_ORIGINS.includes(origin)
-      ? { "Access-Control-Allow-Origin": origin }
-      : {}),
-  },
-  body: JSON.stringify(body),
-});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const origin = headerValue(event, "origin");

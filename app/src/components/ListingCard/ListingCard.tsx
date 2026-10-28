@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Icon from "@/components/Icon/Icon";
 import ListingCardFrame from "@/components/ListingCard/ListingCardFrame";
@@ -23,15 +24,13 @@ function ListingCard({ listing }: { listing: Listing }) {
         )
       }
       heading={
-        <a
+        <Link
           className="listing-card__link"
-          href={listing.fullListingUrl}
+          to={`/listings/${listing.uid}`}
           aria-label={`${rent}, ${address}`}
-          target="_blank"
-          rel="noreferrer"
         >
           {rent}
-        </a>
+        </Link>
       }
     >
       {unitSummary && <p>{unitSummary}</p>}
