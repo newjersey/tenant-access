@@ -123,6 +123,7 @@ function ListingSections({ listing, details }: ListingSectionsProps) {
             <CheckList items={details.accessibility.map((fact) => String(fact.value))} />
             {details.accessibilityDetails.length > 0 && (
               <Accordion
+                className="margin-top-2"
                 bordered={false}
                 multiselectable
                 items={[

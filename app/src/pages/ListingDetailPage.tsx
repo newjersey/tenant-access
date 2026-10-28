@@ -18,7 +18,7 @@ function ListingDetail({ listing }: { listing: Listing }) {
   return (
     <>
       <ListingSummary listing={listing} availability={details.availability} />
-      <div className="grid-container desktop:padding-top-4 padding-bottom-5">
+      <div className="grid-container padding-top-3 desktop:padding-top-4 padding-bottom-5">
         <div className="grid-row grid-gap">
           <div className="grid-col-12 desktop:grid-col-8">
             {photo && <img className="listing-detail__photo" src={photo} alt="" />}
