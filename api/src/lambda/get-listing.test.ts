@@ -10,7 +10,6 @@ vi.mock("./db.js", () => ({ getPool: getPoolMock }));
 
 const ALLOWED_ORIGIN = "http://localhost:5173";
 
-// ALLOWED_ORIGINS is read once at module load, so the env has to be set before the import.
 let handler: typeof import("./get-listing.js").handler;
 
 const makeEvent = (uid?: string, headers: Record<string, string | undefined> = {}) =>
