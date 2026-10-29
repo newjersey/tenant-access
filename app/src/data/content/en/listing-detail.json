@@ -1,5 +1,7 @@
 {
-  "back": "All Listings",
+  "all_listings": "All Listings",
+  "home": "Home",
+  "breadcrumb_label": "Breadcrumbs",
   "loading": "Loading listing...",
   "error": "We couldn't load this listing right now. Please try again.",
   "not_found_heading": "Listing not available",

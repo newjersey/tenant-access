@@ -264,6 +264,11 @@ summary {
   gap: 0.25rem;
 }
 
+.listing-detail__breadcrumb {
+  background-color: transparent;
+  padding: 0;
+}
+
 .listing-detail__availability,
 .listing-detail__icon-heading {
   align-items: center;

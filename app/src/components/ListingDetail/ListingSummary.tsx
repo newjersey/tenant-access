@@ -1,6 +1,6 @@
 import type { Listing } from "@/clients/listings";
 import Icon from "@/components/Icon/Icon";
-import BackLink from "@/components/ListingDetail/BackLink";
+import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
 import content from "@/data/content/en/listing-detail.json";
 import results from "@/data/content/en/search-results.json";
 import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
@@ -18,7 +18,7 @@ function ListingSummary({ listing, availability }: ListingSummaryProps) {
     <div className="color-info-lighter">
       <div className="grid-container padding-y-4">
         <div className="margin-bottom-4">
-          <BackLink />
+          <ListingBreadcrumb current={listing.name} />
         </div>
 
         <div className="grid-row grid-gap">

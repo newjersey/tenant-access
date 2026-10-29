@@ -1,4 +1,4 @@
-import BackLink from "@/components/ListingDetail/BackLink";
+import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
 import content from "@/data/content/en/listing-detail.json";
 
 function SkeletonDetail({ heading, text }: { heading: string; text: string }) {
@@ -24,7 +24,7 @@ function ListingDetailSkeleton() {
       <div className="color-info-lighter">
         <div className="grid-container padding-y-4">
           <div className="margin-bottom-4">
-            <BackLink />
+            <ListingBreadcrumb />
           </div>
 
           <div className="grid-row grid-gap" aria-hidden="true">

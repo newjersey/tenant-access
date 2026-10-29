@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -144,23 +144,44 @@ describe("ListingDetailPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(content.error);
   });
 
-  it("goes back to the search the user came from, keeping its query", async () => {
-    renderAt(["/search?location=Newark&page=2", "/listings/7"]);
-
-    await screen.findByRole("heading", { level: 1 });
-    await userEvent.click(screen.getByRole("link", { name: content.back }));
-
-    expect(screen.getByText("search page ?location=Newark&page=2")).toBeInTheDocument();
-  });
-
-  it("sends a visitor who opened the listing directly to a fresh search", async () => {
+  it("links the breadcrumb home and marks the listing as the current page", async () => {
     renderAt(["/listings/7"]);
 
     await screen.findByRole("heading", { level: 1 });
-    const back = screen.getByRole("link", { name: content.back });
-    expect(back).toHaveAttribute("href", "/search");
-    await userEvent.click(back);
+    const breadcrumb = within(screen.getByRole("navigation", { name: content.breadcrumb_label }));
+    expect(breadcrumb.getByRole("link", { name: content.home })).toHaveAttribute("href", "/");
+    expect(breadcrumb.getByText("Valor Pointe").closest("li")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
 
-    expect(screen.getByText("search page")).toBeInTheDocument();
+  // The mobile back link comes first, then the desktop breadcrumb's link
+  describe.each([
+    ["back link", 0],
+    ["breadcrumb", 1],
+  ])("the %s to All Listings", (_, index) => {
+    const allListingsLink = () =>
+      screen.getAllByRole("link", { name: content.all_listings })[index];
+
+    it("goes back to the search the user came from, keeping its query", async () => {
+      renderAt(["/search?location=Newark&page=2", "/listings/7"]);
+
+      await screen.findByRole("heading", { level: 1 });
+      await userEvent.click(allListingsLink());
+
+      expect(screen.getByText("search page ?location=Newark&page=2")).toBeInTheDocument();
+    });
+
+    it("sends a visitor who opened the listing directly to a fresh search", async () => {
+      renderAt(["/listings/7"]);
+
+      await screen.findByRole("heading", { level: 1 });
+      const back = allListingsLink();
+      expect(back).toHaveAttribute("href", "/search");
+      await userEvent.click(back);
+
+      expect(screen.getByText("search page")).toBeInTheDocument();
+    });
   });
 });
