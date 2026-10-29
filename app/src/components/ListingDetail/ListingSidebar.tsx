@@ -41,7 +41,7 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
 
         {details.website && (
           <a
-            className="usa-button width-full margin-bottom-2"
+            className="usa-button width-full"
             href={websiteHref(details.website)}
             target="_blank"
             rel="noreferrer"
@@ -49,14 +49,6 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
             {content.website}
           </a>
         )}
-        <a
-          className="usa-button usa-button--outline width-full"
-          href={listing.fullListingUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {content.original_listing}
-        </a>
       </section>
 
       <section className="listing-detail__card">

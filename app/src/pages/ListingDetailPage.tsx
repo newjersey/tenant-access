@@ -29,6 +29,11 @@ function ListingDetail({ listing }: { listing: Listing }) {
             <ListingSidebar listing={listing} details={details} />
           </div>
         </div>
+        <p className="margin-top-5 margin-bottom-0">
+          <a className="usa-link" href={listing.fullListingUrl} target="_blank" rel="noreferrer">
+            {content.original_listing}
+          </a>
+        </p>
       </div>
     </>
   );
