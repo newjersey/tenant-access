@@ -68,7 +68,7 @@ export function formatAddress({ address, city, state, zipCode }: AddressFields):
 const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to"]);
 const KEEP_UPPERCASE = /^(i{1,3}|iv|vi{0,3}|ix|llc|lp|nj|us|ymca)$/;
 
-export function normalizeTitleCase(text: string): string {
+function normalizeTitleCase(text: string): string {
   if (/[a-z]/.test(text) && /[A-Z]/.test(text)) {
     return text;
   }
@@ -82,4 +82,10 @@ export function normalizeTitleCase(text: string): string {
       return word.replace(/(^|[-/(])([a-z])/g, (_, before, letter) => before + letter.toUpperCase());
     })
     .join(" ");
+}
+
+const PLACEHOLDER_NAME = /^(n\/?a|none)$/i;
+export function formatListingName({ name, address }: Pick<Listing, "name" | "address">): string {
+  const usable = /[a-z]/i.test(name) && !PLACEHOLDER_NAME.test(name.trim());
+  return normalizeTitleCase(usable ? name : address);
 }

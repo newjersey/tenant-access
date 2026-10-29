@@ -3,7 +3,7 @@ import Icon from "@/components/Icon/Icon";
 import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
 import content from "@/data/content/en/listing-detail.json";
 import results from "@/data/content/en/search-results.json";
-import { formatAddress, formatRent, formatUnitSummary, normalizeTitleCase } from "@/utils/formatListing";
+import { formatAddress, formatListingName, formatRent, formatUnitSummary } from "@/utils/formatListing";
 import { isIncomeBased } from "@/utils/listingDetails";
 
 interface ListingSummaryProps {
@@ -13,7 +13,7 @@ interface ListingSummaryProps {
 
 function ListingSummary({ listing, availability }: ListingSummaryProps) {
   const unitSummary = formatUnitSummary(listing);
-  const name = normalizeTitleCase(listing.name);
+  const name = formatListingName(listing);
 
   return (
     <div className="color-info-lighter">

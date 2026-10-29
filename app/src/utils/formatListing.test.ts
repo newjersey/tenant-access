@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAddress, formatRent, formatUnitSummary, normalizeTitleCase } from "./formatListing";
+import { formatAddress, formatListingName, formatRent, formatUnitSummary } from "./formatListing";
 
 describe("formatRent", () => {
   it("shows a single figure when there is no maximum", () => {
@@ -87,19 +87,20 @@ describe("formatAddress", () => {
   });
 });
 
-describe("normalizeCase", () => {
+describe("formatListingName", () => {
+  it("falls back to the street address when the name is blank", () => {
+    expect(formatListingName({ name: "", address: "813 ARCHER STREET" })).toBe("813 Archer Street");
+  });
+
+  it("falls back to the street address when the name is a placeholder", () => {
+    expect(formatListingName({ name: "none", address: "67 edgar" })).toBe("67 Edgar");
+    expect(formatListingName({ name: ".", address: "716 s 20th st" })).toBe("716 S 20th St");
+    expect(formatListingName({ name: "852", address: "599 15th Avenue" })).toBe("599 15th Avenue");
+  });
+
   it("title-cases all-caps text, keeping small words and acronyms", () => {
-    expect(normalizeTitleCase("WOODLAND AT HOPEWELL PARK")).toBe("Woodland at Hopewell Park");
-    expect(normalizeTitleCase("HOBOKEN YMCA")).toBe("Hoboken YMCA");
-  });
-
-  it("title-cases all-lowercase text", () => {
-    expect(normalizeTitleCase("716 s 20th st")).toBe("716 S 20th St");
-  });
-
-  it("leaves mixed-case text as entered", () => {
-    expect(normalizeTitleCase("Cornerstone at Galloway - Phase II LLC")).toBe(
-      "Cornerstone at Galloway - Phase II LLC",
-    );
+    expect(formatListingName({ name: "WOODLAND AT HOPEWELL PARK", address: "1 Main St"})).toBe("Woodland at Hopewell Park");
+    expect(formatListingName({ name: "HOBOKEN YMCA", address: "1 Main St"})).toBe("Hoboken YMCA");
+    expect(formatListingName({ name: "Cornerstone at Galloway - Phase II LLC", address: "1 Main St"})).toBe("Cornerstone at Galloway - Phase II LLC");
   });
 });
