@@ -3,7 +3,12 @@ import Icon from "@/components/Icon/Icon";
 import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
 import content from "@/data/content/en/listing-detail.json";
 import results from "@/data/content/en/search-results.json";
-import { formatAddress, formatListingName, formatRent, formatUnitSummary } from "@/utils/formatListing";
+import {
+  formatAddress,
+  formatListingName,
+  formatRent,
+  formatUnitSummary,
+} from "@/utils/formatListing";
 import { isIncomeBased } from "@/utils/listingDetails";
 
 interface ListingSummaryProps {

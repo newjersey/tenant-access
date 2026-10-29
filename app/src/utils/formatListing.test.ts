@@ -99,8 +99,12 @@ describe("formatListingName", () => {
   });
 
   it("title-cases all-caps text, keeping small words and acronyms", () => {
-    expect(formatListingName({ name: "WOODLAND AT HOPEWELL PARK", address: "1 Main St"})).toBe("Woodland at Hopewell Park");
-    expect(formatListingName({ name: "HOBOKEN YMCA", address: "1 Main St"})).toBe("Hoboken YMCA");
-    expect(formatListingName({ name: "Cornerstone at Galloway - Phase II LLC", address: "1 Main St"})).toBe("Cornerstone at Galloway - Phase II LLC");
+    expect(formatListingName({ name: "WOODLAND AT HOPEWELL PARK", address: "1 Main St" })).toBe(
+      "Woodland at Hopewell Park",
+    );
+    expect(formatListingName({ name: "HOBOKEN YMCA", address: "1 Main St" })).toBe("Hoboken YMCA");
+    expect(
+      formatListingName({ name: "Cornerstone at Galloway - Phase II LLC", address: "1 Main St" }),
+    ).toBe("Cornerstone at Galloway - Phase II LLC");
   });
 });

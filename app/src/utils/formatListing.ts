@@ -65,7 +65,20 @@ export function formatAddress({ address, city, state, zipCode }: AddressFields):
   return [address, city, region].filter(Boolean).join(", ");
 }
 
-const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to"]);
+const SMALL_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "at",
+  "by",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+]);
 const KEEP_UPPERCASE = /^(i{1,3}|iv|vi{0,3}|ix|llc|lp|nj|us|ymca)$/;
 
 function normalizeTitleCase(text: string): string {
@@ -79,7 +92,10 @@ function normalizeTitleCase(text: string): string {
     .map((word, i) => {
       if (i > 0 && SMALL_WORDS.has(word)) return word;
       if (KEEP_UPPERCASE.test(word)) return word.toUpperCase();
-      return word.replace(/(^|[-/(])([a-z])/g, (_, before, letter) => before + letter.toUpperCase());
+      return word.replace(
+        /(^|[-/(])([a-z])/g,
+        (_, before, letter) => before + letter.toUpperCase(),
+      );
     })
     .join(" ");
 }
