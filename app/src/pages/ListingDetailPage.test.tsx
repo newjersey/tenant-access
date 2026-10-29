@@ -30,7 +30,7 @@ const fullListing = makeListing({
   name: "Valor Pointe",
   rentType: "Income Based Rent",
   depositRange: "$750 - $3,300",
-  amenities: ["Washer/Dryer"],
+  amenities: ["Washer/Dryer", "Landlord can accept Spanish-language phone calls"],
   legacyDetails: makeLegacyDetails(),
 });
 
@@ -75,6 +75,7 @@ describe("ListingDetailPage", () => {
     expect(screen.getByText("$35")).toBeInTheDocument();
     expect(screen.getByText("Per Adult")).toBeInTheDocument();
     expect(screen.getByText("$750 - $3,300")).toBeInTheDocument();
+    expect(screen.getByText("Spanish")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: content.hud_lead_guidelines })).toHaveAttribute(
       "href",
       content.hud_lead_guidelines_url,

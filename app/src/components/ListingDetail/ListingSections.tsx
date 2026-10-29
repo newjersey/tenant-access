@@ -76,9 +76,9 @@ function ListingSections({ listing, details }: ListingSectionsProps) {
             <p className="margin-top-0">{details.smokingPolicy}</p>
           </Detail>
         )}
-        {listing.amenities.length > 0 && (
+        {details.amenities.length > 0 && (
           <Detail heading={content.amenities}>
-            <CheckList items={listing.amenities} />
+            <CheckList items={details.amenities} />
           </Detail>
         )}
         {details.features.length > 0 && (

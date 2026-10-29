@@ -31,6 +31,11 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
               <a href={phoneHref(listing.phoneNumber)}>{listing.phoneNumber}</a>
             </li>
           )}
+          {details.languages.length > 0 && (
+            <li>
+              <strong>{content.languages}</strong> {details.languages.join(", ")}
+            </li>
+          )}
           {details.email && (
             <li>
               <strong>{content.email}</strong>{" "}

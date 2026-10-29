@@ -17,6 +17,8 @@ export interface ApplicationFee {
 
 export interface ListingDetailsView {
   availability: string | null;
+  amenities: string[];
+  languages: string[];
   incomeQualifications: string | null;
   ageQualifications: Fact[];
   petPolicy: string | null;
@@ -43,6 +45,8 @@ const INCOME_BASED_RENT_TYPES = new Set(["Income Based Rent", "Median Income Bas
 
 // legacy values meaning the feature is missing or unknown, so it shouldn't get a checkmark
 const ABSENT = new Set(["None", "No", "No Hookup", "Unknown", "Standard"]);
+
+const LANGUAGE_AMENITY = /^Landlord can accept (.+)-language phone calls$/;
 
 export const isIncomeBased = ({ rentType }: Pick<Listing, "rentType">): boolean =>
   rentType !== null && INCOME_BASED_RENT_TYPES.has(rentType);
@@ -137,6 +141,8 @@ export function listingDetails(listing: Listing): ListingDetailsView {
 
   return {
     availability: legacy?.availability ?? null,
+    amenities: listing.amenities.filter((amenity) => !LANGUAGE_AMENITY.test(amenity)),
+    languages: listing.amenities.flatMap((amenity) => amenity.match(LANGUAGE_AMENITY)?.[1] ?? []),
     incomeQualifications: asText(
       read.row("Comments", "Qualifiers For Income Based Rent or Income Restriction"),
     ),
