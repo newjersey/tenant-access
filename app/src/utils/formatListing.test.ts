@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAddress, formatRent, formatUnitSummary } from "./formatListing";
+import { formatAddress, formatRent, formatUnitSummary, normalizeTitleCase } from "./formatListing";
 
 describe("formatRent", () => {
   it("shows a single figure when there is no maximum", () => {
@@ -84,5 +84,22 @@ describe("formatAddress", () => {
     expect(
       formatAddress({ address: "221 King Street", city: "Clifton", state: "NJ", zipCode: "08608" }),
     ).toBe("221 King Street, Clifton, NJ 08608");
+  });
+});
+
+describe("normalizeCase", () => {
+  it("title-cases all-caps text, keeping small words and acronyms", () => {
+    expect(normalizeTitleCase("WOODLAND AT HOPEWELL PARK")).toBe("Woodland at Hopewell Park");
+    expect(normalizeTitleCase("HOBOKEN YMCA")).toBe("Hoboken YMCA");
+  });
+
+  it("title-cases all-lowercase text", () => {
+    expect(normalizeTitleCase("716 s 20th st")).toBe("716 S 20th St");
+  });
+
+  it("leaves mixed-case text as entered", () => {
+    expect(normalizeTitleCase("Cornerstone at Galloway - Phase II LLC")).toBe(
+      "Cornerstone at Galloway - Phase II LLC",
+    );
   });
 });

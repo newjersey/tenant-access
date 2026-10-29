@@ -3,7 +3,7 @@ import Icon from "@/components/Icon/Icon";
 import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
 import content from "@/data/content/en/listing-detail.json";
 import results from "@/data/content/en/search-results.json";
-import { formatAddress, formatRent, formatUnitSummary } from "@/utils/formatListing";
+import { formatAddress, formatRent, formatUnitSummary, normalizeTitleCase } from "@/utils/formatListing";
 import { isIncomeBased } from "@/utils/listingDetails";
 
 interface ListingSummaryProps {
@@ -13,12 +13,13 @@ interface ListingSummaryProps {
 
 function ListingSummary({ listing, availability }: ListingSummaryProps) {
   const unitSummary = formatUnitSummary(listing);
+  const name = normalizeTitleCase(listing.name);
 
   return (
     <div className="color-info-lighter">
       <div className="grid-container padding-y-4">
         <div className="margin-bottom-4">
-          <ListingBreadcrumb current={listing.name} />
+          <ListingBreadcrumb current={name} />
         </div>
 
         <div className="grid-row grid-gap">
@@ -30,7 +31,7 @@ function ListingSummary({ listing, availability }: ListingSummaryProps) {
             )}
 
             <h1 className="font-heading-2xl text-primary-darker margin-top-1 margin-bottom-1">
-              {listing.name}
+              {name}
             </h1>
             <p className="font-sans-lg margin-top-0" translate="no">
               {formatAddress(listing)}
