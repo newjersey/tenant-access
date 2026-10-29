@@ -288,6 +288,12 @@ summary {
   max-height: 28rem;
 }
 
+.listing-detail__photo--empty {
+  aspect-ratio: 16 / 9;
+  background-color: #edeff0;
+  width: 100%;
+}
+
 .listing-detail__facts dt {
   font-weight: 700;
 }
