@@ -33,7 +33,7 @@ const LocationComboBox = memo(function LocationComboBox({
       defaultValue={defaultValue}
       onChange={onChange}
       noResults={content.locationComboBox.noResults}
-      inputProps={{ placeholder: content.locationComboBox.prompt }}
+      inputProps={{ placeholder: content.locationComboBox.placeholder }}
       selectProps={{ translate: "no" }}
       ulProps={{ translate: "no" }}
     />

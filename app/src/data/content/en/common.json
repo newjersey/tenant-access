@@ -5,6 +5,7 @@
   "govAboutUrl": "https://nj.gov/governor/admin/about/",
   "locationComboBox": {
     "prompt": "Search by County or City",
+    "placeholder": "County or City",
     "noResults": "No matching cities"
   },
   "locationSearch": {
