@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAddress, formatRent, formatUnitSummary } from "./formatListing";
+import { formatAddress, formatListingName, formatRent, formatUnitSummary } from "./formatListing";
 
 describe("formatRent", () => {
   it("shows a single figure when there is no maximum", () => {
@@ -84,5 +84,27 @@ describe("formatAddress", () => {
     expect(
       formatAddress({ address: "221 King Street", city: "Clifton", state: "NJ", zipCode: "08608" }),
     ).toBe("221 King Street, Clifton, NJ 08608");
+  });
+});
+
+describe("formatListingName", () => {
+  it("falls back to the street address when the name is blank", () => {
+    expect(formatListingName({ name: "", address: "813 ARCHER STREET" })).toBe("813 Archer Street");
+  });
+
+  it("falls back to the street address when the name is a placeholder", () => {
+    expect(formatListingName({ name: "none", address: "67 edgar" })).toBe("67 Edgar");
+    expect(formatListingName({ name: ".", address: "716 s 20th st" })).toBe("716 S 20th St");
+    expect(formatListingName({ name: "852", address: "599 15th Avenue" })).toBe("599 15th Avenue");
+  });
+
+  it("title-cases all-caps text, keeping small words and acronyms", () => {
+    expect(formatListingName({ name: "WOODLAND AT HOPEWELL PARK", address: "1 Main St" })).toBe(
+      "Woodland at Hopewell Park",
+    );
+    expect(formatListingName({ name: "HOBOKEN YMCA", address: "1 Main St" })).toBe("Hoboken YMCA");
+    expect(
+      formatListingName({ name: "Cornerstone at Galloway - Phase II LLC", address: "1 Main St" }),
+    ).toBe("Cornerstone at Galloway - Phase II LLC");
   });
 });

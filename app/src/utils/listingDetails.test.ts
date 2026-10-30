@@ -164,6 +164,8 @@ describe("listingDetails", () => {
   it("returns an empty view for a listing whose detail page hasn't been scraped yet", () => {
     expect(listingDetails(makeListing({ legacyDetails: null }))).toEqual({
       availability: null,
+      amenities: [],
+      languages: [],
       incomeQualifications: null,
       ageQualifications: [],
       petPolicy: null,
@@ -184,6 +186,21 @@ describe("listingDetails", () => {
       schoolDistrict: null,
       additionalDetails: [],
     });
+  });
+
+  it("pulls the languages the landlord takes calls in out of the amenities", () => {
+    const view = listingDetails(
+      makeListing({
+        amenities: [
+          "Landlord can accept Spanish-language phone calls",
+          "Washer/Dryer",
+          "Landlord can accept Vietnamese-language phone calls",
+        ],
+      }),
+    );
+
+    expect(view.languages).toEqual(["Spanish", "Vietnamese"]);
+    expect(view.amenities).toEqual(["Washer/Dryer"]);
   });
 
   it("doesn't change the listing it reads from", () => {

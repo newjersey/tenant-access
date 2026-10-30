@@ -31,6 +31,11 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
               <a href={phoneHref(listing.phoneNumber)}>{listing.phoneNumber}</a>
             </li>
           )}
+          {details.languages.length > 0 && (
+            <li>
+              <strong>{content.languages}</strong> {details.languages.join(", ")}
+            </li>
+          )}
           {details.email && (
             <li>
               <strong>{content.email}</strong>{" "}
@@ -41,7 +46,7 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
 
         {details.website && (
           <a
-            className="usa-button width-full margin-bottom-2"
+            className="usa-button width-full"
             href={websiteHref(details.website)}
             target="_blank"
             rel="noreferrer"
@@ -49,14 +54,6 @@ function ListingSidebar({ listing, details }: ListingSidebarProps) {
             {content.website}
           </a>
         )}
-        <a
-          className="usa-button usa-button--outline width-full"
-          href={listing.fullListingUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {content.original_listing}
-        </a>
       </section>
 
       <section className="listing-detail__card">

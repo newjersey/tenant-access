@@ -2,7 +2,8 @@ import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Listing } from "@/clients/listings";
 import Alert from "@/components/Alert/Alert";
-import BackLink from "@/components/ListingDetail/BackLink";
+import ListingBreadcrumb from "@/components/ListingDetail/ListingBreadcrumb";
+import ListingDetailSkeleton from "@/components/ListingDetail/ListingDetailSkeleton";
 import ListingSections from "@/components/ListingDetail/ListingSections";
 import ListingSidebar from "@/components/ListingDetail/ListingSidebar";
 import ListingSummary from "@/components/ListingDetail/ListingSummary";
@@ -28,6 +29,11 @@ function ListingDetail({ listing }: { listing: Listing }) {
             <ListingSidebar listing={listing} details={details} />
           </div>
         </div>
+        <p className="margin-top-5 margin-bottom-0">
+          <a className="usa-link" href={listing.fullListingUrl} target="_blank" rel="noreferrer">
+            {content.original_listing}
+          </a>
+        </p>
       </div>
     </>
   );
@@ -45,15 +51,13 @@ function ListingDetailPage() {
     return <ListingDetail listing={state.listing} />;
   }
 
+  if (state.status === "loading") {
+    return <ListingDetailSkeleton />;
+  }
+
   return (
     <div className="grid-container padding-y-4">
-      <BackLink />
-
-      {state.status === "loading" && (
-        <p role="status" className="margin-top-4">
-          {content.loading}
-        </p>
-      )}
+      <ListingBreadcrumb />
 
       {state.status === "error" && (
         <div className="margin-top-4">
