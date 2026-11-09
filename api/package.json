@@ -32,7 +32,7 @@
     "@types/node": "^26.6.4",
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^5.0.5",
-    "aws-cdk": "^2.1146.1",
+    "aws-cdk": "^2.1148.0",
     "aws-cdk-lib": "^2.275.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.28.2",
