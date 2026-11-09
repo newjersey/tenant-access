@@ -31,8 +31,13 @@ const Identifier = () => {
         <div className="usa-identifier__container">
           <ul className="usa-identifier__required-links-list">
             <li className="usa-identifier__required-links-item">
-              <a href={content.govAboutUrl} className="usa-identifier__required-link">
+              <a href={content.governorAboutUrl} className="usa-identifier__required-link">
                 {content.governor}
+              </a>
+            </li>
+            <li className="usa-identifier__required-links-item">
+              <a href={content.governorAboutUrl} className="usa-identifier__required-link">
+                {content.ltGovernor}
               </a>
             </li>
             <li className="usa-identifier__required-links-item">
