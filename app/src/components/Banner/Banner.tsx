@@ -21,8 +21,8 @@ const Banner = () => {
             </div>
             <ul className="grid-col-auto display-flex flex-align-center">
               <li>
-                <a href="https://nj.gov/governor/" rel="noopener">
-                  {content.governor}
+                <a href={content.governorAboutUrl} rel="noopener">
+                  {content.governor} • {content.ltGovernor}
                 </a>
               </li>
               <li className="grid-col-auto">
