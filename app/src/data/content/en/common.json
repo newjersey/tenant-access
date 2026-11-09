@@ -1,8 +1,9 @@
 {
   "governor": "Governor Mikie Sherrill",
+  "ltGovernor": "Lt. Governor Shirley U. Emehelu",
   "stateName": "State of New Jersey",
   "govUrl": "https://nj.gov",
-  "govAboutUrl": "https://nj.gov/governor/admin/about/",
+  "governorAboutUrl": "https://nj.gov/governor/",
   "locationComboBox": {
     "placeholder": "Search by county or city",
     "noResults": "No matching cities"
