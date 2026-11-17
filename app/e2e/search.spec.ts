@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 import content from "../src/data/content/en/search-results.json" with { type: "json" };
-import { expectNoAxeViolations } from "./support";
+import { expectNoAxeViolations, test } from "./support";
 
 test.describe("search results page", () => {
   test("renders without accessibility violations", async ({ page }) => {

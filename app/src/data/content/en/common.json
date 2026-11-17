@@ -5,8 +5,15 @@
   "govUrl": "https://nj.gov",
   "governorAboutUrl": "https://nj.gov/governor/",
   "locationComboBox": {
-    "placeholder": "Search by county or city",
+    "prompt": "Search by County or City",
+    "placeholder": "County or City",
     "noResults": "No matching cities"
+  },
+  "locationSearch": {
+    "or": "-OR-",
+    "zip": "Search by ZIP code",
+    "zipError": "Enter a New Jersey ZIP code",
+    "nearby": "Include nearby"
   },
   "pagination": {
     "label": "Pagination",
@@ -24,6 +31,7 @@
     "appName": "NJ Housing Resource Center",
     "menuText": "Menu",
     "pilot": "This website is the pilot version of the NJ Housing Resource Center.",
+    "translationDisclaimer": "Translation disclaimer",
     "register": "Register",
     "signin": "Sign in"
   },

@@ -26,7 +26,7 @@ export async function testClient(): Promise<Client> {
 }
 
 // these tables always stay the same (barring Mortal Engines-style mobile city scenario)
-const REFERENCE_TABLES = new Set(["counties", "city_counties"]);
+const REFERENCE_TABLES = new Set(["counties", "city_counties", "zip_codes"]);
 
 export async function truncateAll(client: Client): Promise<void> {
   const { rows } = await client.query<{ tablename: string }>(

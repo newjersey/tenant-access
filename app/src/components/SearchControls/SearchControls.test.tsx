@@ -4,6 +4,7 @@ import { createRef } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import SearchControls from "@/components/SearchControls/SearchControls";
+import common from "@/data/content/en/common.json";
 import content from "@/data/content/en/search-results.json";
 
 vi.mock("@/data/locations/cities-by-county.json", () => import("@/test/citiesByCounty"));
@@ -27,7 +28,7 @@ const renderAt = (url: string, location: string | null = null) => {
   );
   return {
     onToggleFilters,
-    box: screen.getByRole("combobox", { name: content.search_label }),
+    box: screen.getByRole("combobox", { name: common.locationComboBox.prompt }),
     query: screen.getByTestId("query"),
   };
 };
@@ -71,5 +72,77 @@ describe("SearchControls", () => {
 
     await userEvent.click(toggle);
     expect(onToggleFilters).toHaveBeenCalledTimes(1);
+  });
+
+  it("searches a ZIP only once it's complete, and again when it's cleared", async () => {
+    const { query } = renderAt("/search?page=3");
+    const zip = screen.getByRole("textbox", { name: common.locationSearch.zip });
+
+    await userEvent.type(zip, "0860");
+    expect(query).toHaveTextContent("page=3");
+    expect(query.textContent).not.toContain("zip");
+
+    await userEvent.type(zip, "8");
+    expect(query).toHaveTextContent("zip=08608");
+    expect(query.textContent).not.toContain("page");
+
+    await userEvent.clear(zip);
+    expect(query.textContent).not.toContain("zip");
+  });
+
+  it("drops the location when a ZIP is entered, since the ZIP is what gets searched", async () => {
+    const { query } = renderAt("/search?location=Newark", "Newark");
+    const zip = screen.getByRole("textbox", { name: common.locationSearch.zip });
+
+    await userEvent.type(zip, "08608");
+
+    expect(query).toHaveTextContent("zip=08608");
+    expect(query.textContent).not.toContain("location");
+  });
+
+  it("drops the ZIP when a location is chosen", async () => {
+    const { box, query } = renderAt("/search?zip=08608");
+
+    await userEvent.type(box, "Trenton{Enter}");
+
+    expect(query).toHaveTextContent("location=Trenton");
+    expect(query.textContent).not.toContain("zip");
+    expect(screen.getByRole("textbox", { name: common.locationSearch.zip })).toHaveValue("");
+  });
+
+  it("fills the ZIP from the url", () => {
+    renderAt("/search?zip=08608");
+
+    expect(screen.getByRole("textbox", { name: common.locationSearch.zip })).toHaveValue("08608");
+  });
+
+  it("turns nearby listings off and back on", async () => {
+    const { query } = renderAt("/search?location=Newark", "Newark");
+    const nearby = screen.getByRole("checkbox", { name: common.locationSearch.nearby });
+
+    expect(nearby).toBeChecked();
+    await userEvent.click(nearby);
+    expect(nearby).not.toBeChecked();
+    expect(query).toHaveTextContent("nearby=false");
+
+    await userEvent.click(nearby);
+    expect(nearby).toBeChecked();
+    expect(query.textContent).not.toContain("nearby");
+  });
+
+  it("explains a ZIP that isn't in New Jersey instead of searching it", async () => {
+    const { query } = renderAt("/search?page=3");
+
+    await userEvent.type(screen.getByRole("textbox", { name: common.locationSearch.zip }), "99999");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(common.locationSearch.zipError);
+    expect(query).toHaveTextContent("page=3");
+    expect(query.textContent).not.toContain("zip");
+  });
+
+  it("flags a non-NJ ZIP that arrives in the url", () => {
+    renderAt("/search?zip=99999");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(common.locationSearch.zipError);
   });
 });

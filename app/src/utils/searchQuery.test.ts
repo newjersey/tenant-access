@@ -1,16 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { parseSearchQuery, wholeDollars } from "./searchQuery";
+import { isNjZip, parseSearchQuery, wholeDollars } from "./searchQuery";
 
 const parse = (query: string) => parseSearchQuery(new URLSearchParams(query));
 
 describe("parseSearchQuery", () => {
   it("defaults to no location on the first page", () => {
-    expect(parse("")).toEqual({ location: null, page: 1, sort: "updated", filters: {} });
+    expect(parse("")).toEqual({
+      location: null,
+      zip: null,
+      nearby: true,
+      page: 1,
+      sort: "updated",
+      filters: {},
+    });
   });
 
   it("reads the location and page", () => {
     expect(parse("location=Newark&page=3")).toEqual({
       location: "Newark",
+      zip: null,
+      nearby: true,
       page: 3,
       sort: "updated",
       filters: {},
@@ -20,6 +29,19 @@ describe("parseSearchQuery", () => {
   it("trims the location and treats a blank one as no filter", () => {
     expect(parse("location=%20%20Jersey%20City%20%20").location).toBe("Jersey City");
     expect(parse("location=%20%20").location).toBeNull();
+  });
+
+  it("reads a five-digit ZIP and ignores anything else", () => {
+    expect(parse("zip=%2008608%20").zip).toBe("08608");
+    expect(parse("zip=0860").zip).toBeNull();
+    expect(parse("zip=086080").zip).toBeNull();
+    expect(parse("zip=abcde").zip).toBeNull();
+  });
+
+  it("includes nearby listings unless nearby is false", () => {
+    expect(parse("nearby=false").nearby).toBe(false);
+    expect(parse("nearby=true").nearby).toBe(true);
+    expect(parse("nearby=no").nearby).toBe(true);
   });
 
   it("falls back to the first page when the page is not a number", () => {
@@ -76,5 +98,16 @@ describe("wholeDollars", () => {
     expect(wholeDollars("00123")).toBe("123");
     expect(wholeDollars("12345678")).toBe("123456");
     expect(wholeDollars("abc")).toBe("");
+  });
+});
+
+describe("isNjZip", () => {
+  it("accepts NJ ZIPs and rejects everything else", () => {
+    expect(isNjZip("08608")).toBe(true);
+    expect(isNjZip("07001")).toBe(true);
+    expect(isNjZip("07000")).toBe(false);
+    expect(isNjZip("99999")).toBe(false);
+    expect(isNjZip("10001")).toBe(false);
+    expect(isNjZip("0860")).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 import content from "../src/data/content/en/notfound.json" with { type: "json" };
-import { expectNoAxeViolations } from "./support";
+import { expectNoAxeViolations, test } from "./support";
 
 test.describe("not found page", () => {
   test("renders without accessibility violations", async ({ page }) => {

@@ -82,7 +82,7 @@
       }
     },
     {
-      "includes": ["api/src/lambda/**"],
+      "includes": ["api/**"],
       "linter": {
         "rules": {
           "suspicious": {
