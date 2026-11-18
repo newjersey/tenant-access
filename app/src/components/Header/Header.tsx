@@ -1,9 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import AccountNav from "@/components/AccountNav/AccountNav";
 import "@/components/Header/Header.css";
 // import TranslateWidget from "@/components/TranslateWidget/TranslateWidget";
 import content from "@/data/content/en/common.json";
 
 const Header = () => {
+  const { pathname } = useLocation();
+  // Only account pages ask for the session until /auth/* is deployed
+  const showAccount = pathname.startsWith("/listing-management");
+
   return (
     <header className="usa-header usa-header--basic">
       <div className="color-info-lighter padding-y-2" role="status" aria-label="Site status">
@@ -24,6 +29,7 @@ const Header = () => {
             </em>
           </div>
           {/* <TranslateWidget /> */}
+          {showAccount && <AccountNav />}
         </div>
       </div>
     </header>

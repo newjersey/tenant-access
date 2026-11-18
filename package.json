@@ -31,6 +31,7 @@
     "check:fix": "biome check --write .",
     "prepare": "husky",
     "dev": "npm run dev --workspace=app",
+    "dev:auth": "npm run dev:auth --workspace=api",
     "build": "npm run build --workspace=app",
     "build:api": "npm run build --workspace=api",
     "preview": "npm run preview --workspace=app"

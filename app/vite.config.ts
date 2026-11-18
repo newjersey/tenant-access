@@ -6,6 +6,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // Run `npm run dev:auth` alongside `npm run dev` to sign in locally
+    proxy: { "/auth": "http://localhost:3001" },
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

@@ -9,6 +9,7 @@
     "test:coverage": "vitest --coverage",
     "test:coverage:ci": "vitest --coverage --run",
     "typecheck": "tsc -b",
+    "dev:auth": "tsx --env-file=.env.dev scripts/auth-dev-server.ts",
     "cdk": "cdk",
     "cdk:synth": "cdk synth",
     "deploy:dev": "bash scripts/deploy.sh dev",
