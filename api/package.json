@@ -25,6 +25,7 @@
     "@aws-sdk/client-sqs": "^3.1157.0",
     "@aws-sdk/lib-storage": "^3.1165.0",
     "cheerio": "^1.2.0",
+    "openid-client": "^6.9.0",
     "pg": "^8.23.0"
   },
   "devDependencies": {
