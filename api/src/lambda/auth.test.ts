@@ -32,13 +32,19 @@ const cookieValue = (result: APIGatewayProxyResult, name: string) =>
     .find((cookie) => cookie.startsWith(`${name}=`))
     ?.split(";")[0];
 
+// What the browser would send back after login sets its cookies
+const loginCookies = (result: APIGatewayProxyResult) =>
+  setCookies(result)
+    .map((cookie) => cookie.split(";")[0])
+    .join("; ");
+
 const sessionBody = async (cookie?: string) =>
   JSON.parse((await auth.session(makeEvent(cookie))).body);
 
 const signIn = async (claims: Record<string, unknown> | undefined) => {
   oidc.authorizationCodeGrant.mockResolvedValue({ claims: () => claims });
-  const pending = cookieValue(await auth.login(), "oidc_login");
-  return auth.callback(makeEvent(pending, { code: "abc", state: "state" }));
+  const cookies = loginCookies(await auth.login());
+  return auth.callback(makeEvent(cookies, { code: "abc", state: "state" }));
 };
 
 describe("auth handlers", () => {
@@ -70,7 +76,11 @@ describe("auth handlers", () => {
       state: "state",
       nonce: "nonce",
     });
-    expect(setCookies(result)[0]).toMatch(/^oidc_login=.+; Path=\/; HttpOnly; SameSite=Lax;/);
+     expect(setCookies(result)).toEqual([
+      "code_verifier=verifier; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
+      "state=state; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
+      "nonce=nonce; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
+    ]);
   });
 
   it("discovers the IdP once across requests", async () => {
@@ -81,7 +91,8 @@ describe("auth handlers", () => {
     expect(oidc.discovery).toHaveBeenCalledWith(new URL("https://idp.test/"), "client", "secret");
   });
 
-  it("marks cookies Secure when the redirect URI is https", async () => {
+   it("marks cookies Secure when the app is served over https", async () => {
+    vi.stubEnv("APP_URL", "https://example.gov");
     vi.stubEnv("OIDC_REDIRECT_URI", "https://api.example.gov/auth/callback");
 
     expect(setCookies(await auth.login())[0]).toMatch(/; Secure$/);
@@ -107,7 +118,11 @@ describe("auth handlers", () => {
       },
     );
     expect(result.headers?.Location).toBe("http://localhost:5173/listing-management");
-    expect(setCookies(result)[0]).toMatch(/^oidc_login=; .*Max-Age=0/);
+    expect(setCookies(result).slice(0, 3)).toEqual([
+      "code_verifier=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
+      "state=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
+      "nonce=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
+    ]);
     expect(await sessionBody(cookieValue(result, "session"))).toEqual({
       signedIn: true,
       email: "pat@example.com",
@@ -132,8 +147,8 @@ describe("auth handlers", () => {
 
   it("does not start a session when the code exchange fails", async () => {
     oidc.authorizationCodeGrant.mockRejectedValue(new Error("state mismatch"));
-    const pending = cookieValue(await auth.login(), "oidc_login");
-    const result = await auth.callback(makeEvent(pending, { code: "abc", state: "other" }));
+    const cookies = loginCookies(await auth.login());
+    const result = await auth.callback(makeEvent(cookies, { code: "abc", state: "other" }));
 
     expect(result.headers?.Location).toBe("http://localhost:5173/listing-management");
     expect(cookieValue(result, "session")).toBeUndefined();

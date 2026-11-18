@@ -5,15 +5,8 @@ import { headerValue } from "./http-response.js";
 
 const SCOPE = "openid email phone";
 const SESSION_COOKIE = "session";
-const LOGIN_COOKIE = "oidc_login";
 const SESSION_SECONDS = 8 * 60 * 60;
 const LOGIN_SECONDS = 10 * 60;
-
-interface PendingLogin {
-  codeVerifier: string;
-  state: string;
-  nonce: string;
-}
 
 interface Session {
   sub: string;
@@ -42,7 +35,7 @@ const getConfig = async (): Promise<client.Configuration> => {
 const sign = (payload: string): string =>
   createHmac("sha256", requireEnv("SESSION_SECRET")).update(payload).digest("base64url");
 
-const seal = (data: PendingLogin | Session): string => {
+const seal = (data: Session): string => {
   const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
   return `${payload}.${sign(payload)}`;
 };
@@ -65,7 +58,7 @@ const readCookie = (event: APIGatewayProxyEvent, name: string): string | undefin
 };
 
 const cookie = (name: string, value: string, maxAge: number): string => {
-  const secure = requireEnv("OIDC_REDIRECT_URI").startsWith("https:") ? "; Secure" : "";
+  const secure = requireEnv("APP_URL").startsWith("https:") ? "; Secure" : "";
   return `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 };
 
@@ -78,27 +71,32 @@ const redirect = (location: string, cookies: string[]): APIGatewayProxyResult =>
 
 export const login = async (): Promise<APIGatewayProxyResult> => {
   const oidc = await getConfig();
-  const pending: PendingLogin = {
-    codeVerifier: client.randomPKCECodeVerifier(),
-    state: client.randomState(),
-    nonce: client.randomNonce(),
-  };
+  const codeVerifier = client.randomPKCECodeVerifier();
+  const state = client.randomState();
+  const nonce = client.randomNonce();
   const authorizationUrl = client.buildAuthorizationUrl(oidc, {
     redirect_uri: requireEnv("OIDC_REDIRECT_URI"),
     scope: SCOPE,
-    code_challenge: await client.calculatePKCECodeChallenge(pending.codeVerifier),
+    code_challenge: await client.calculatePKCECodeChallenge(codeVerifier),
     code_challenge_method: "S256",
-    state: pending.state,
-    nonce: pending.nonce,
+    state,
+    nonce,
   });
-  return redirect(authorizationUrl.href, [cookie(LOGIN_COOKIE, seal(pending), LOGIN_SECONDS)]);
+  // Persist these for verification in the callback
+  return redirect(authorizationUrl.href, [
+    cookie("code_verifier", codeVerifier, LOGIN_SECONDS),
+    cookie("state", state, LOGIN_SECONDS),
+    cookie("nonce", nonce, LOGIN_SECONDS),
+  ]);
 };
 
 export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const landing = `${requireEnv("APP_URL")}/listing-management`;
-  const clearLogin = cookie(LOGIN_COOKIE, "", 0);
-  const pending = unseal<PendingLogin>(readCookie(event, LOGIN_COOKIE));
-  if (!pending) return redirect(landing, [clearLogin]);
+  const clearLogin = ["code_verifier", "state", "nonce"].map((name) => cookie(name, "", 0));
+  const codeVerifier = readCookie(event, "code_verifier");
+  const state = readCookie(event, "state");
+  const nonce = readCookie(event, "nonce");
+  if (!codeVerifier || !state || !nonce) return redirect(landing, clearLogin);
 
   // The token request's redirect_uri must match the registered one exactly, so rebuild from it
   const currentUrl = new URL(requireEnv("OIDC_REDIRECT_URI"));
@@ -108,9 +106,9 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
 
   try {
     const tokens = await client.authorizationCodeGrant(await getConfig(), currentUrl, {
-      pkceCodeVerifier: pending.codeVerifier,
-      expectedState: pending.state,
-      expectedNonce: pending.nonce,
+      pkceCodeVerifier: codeVerifier,
+      expectedState: state,
+      expectedNonce: nonce,
       idTokenExpected: true,
     });
     const claims = tokens.claims();
@@ -121,10 +119,13 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
       email: typeof claims.email === "string" ? claims.email : null,
       expiresAt: Date.now() + SESSION_SECONDS * 1000,
     };
-    return redirect(landing, [clearLogin, cookie(SESSION_COOKIE, seal(session), SESSION_SECONDS)]);
+    return redirect(landing, [
+      ...clearLogin,
+      cookie(SESSION_COOKIE, seal(session), SESSION_SECONDS),
+    ]);
   } catch (error) {
     console.error("Sign-in callback failed:", error);
-    return redirect(landing, [clearLogin]);
+    return redirect(landing, clearLogin);
   }
 };
 
