@@ -76,7 +76,7 @@ describe("auth handlers", () => {
       state: "state",
       nonce: "nonce",
     });
-     expect(setCookies(result)).toEqual([
+    expect(setCookies(result)).toEqual([
       "code_verifier=verifier; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
       "state=state; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
       "nonce=nonce; Path=/; HttpOnly; SameSite=Lax; Max-Age=600",
@@ -91,7 +91,7 @@ describe("auth handlers", () => {
     expect(oidc.discovery).toHaveBeenCalledWith(new URL("https://idp.test/"), "client", "secret");
   });
 
-   it("marks cookies Secure when the app is served over https", async () => {
+  it("marks cookies Secure when the app is served over https", async () => {
     vi.stubEnv("APP_URL", "https://example.gov");
     vi.stubEnv("OIDC_REDIRECT_URI", "https://api.example.gov/auth/callback");
 
