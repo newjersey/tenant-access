@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type AuthSession, getSession } from "@/clients/auth";
+import { type AuthSession, authUrl, getSession } from "@/clients/auth";
 import content from "@/data/content/en/common.json";
 
 const AccountNav = () => {
@@ -23,7 +23,7 @@ const AccountNav = () => {
 
   if (!session.signedIn) {
     return (
-      <a className="usa-button" href="/auth/login">
+      <a className="usa-button" href={authUrl("/auth/login")}>
         {content.header.signinOrRegister}
       </a>
     );
@@ -32,7 +32,7 @@ const AccountNav = () => {
   return (
     <div className="display-flex flex-align-center">
       <span className="margin-right-2">{session.email}</span>
-      <a className="usa-button usa-button--outline" href="/auth/logout">
+      <a className="usa-button usa-button--outline" href={authUrl("/auth/logout")}>
         {content.header.logout}
       </a>
     </div>

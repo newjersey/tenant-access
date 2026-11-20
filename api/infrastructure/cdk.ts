@@ -18,6 +18,9 @@ const apiDomainName = requireEnv("TENANT_ACCESS_API_DOMAIN_NAME");
 const apiCertificateArn = requireEnv("TENANT_ACCESS_API_CERT_ARN");
 const amplifyAppId = requireEnv("TENANT_ACCESS_AMPLIFY_APP_ID");
 const alertEmail = requireEnv("TENANT_ACCESS_ALERT_EMAIL");
+const appUrl = requireEnv("TENANT_ACCESS_APP_URL");
+const oidcIssuer = requireEnv("OIDC_ISSUER");
+const oidcClientId = requireEnv("OIDC_CLIENT_ID");
 
 if (!vpcId.startsWith("vpc-")) {
   throw new Error("TENANT_ACCESS_VPC_ID must be set to the VPC id for the target account");
@@ -43,6 +46,7 @@ new TenantAccessStack(app, "TenantAccessStack", {
   amplifyAppId,
   alertEmail,
   apiDomain: { name: apiDomainName, certificateArn: apiCertificateArn },
+  auth: { issuer: oidcIssuer, clientId: oidcClientId, appUrl },
 });
 
 app.synth();

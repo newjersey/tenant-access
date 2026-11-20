@@ -14,13 +14,31 @@ const { oidc } = vi.hoisted(() => ({
   },
 }));
 
+const { sendMock } = vi.hoisted(() => ({ sendMock: vi.fn() }));
+
 vi.mock("openid-client", () => oidc);
+
+vi.mock("@aws-sdk/client-secrets-manager", () => ({
+  SecretsManagerClient: class {
+    send = sendMock;
+  },
+  GetSecretValueCommand: class {
+    input: unknown;
+    constructor(input: unknown) {
+      this.input = input;
+    }
+  },
+}));
 
 let auth: typeof import("./auth.js");
 
-const makeEvent = (cookie?: string, query: Record<string, string> = {}) =>
+const makeEvent = (
+  cookie?: string,
+  query: Record<string, string> = {},
+  headers: Record<string, string> = {},
+) =>
   ({
-    headers: { Cookie: cookie },
+    headers: { Cookie: cookie, ...headers },
     queryStringParameters: query,
   }) as unknown as APIGatewayProxyEvent;
 
@@ -57,6 +75,7 @@ describe("auth handlers", () => {
     vi.stubEnv("OIDC_REDIRECT_URI", "http://localhost:5173/auth/callback");
     vi.stubEnv("APP_URL", "http://localhost:5173");
     vi.stubEnv("SESSION_SECRET", "test-secret");
+    vi.stubEnv("ALLOWED_ORIGINS", "https://app.example.gov");
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     vi.resetModules();
@@ -192,5 +211,60 @@ describe("auth handlers", () => {
     const result = await auth.session(makeEvent());
 
     expect(result.headers?.["Cache-Control"]).toBe("no-store");
+  });
+
+  it("lets allowed origins read the session with credentials", async () => {
+    const allowed = await auth.session(
+      makeEvent(undefined, {}, { origin: "https://app.example.gov" }),
+    );
+    const other = await auth.session(makeEvent(undefined, {}, { origin: "https://evil.example" }));
+
+    expect(allowed.headers).toMatchObject({
+      "Access-Control-Allow-Origin": "https://app.example.gov",
+      "Access-Control-Allow-Credentials": "true",
+    });
+    expect(other.headers).not.toHaveProperty("Access-Control-Allow-Origin");
+    expect(other.headers).not.toHaveProperty("Access-Control-Allow-Credentials");
+  });
+
+  it("dispatches each API Gateway resource to its route", async () => {
+    const event = (resource: string) => ({ ...makeEvent(), resource }) as APIGatewayProxyEvent;
+
+    expect((await auth.handler(event("/auth/login"))).statusCode).toBe(302);
+    expect((await auth.handler(event("/auth/session"))).statusCode).toBe(200);
+    expect((await auth.handler(event("/auth/elsewhere"))).statusCode).toBe(404);
+  });
+
+  describe("when deployed, without secrets in the environment", () => {
+    beforeEach(() => {
+      vi.stubEnv("OIDC_CLIENT_SECRET", "");
+      vi.stubEnv("SESSION_SECRET", "");
+      vi.stubEnv("AUTH_SECRET_ARN", "arn:aws:secretsmanager:us-east-1:123:secret:auth");
+    });
+
+    it("reads them from Secrets Manager once", async () => {
+      sendMock.mockResolvedValue({
+        SecretString: JSON.stringify({ clientSecret: "from-sm", sessionSecret: "signing-key" }),
+      });
+
+      await auth.login();
+      await auth.session(makeEvent());
+
+      expect(sendMock).toHaveBeenCalledTimes(1);
+      expect(sendMock.mock.calls[0][0].input).toEqual({
+        SecretId: "arn:aws:secretsmanager:us-east-1:123:secret:auth",
+      });
+      expect(oidc.discovery).toHaveBeenCalledWith(expect.anything(), "client", "from-sm");
+    });
+
+    it("fails, then retries, while the client secret has not been filled in", async () => {
+      sendMock.mockResolvedValueOnce({ SecretString: JSON.stringify({ sessionSecret: "key" }) });
+      await expect(auth.session(makeEvent())).rejects.toThrow("clientSecret and sessionSecret");
+
+      sendMock.mockResolvedValueOnce({});
+      await expect(auth.session(makeEvent())).rejects.toThrow("clientSecret and sessionSecret");
+
+      expect(sendMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

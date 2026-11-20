@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as client from "openid-client";
-import { headerValue } from "./http-response.js";
+import { corsHeaders, headerValue } from "./http-response.js";
 
 const SCOPE = "openid email profile";
 const SESSION_COOKIE = "session";
@@ -14,36 +15,67 @@ interface Session {
   expiresAt: number;
 }
 
+interface AuthSecrets {
+  clientSecret: string;
+  sessionSecret: string;
+}
+
 const requireEnv = (name: string): string => {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is not set`);
   return value;
 };
 
+let cachedSecrets: Promise<AuthSecrets> | undefined;
 let config: client.Configuration | undefined;
+
+const secretsClient = new SecretsManagerClient();
+
+const getSecrets = (): Promise<AuthSecrets> => {
+  // For tests and the local dev server, not dev or production
+  const { OIDC_CLIENT_SECRET, SESSION_SECRET } = process.env;
+  if (OIDC_CLIENT_SECRET && SESSION_SECRET) {
+    return Promise.resolve({ clientSecret: OIDC_CLIENT_SECRET, sessionSecret: SESSION_SECRET });
+  }
+
+  cachedSecrets ??= (async () => {
+    const response = await secretsClient.send(
+      new GetSecretValueCommand({ SecretId: requireEnv("AUTH_SECRET_ARN") }),
+    );
+    const secrets: Partial<AuthSecrets> = JSON.parse(response.SecretString ?? "{}");
+    if (!secrets.clientSecret || !secrets.sessionSecret) {
+      throw new Error("Auth secret needs both clientSecret and sessionSecret");
+    }
+    return secrets as AuthSecrets;
+  })().catch((error) => {
+    cachedSecrets = undefined;
+    throw error;
+  });
+  return cachedSecrets;
+};
 
 // Lazy so a cold start doesn't pay for discovery until a request needs it
 const getConfig = async (): Promise<client.Configuration> => {
   config ??= await client.discovery(
     new URL(requireEnv("OIDC_ISSUER")),
     requireEnv("OIDC_CLIENT_ID"),
-    requireEnv("OIDC_CLIENT_SECRET"),
+    (await getSecrets()).clientSecret,
   );
   return config;
 };
 
-const sign = (payload: string): string =>
-  createHmac("sha256", requireEnv("SESSION_SECRET")).update(payload).digest("base64url");
+const sign = (payload: string, secret: string): string =>
+  createHmac("sha256", secret).update(payload).digest("base64url");
 
-const seal = (data: Session): string => {
+const seal = (data: Session, secret: string): string => {
   const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
-  return `${payload}.${sign(payload)}`;
+  return `${payload}.${sign(payload, secret)}`;
 };
 
-const unseal = <T>(value: string | undefined): T | undefined => {
+const unseal = <T>(value: string | undefined, secret: string): T | undefined => {
   const [payload, signature] = value?.split(".") ?? [];
   if (!payload || !signature) return undefined;
-  const expected = Buffer.from(sign(payload));
+  const expected = Buffer.from(sign(payload, secret));
   const actual = Buffer.from(signature);
   if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return undefined;
   return JSON.parse(Buffer.from(payload, "base64url").toString());
@@ -121,7 +153,7 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
     };
     return redirect(landing, [
       ...clearLogin,
-      cookie(SESSION_COOKIE, seal(session), SESSION_SECONDS),
+      cookie(SESSION_COOKIE, seal(session, (await getSecrets()).sessionSecret), SESSION_SECONDS),
     ]);
   } catch (error) {
     console.error("Sign-in callback failed:", error);
@@ -137,14 +169,38 @@ export const logout = async (): Promise<APIGatewayProxyResult> => {
 };
 
 export const session = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const current = unseal<Session>(readCookie(event, SESSION_COOKIE));
+  const { sessionSecret } = await getSecrets();
+  const current = unseal<Session>(readCookie(event, SESSION_COOKIE), sessionSecret);
   const body =
     current && current.expiresAt > Date.now()
       ? { signedIn: true, email: current.email }
       : { signedIn: false };
+  // The app calls this cross-origin (but same-site), with the session cookie
+  const cors = corsHeaders(headerValue(event, "origin"));
   return {
     statusCode: 200,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      Vary: "Origin",
+      ...cors,
+      ...(cors["Access-Control-Allow-Origin"]
+        ? { "Access-Control-Allow-Credentials": "true" }
+        : {}),
+    },
     body: JSON.stringify(body),
   };
+};
+
+const ROUTES: Record<string, (event: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>> = {
+  "/auth/login": login,
+  "/auth/callback": callback,
+  "/auth/logout": logout,
+  "/auth/session": session,
+};
+
+// One function serves every /auth route, so discovery and secrets are shared once warm
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const route = ROUTES[event.resource];
+  return route ? route(event) : { statusCode: 404, body: "" };
 };
