@@ -13,6 +13,9 @@ export const headerValue = (event: APIGatewayProxyEvent, name: string): string |
   return key ? (headers[key] ?? undefined) : undefined;
 };
 
+export const corsHeaders = (origin: string | undefined): Record<string, string> =>
+  origin && ALLOWED_ORIGINS.includes(origin) ? { "Access-Control-Allow-Origin": origin } : {};
+
 export const respond = (
   statusCode: number,
   body: unknown,
@@ -23,9 +26,7 @@ export const respond = (
     "Content-Type": "application/json",
     "Cache-Control": statusCode === 200 ? `public, max-age=${CACHE_SECONDS}` : "no-store",
     Vary: "Origin",
-    ...(origin && ALLOWED_ORIGINS.includes(origin)
-      ? { "Access-Control-Allow-Origin": origin }
-      : {}),
+    ...corsHeaders(origin),
   },
   body: JSON.stringify(body),
 });

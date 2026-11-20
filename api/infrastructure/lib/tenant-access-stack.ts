@@ -26,6 +26,7 @@ export interface TenantAccessStackProps extends cdk.StackProps {
   readonly apiDomain: { readonly name: string; readonly certificateArn: string };
   readonly amplifyAppId: string;
   readonly alertEmail: string;
+  readonly auth: { readonly issuer: string; readonly clientId: string; readonly appUrl: string };
 }
 
 export class TenantAccessStack extends cdk.Stack {
@@ -450,6 +451,43 @@ export class TenantAccessStack extends cdk.Stack {
     database.connections.allowFrom(getListingLambda, ec2.Port.tcp(5432));
     dbCredentials.grantRead(getListingLambda);
 
+    // clientSecret comes from the ProfileNJ registration and is filled in by hand after the
+    // first deploy; sessionSecret signs the session cookie
+    const authSecret = new secretsmanager.Secret(this, "AuthSecret", {
+      description: "ProfileNJ OIDC client secret and session-cookie signing key",
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ clientSecret: "" }),
+        generateStringKey: "sessionSecret",
+        excludePunctuation: true,
+        passwordLength: 64,
+      },
+    });
+
+    // Outside the VPC on purpose: it needs to reach ProfileNJ, the VPC has no NAT gateway,
+    // and it never touches the database
+    const authLambda = new NodejsFunction(this, "AuthFunction", {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      entry: "src/lambda/auth.ts",
+      handler: "handler",
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 512,
+      reservedConcurrentExecutions: 10,
+      environment: {
+        OIDC_ISSUER: props.auth.issuer,
+        OIDC_CLIENT_ID: props.auth.clientId,
+        OIDC_REDIRECT_URI: `https://${props.apiDomain.name}/auth/callback`,
+        APP_URL: props.auth.appUrl,
+        AUTH_SECRET_ARN: authSecret.secretArn,
+        ALLOWED_ORIGINS: props.allowedOrigins,
+      },
+      bundling: {
+        nodeModules: ["@aws-sdk/client-secrets-manager"],
+        externalModules: ["aws-sdk"],
+      },
+    });
+
+    authSecret.grantRead(authLambda);
+
     // Requests only arrive from OIT's load balancer
     const njHRCApi = new apigateway.RestApi(this, "NJHRCApi", {
       description: "Private API (listings search, listing photos, accounts, more)",
@@ -517,6 +555,13 @@ export class TenantAccessStack extends cdk.Stack {
     listingsResource
       .addResource("{uid}")
       .addMethod("GET", new apigateway.LambdaIntegration(getListingLambda));
+
+    // ProfileNJ sends the browser back to /auth/callback, registered as allowed_callback_urls
+    const authResource = njHRCApi.root.addResource("auth");
+    const authIntegration = new apigateway.LambdaIntegration(authLambda);
+    for (const route of ["login", "callback", "logout", "session"]) {
+      authResource.addResource(route).addMethod("GET", authIntegration);
+    }
 
     const photosRole = new iam.Role(this, "PhotosIntegrationRole", {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
@@ -710,6 +755,11 @@ export class TenantAccessStack extends cdk.Stack {
     new cdk.CfnOutput(this, "DatabaseName", {
       value: "tenantaccess",
       description: "Database name",
+    });
+
+    new cdk.CfnOutput(this, "AuthSecretArn", {
+      value: authSecret.secretArn,
+      description: "Set clientSecret here to the ProfileNJ client secret after the first deploy",
     });
 
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
