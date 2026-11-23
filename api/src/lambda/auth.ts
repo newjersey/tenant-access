@@ -4,7 +4,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as client from "openid-client";
 import { corsHeaders, headerValue } from "./http-response.js";
 
-const SCOPE = "openid email profile";
+const SCOPE = "openid email phone";
 const SESSION_COOKIE = "session";
 const SESSION_SECONDS = 8 * 60 * 60;
 const LOGIN_SECONDS = 10 * 60;

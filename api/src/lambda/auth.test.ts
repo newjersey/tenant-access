@@ -89,7 +89,7 @@ describe("auth handlers", () => {
     expect(result.headers?.Location).toBe("https://idp.test/authorize");
     expect(oidc.buildAuthorizationUrl).toHaveBeenCalledWith(expect.anything(), {
       redirect_uri: "http://localhost:5173/auth/callback",
-      scope: "openid email profile",
+      scope: "openid email phone",
       code_challenge: "challenge",
       code_challenge_method: "S256",
       state: "state",
