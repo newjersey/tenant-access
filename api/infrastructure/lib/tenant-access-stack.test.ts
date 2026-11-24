@@ -53,6 +53,11 @@ const synth = () =>
         apiDomain: { name: "api.example.com", certificateArn: CERT_ARN },
         amplifyAppId: "d1234abcd5678",
         alertEmail: "alerts@example.com",
+        auth: {
+          issuer: "https://idp.example.com/",
+          clientId: "client-id",
+          appUrl: "https://app.example.com",
+        },
       },
     ),
   );
@@ -117,6 +122,29 @@ describe("TenantAccessStack", () => {
       RestApiId: { Ref: Match.stringLikeRegexp("NJHRCApi") },
       Stage: { Ref: Match.stringLikeRegexp("NJHRCApiDeploymentStage") },
     });
+  });
+
+  it("serves sign-in from a Lambda outside the VPC, with secrets kept out of its environment", () => {
+    const template = synth();
+
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      VpcConfig: Match.absent(),
+      Environment: {
+        Variables: Match.objectLike({
+          OIDC_ISSUER: "https://idp.example.com/",
+          OIDC_CLIENT_ID: "client-id",
+          OIDC_REDIRECT_URI: "https://api.example.com/auth/callback",
+          APP_URL: "https://app.example.com",
+          AUTH_SECRET_ARN: { Ref: Match.stringLikeRegexp("AuthSecret") },
+          OIDC_CLIENT_SECRET: Match.absent(),
+          SESSION_SECRET: Match.absent(),
+        }),
+      },
+    });
+
+    for (const route of ["login", "callback", "logout", "session"]) {
+      template.hasResourceProperties("AWS::ApiGateway::Resource", { PathPart: route });
+    }
   });
 
   it("emails the alert address when the Amplify 5xx alarm fires or clears", () => {

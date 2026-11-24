@@ -33,7 +33,9 @@
     "pilot": "This website is the pilot version of the NJ Housing Resource Center.",
     "translationDisclaimer": "Translation disclaimer",
     "register": "Register",
-    "signin": "Sign in"
+    "signin": "Sign in",
+    "signinOrRegister": "Sign in or register",
+    "logout": "Log out"
   },
   "footer": {
     "returnToTop": "Return to top",

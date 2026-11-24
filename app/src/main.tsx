@@ -8,6 +8,7 @@ import ErrorFallback from "@/components/ErrorBoundary/ErrorFallback";
 import RouteErrorFallback from "@/components/ErrorBoundary/RouteErrorFallback";
 import HomePage from "@/pages/HomePage";
 import ListingDetailPage from "@/pages/ListingDetailPage";
+import ListingManagementPage from "@/pages/ListingManagementPage";
 import SearchResultsPage from "@/pages/SearchResultsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: "listings/:uid",
         element: <ListingDetailPage />,
+      },
+      {
+        path: "listing-management",
+        element: <ListingManagementPage />,
       },
       {
         path: "*",

@@ -76,6 +76,9 @@ function HomePage() {
           <Link to="/search" className="usa-button usa-button--outline">
             {content.view_all}
           </Link>
+          <Link to="/listing-management" className="usa-button usa-button--unstyled margin-left-2">
+            {content.listing_management}
+          </Link>
         </div>
       </section>
     </>

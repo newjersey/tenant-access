@@ -183,12 +183,16 @@ flowchart TD
   D@{ shape: cyl, label: "ListingsDatabase RDS Postgres" }
   E@{ shape: rounded, label: "Photos Lambda"}
   F@{ shape: lin-cyl, label: "ListingImagesBucket" }
+  G@{ shape: rounded, label: "Auth Lambda" }
+  H@{ shape: hexagon, label: "ProfileNJ" }
 
   A --> B
   B --> |within rate limit| C
   C --> |queries| D
   B --> |within rate limit| E
   E --> |queries| F
+  B --> |within rate limit| G
+  G --> |interacts with| H
 ```
 
 ### Endpoints
@@ -207,6 +211,17 @@ Change `location` (ONLY searches by city name right now), or make it blank to re
 <summary><code>/photos/{listing_uid}/{image_id}.jpg</code></summary>
 
 Returns image from S3 bucket
+</details>
+
+<details>
+<summary><code>/auth/*</code></summary>
+
+All the following endpoints are handled by the Auth Lambda.
+
+`/auth/login`: login
+`/auth/callback`: callback
+`/auth/logout`: logout
+`/auth/session`: get session data from cookie
 </details>
 
 ### Frontend Hosting
@@ -232,6 +247,7 @@ Each has one value for Production and a separate value for Development:
 
 * `VITE_API_BASE_URL`
 * `VITE_GA_MEASUREMENT_ID`
+* `VITE_AUTH_BASE_URL`
 
 ## Database Migrations
 
@@ -306,6 +322,16 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
+
+### ProfileNJ Login
+
+When testing something locally that requires actual login using ProfileNJ, you need to start a second Terminal tab and run:
+
+```bash
+npm run dev:auth
+```
+
+This creates a simple Node server that listens for calls to the `auth/*` endpoints and redirects them to the ProfileNJ sandbox (the same that the dev server uses).
 
 ## Testing
 
