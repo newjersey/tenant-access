@@ -247,6 +247,7 @@ Each has one value for Production and a separate value for Development:
 
 * `VITE_API_BASE_URL`
 * `VITE_GA_MEASUREMENT_ID`
+* `VITE_AUTH_BASE_URL`
 
 ## Database Migrations
 
