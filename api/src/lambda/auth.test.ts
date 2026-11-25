@@ -148,13 +148,11 @@ describe("auth handlers", () => {
     });
   });
 
-  it("stores a null email when the ID token has none", async () => {
+  it("does not start a session when the ID token has no email", async () => {
     const result = await signIn({ sub: "user-1" });
 
-    expect(await sessionBody(cookieValue(result, "session"))).toEqual({
-      signedIn: true,
-      email: null,
-    });
+    expect(cookieValue(result, "session")).toBeUndefined();
+    expect(console.error).toHaveBeenCalled();
   });
 
   it("does not start a session when the token response has no ID token", async () => {
@@ -173,7 +171,7 @@ describe("auth handlers", () => {
     expect(cookieValue(result, "session")).toBeUndefined();
   });
 
-  it("ignores a callback with no pending login", async () => {
+  it("ignores a callback when there's no login cookies", async () => {
     const result = await auth.callback(makeEvent(undefined, { code: "abc" }));
 
     expect(result.headers?.Location).toBe("http://localhost:5173/listing-management");
@@ -181,7 +179,8 @@ describe("auth handlers", () => {
   });
 
   it("reports signed out with no, tampered, or expired session cookies", async () => {
-    const session = cookieValue(await signIn({ sub: "user-1" }), "session") as string;
+    const signedIn = await signIn({ sub: "user-1", email: "pat@example.com" });
+    const session = cookieValue(signedIn, "session") as string;
     const [name, value] = session.split("=");
     const [payload, signature] = value.split(".");
     const forged = Buffer.from(
@@ -229,8 +228,12 @@ describe("auth handlers", () => {
 
   it("dispatches each API Gateway resource to its route", async () => {
     const event = (resource: string) => ({ ...makeEvent(), resource }) as APIGatewayProxyEvent;
+    const location = async (resource: string) =>
+      (await auth.handler(event(resource))).headers?.Location;
 
-    expect((await auth.handler(event("/auth/login"))).statusCode).toBe(302);
+    expect(await location("/auth/login")).toBe("https://idp.test/authorize");
+    expect(await location("/auth/callback")).toBe("http://localhost:5173/listing-management");
+    expect(await location("/auth/logout")).toBe("https://idp.test/logout");
     expect((await auth.handler(event("/auth/session"))).statusCode).toBe(200);
     expect((await auth.handler(event("/auth/elsewhere"))).statusCode).toBe(404);
   });

@@ -1,4 +1,4 @@
-export type AuthSession = { signedIn: false } | { signedIn: true; email: string | null };
+export type AuthSession = { signedIn: false } | { signedIn: true; email: string };
 
 // Unset locally, so these are same-origin and Vite proxies /auth/* to the auth dev server
 export const authUrl = (path: string) => `${import.meta.env.VITE_AUTH_BASE_URL ?? ""}${path}`;

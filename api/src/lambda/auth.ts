@@ -11,7 +11,7 @@ const LOGIN_SECONDS = 10 * 60;
 
 interface Session {
   sub: string;
-  email: string | null;
+  email: string;
   expiresAt: number;
 }
 
@@ -67,12 +67,12 @@ const getConfig = async (): Promise<client.Configuration> => {
 const sign = (payload: string, secret: string): string =>
   createHmac("sha256", secret).update(payload).digest("base64url");
 
-const seal = (data: Session, secret: string): string => {
+const attachSignature = (data: Session, secret: string): string => {
   const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
   return `${payload}.${sign(payload, secret)}`;
 };
 
-const unseal = <T>(value: string | undefined, secret: string): T | undefined => {
+const checkSignature = <T>(value: string | undefined, secret: string): T | undefined => {
   const [payload, signature] = value?.split(".") ?? [];
   if (!payload || !signature) return undefined;
   const expected = Buffer.from(sign(payload, secret));
@@ -145,15 +145,20 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
     });
     const claims = tokens.claims();
     if (!claims) throw new Error("Token response had no ID token");
+    if (typeof claims.email !== "string") throw new Error("ID token had no email");
 
     const session: Session = {
       sub: claims.sub,
-      email: typeof claims.email === "string" ? claims.email : null,
+      email: claims.email,
       expiresAt: Date.now() + SESSION_SECONDS * 1000,
     };
     return redirect(landing, [
       ...clearLogin,
-      cookie(SESSION_COOKIE, seal(session, (await getSecrets()).sessionSecret), SESSION_SECONDS),
+      cookie(
+        SESSION_COOKIE,
+        attachSignature(session, (await getSecrets()).sessionSecret),
+        SESSION_SECONDS,
+      ),
     ]);
   } catch (error) {
     console.error("Sign-in callback failed:", error);
@@ -170,7 +175,7 @@ export const logout = async (): Promise<APIGatewayProxyResult> => {
 
 export const session = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { sessionSecret } = await getSecrets();
-  const current = unseal<Session>(readCookie(event, SESSION_COOKIE), sessionSecret);
+  const current = checkSignature<Session>(readCookie(event, SESSION_COOKIE), sessionSecret);
   const body =
     current && current.expiresAt > Date.now()
       ? { signedIn: true, email: current.email }
