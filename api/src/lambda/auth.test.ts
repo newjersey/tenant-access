@@ -148,13 +148,11 @@ describe("auth handlers", () => {
     });
   });
 
-  it("stores a null email when the ID token has none", async () => {
+  it("does not start a session when the ID token has no email", async () => {
     const result = await signIn({ sub: "user-1" });
 
-    expect(await sessionBody(cookieValue(result, "session"))).toEqual({
-      signedIn: true,
-      email: null,
-    });
+    expect(cookieValue(result, "session")).toBeUndefined();
+    expect(console.error).toHaveBeenCalled();
   });
 
   it("does not start a session when the token response has no ID token", async () => {
@@ -181,7 +179,8 @@ describe("auth handlers", () => {
   });
 
   it("reports signed out with no, tampered, or expired session cookies", async () => {
-    const session = cookieValue(await signIn({ sub: "user-1" }), "session") as string;
+    const signedIn = await signIn({ sub: "user-1", email: "pat@example.com" });
+    const session = cookieValue(signedIn, "session") as string;
     const [name, value] = session.split("=");
     const [payload, signature] = value.split(".");
     const forged = Buffer.from(

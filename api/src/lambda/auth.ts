@@ -11,7 +11,7 @@ const LOGIN_SECONDS = 10 * 60;
 
 interface Session {
   sub: string;
-  email: string | null;
+  email: string;
   expiresAt: number;
 }
 
@@ -145,10 +145,11 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
     });
     const claims = tokens.claims();
     if (!claims) throw new Error("Token response had no ID token");
+    if (typeof claims.email !== "string") throw new Error("ID token had no email");
 
     const session: Session = {
       sub: claims.sub,
-      email: typeof claims.email === "string" ? claims.email : null,
+      email: claims.email,
       expiresAt: Date.now() + SESSION_SECONDS * 1000,
     };
     return redirect(landing, [
