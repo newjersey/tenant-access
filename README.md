@@ -7,6 +7,7 @@ A affordable housing application for the New Jersey Housing and Mortgage Finance
 1. [Architecture](#architecture)
 2. [Installation](#installation)
 3. [Infrastructure](#infrastructure)
+4. [ProfileNJ Integration](#profilenj-integration)
 4. [Database Migrations](#database-migrations)
 5. [Usage](#usage)
 6. [Testing](#testing)
@@ -195,46 +196,6 @@ flowchart TD
   G --> |interacts with| H
 ```
 
-## ProfileNJ integration
-
-### Session
-
-Once logged in, the app keeps a `session` cookie for 8 hours. This can be seen in the browser's Inspector, but the contents are signed. In fact, it is set to `HttpOnly`, so the React code can't see it at all. In order to check for its existence and get any info out of it, the frontend calls `auth/session` on the backend.
-
-User is signed in:
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Nav as AccountNav<br/>(React header)
-    participant B as Browser
-    participant A as Auth Lambda<br/>api.../auth/session
-
-    Note over Nav: renders nothing yet
-    Nav->>B: fetch /auth/session, credentials include
-    Note over B: attaches the session cookie for api.dev<br/>(page JS never sees it)
-    B->>A: GET /auth/session<br/>Cookie session=payload.signature
-    Note over A: signature matches sessionSecret<br/>expiresAt is in the future
-    A-->>B: 200 signedIn true, email<br/>+ CORS headers for dev origin
-    B-->>Nav: signedIn true, email
-    Note over Nav: shows email and "Log out"
-```
-
-User is signed out:
-sequenceDiagram
-    autonumber
-    participant Nav as AccountNav<br/>(React header)
-    participant B as Browser
-    participant A as Auth Lambda<br/>api.../auth/session
-
-    Note over Nav: renders nothing yet
-    Nav->>B: fetch /auth/session, credentials include
-    Note over B: attaches a session cookie only if it has one
-    B->>A: GET /auth/session
-    Note over A: no cookie, signature does not match,<br/>or expiresAt has passed
-    A-->>B: 200 signedIn false<br/>+ CORS headers for dev origin
-    B-->>Nav: signedIn false
-    Note over Nav: shows "Sign in or register"
-
 ### Endpoints
 
 <details>
@@ -288,6 +249,46 @@ Each has one value for Production and a separate value for Development:
 * `VITE_API_BASE_URL`
 * `VITE_GA_MEASUREMENT_ID`
 * `VITE_AUTH_BASE_URL`
+
+## ProfileNJ integration
+
+### Session
+
+Once logged in, the app keeps a `session` cookie for 8 hours. This can be seen in the browser's Inspector, but the contents are signed. In fact, it is set to `HttpOnly`, so the React code can't see it at all. In order to check for its existence and get any info out of it, the frontend calls `auth/session` on the backend.
+
+User is signed in:
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Nav as AccountNav<br/>(React header)
+    participant B as Browser
+    participant A as Auth Lambda<br/>api.../auth/session
+
+    Note over Nav: renders nothing yet
+    Nav->>B: fetch /auth/session, credentials include
+    Note over B: attaches the session cookie for api.dev<br/>(page JS never sees it)
+    B->>A: GET /auth/session<br/>Cookie session=payload.signature
+    Note over A: signature matches sessionSecret<br/>expiresAt is in the future
+    A-->>B: 200 signedIn true, email<br/>+ CORS headers for dev origin
+    B-->>Nav: signedIn true, email
+    Note over Nav: shows email and "Log out"
+```
+
+User is signed out:
+sequenceDiagram
+    autonumber
+    participant Nav as AccountNav<br/>(React header)
+    participant B as Browser
+    participant A as Auth Lambda<br/>api.../auth/session
+
+    Note over Nav: renders nothing yet
+    Nav->>B: fetch /auth/session, credentials include
+    Note over B: attaches a session cookie only if it has one
+    B->>A: GET /auth/session
+    Note over A: no cookie, signature does not match,<br/>or expiresAt has passed
+    A-->>B: 200 signedIn false<br/>+ CORS headers for dev origin
+    B-->>Nav: signedIn false
+    Note over Nav: shows "Sign in or register"
 
 ## Database Migrations
 
