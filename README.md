@@ -277,7 +277,7 @@ Generated on each register/login request (`openid-client` helps check these):
 
 Once logged in, the app keeps a `session` cookie for 8 hours. This can be seen in the browser's Inspector, and the contents are signed (though not encrypted; users can get info out manually). It is set to `HttpOnly`, so the React code can't see it even though the user can. In order to check for its existence and get info out of it, the frontend calls `auth/session` on the backend.
 
-User is signed in:
+If the user is signed in:
 
 ```mermaid
 sequenceDiagram
@@ -296,7 +296,7 @@ sequenceDiagram
     Note over Nav: shows email and "Log out"
 ```
 
-User is signed out:
+If the user is signed out:
 
 ```mermaid
 sequenceDiagram
