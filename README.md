@@ -8,14 +8,14 @@ A affordable housing application for the New Jersey Housing and Mortgage Finance
 2. [Installation](#installation)
 3. [Infrastructure](#infrastructure)
 4. [ProfileNJ Integration](#profilenj-integration)
-4. [Database Migrations](#database-migrations)
-5. [Usage](#usage)
-6. [Testing](#testing)
-7. [Code Quality](#code-quality)
-8. [Monitoring](#monitoring)
-9. [Analytics and Feedback](#analytics-and-feedback)
-10. [License](#license)
-11. [Disclaimer](#disclaimer)
+5. [Database Migrations](#database-migrations)
+6. [Usage](#usage)
+7. [Testing](#testing)
+8. [Code Quality](#code-quality)
+9. [Monitoring](#monitoring)
+10. [Analytics and Feedback](#analytics-and-feedback)
+11. [License](#license)
+12. [Disclaimer](#disclaimer)
 
 ## Architecture
 
