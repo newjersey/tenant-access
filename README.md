@@ -219,10 +219,13 @@ Returns image from S3 bucket
 
 All the following endpoints are handled by the Auth Lambda.
 
-`/auth/login`: login
-`/auth/callback`: callback
-`/auth/logout`: logout
-`/auth/session`: get session data from cookie
+* `/auth/login`: Forwards user to ProfileNJ to Register or Login. See [below](#login) for underlying flow.
+
+* `/auth/callback`: Forwarded here from ProfileNJ on successful login. See [below](#login) for underlying flow.
+
+* `/auth/logout`: Forwards user to ProfileNJ to Logout. See [below](#logout) for underlying flow.
+
+* `/auth/session`: Returns whether signed in, and any other data from cookie. See [below](#session) for underlying flow.
 </details>
 
 ### Frontend Hosting
@@ -252,11 +255,30 @@ Each has one value for Production and a separate value for Development:
 
 ## ProfileNJ integration
 
+Our dev and prod integrations both need to register with ProfileNJ, supplying host and callback info as well as the account scopes that we will ask the users to fill out and the app to then get back in the `session` cookie.
+
+### Keys and Secrets
+
+Set once per environment:
+
+* `OIDC_ISSUER` - issued by ProfileNJ when we register our dev/prod logins with them. set in the `.env` file when CDK deployed. Used by Auth Lambda to contact ProfileNJ.
+* `OIDC_CLIENT_ID` - issued by ProfileNJ when we register our dev/prod logins with them. set in the `.env` file when CDK deployed. Used by Auth Lambda to contact ProfileNJ.
+* `OIDC_REDIRECT_URI` - we give this to ProfileNJ when we first register the dev/prod login. Our Auth Lambda submits it again along with each request, and ProfileNJ checks against what we originally said.
+* `sessionSecret` - Generated once by `generateStringKey` in CDK code and stored in AWS Secrets Manager. used by Auth Lambda to sign and check `session` cookie data to make sure it doesn't change.
+* `clientSecret` - Issued by ProfileNJ when we register our dev/prod logins with them. Stored manually in AWS Secrets Manager. Sent by Auth Lambda to ProfileNJ to verify request comes from us.
+
+Generated on each register/login request (`openid-client` helps check these):
+
+* PKCE (`code_verifier` and `code_challenge`) - Proof Key for Code Exchange. Proves to ProfileNJ that our identity doesn't change through the various steps. [OAuth docs](https://oauth.net/2/pkce/)
+* `state` - This is a simple plaintext value that comes back to us in the callback. "Is this the incoming login response I actually requested?" [Auth0 article](https://auth0.com/blog/demystifying-oauth-security-state-vs-nonce-vs-pkce/#The-State-Parameter--Preventing-OAuth-CSRF)
+* `nonce` - "number used once". Comes back from ProfileNJ and checked to match. "Is this ID token I just received actually for the login I just initiated?" [Auth0 article](https://auth0.com/blog/demystifying-oauth-security-state-vs-nonce-vs-pkce/#The-Nonce-Parameter--Preventing-ID-Token-Replay)
+
 ### Session
 
-Once logged in, the app keeps a `session` cookie for 8 hours. This can be seen in the browser's Inspector, but the contents are signed. In fact, it is set to `HttpOnly`, so the React code can't see it at all. In order to check for its existence and get any info out of it, the frontend calls `auth/session` on the backend.
+Once logged in, the app keeps a `session` cookie for 8 hours. This can be seen in the browser's Inspector, and the contents are signed (though not encrypted; users can get info out manually). It is set to `HttpOnly`, so the React code can't see it even though the user can. In order to check for its existence and get info out of it, the frontend calls `auth/session` on the backend.
 
 User is signed in:
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -275,6 +297,8 @@ sequenceDiagram
 ```
 
 User is signed out:
+
+```mermaid
 sequenceDiagram
     autonumber
     participant Nav as AccountNav<br/>(React header)
@@ -289,6 +313,61 @@ sequenceDiagram
     A-->>B: 200 signedIn false<br/>+ CORS headers for dev origin
     B-->>Nav: signedIn false
     Note over Nav: shows "Sign in or register"
+```
+
+### Login
+
+Whether signing in or registering a new account, the flow is the same.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant B as Browser
+    participant A as Auth Lambda<br/>api.../auth/*
+    participant P as ProfileNJ
+
+    User->>B: click "Sign in or register"
+    B->>A: GET /auth/login
+    Note over A: make random code_verifier, state, nonce<br/>code_challenge = SHA-256(code_verifier)
+    A-->>B: 302 to ProfileNJ /authorize<br/>with code_challenge, state, nonce<br/>Set-Cookie code_verifier, state, nonce (10 min)
+    B->>P: GET /authorize
+    Note over P: remembers code_challenge and nonce
+    P-->>User: login or register page
+    User->>P: email, password, MFA code
+    Note over P: creates account if needed, and signs in the account
+    P-->>B: 302 to api.../auth/callback?code, state
+    B->>A: GET /auth/callback?code, state<br/>Cookie code_verifier, state, nonce
+    Note over A: state in URL must equal state cookie
+    A->>P: POST /oauth/token<br/>code, code_verifier, client_id, client_secret
+    Note over P: SHA-256(code_verifier) must equal code_challenge
+    P-->>A: id_token
+    Note over A: nonce in id_token must equal nonce cookie<br/>also checks issuer, audience, expiry
+    Note over A: session = sub, email, expires in 8 h<br/>signed with sessionSecret, tokens discarded
+    A-->>B: 302 to /listing-management<br/>clear code_verifier, state, nonce<br/>Set-Cookie session (8 h)
+    B-->>User: /listing-management
+```
+
+### Logout
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant B as Browser
+    participant A as Auth Lambda<br/>api.../auth/*
+    participant P as ProfileNJ
+
+    User->>B: click "Log out"
+    B->>A: GET /auth/logout
+    A-->>B: 302 to ProfileNJ /oidc/logout<br/>with client_id, post_logout_redirect_uri<br/>Set-Cookie session expired (Max-Age=0)
+    Note over B: deletes the session cookie
+    B->>P: GET /oidc/logout
+    Note over P: signs the browser out of ProfileNJ<br/>post_logout_redirect_uri must be in allowed_logout_urls
+    P-->>B: 302 to post_logout_redirect_uri (app home page)
+    B-->>User: home page, signed out
+```
+
 
 ## Database Migrations
 
@@ -372,7 +451,7 @@ When testing something locally that requires actual login using ProfileNJ, you n
 npm run dev:auth
 ```
 
-This creates a simple Node server that listens for calls to the `auth/*` endpoints and redirects them to the ProfileNJ sandbox (the same that the dev server uses).
+This creates a simple Node server that listens for calls to the `auth/*` endpoints and connects with the ProfileNJ sandbox (the same that the dev server uses).
 
 ## Testing
 
