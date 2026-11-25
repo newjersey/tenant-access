@@ -171,7 +171,7 @@ describe("auth handlers", () => {
     expect(cookieValue(result, "session")).toBeUndefined();
   });
 
-  it("ignores a callback with no pending login", async () => {
+  it("ignores a callback with no login cookie", async () => {
     const result = await auth.callback(makeEvent(undefined, { code: "abc" }));
 
     expect(result.headers?.Location).toBe("http://localhost:5173/listing-management");
