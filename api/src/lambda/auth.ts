@@ -154,7 +154,11 @@ export const callback = async (event: APIGatewayProxyEvent): Promise<APIGatewayP
     };
     return redirect(landing, [
       ...clearLogin,
-      cookie(SESSION_COOKIE, attachSignature(session, (await getSecrets()).sessionSecret), SESSION_SECONDS),
+      cookie(
+        SESSION_COOKIE,
+        attachSignature(session, (await getSecrets()).sessionSecret),
+        SESSION_SECONDS,
+      ),
     ]);
   } catch (error) {
     console.error("Sign-in callback failed:", error);
