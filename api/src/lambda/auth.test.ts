@@ -171,7 +171,7 @@ describe("auth handlers", () => {
     expect(cookieValue(result, "session")).toBeUndefined();
   });
 
-  it("ignores a callback when there's no login cookie", async () => {
+  it("ignores a callback when there's no login cookies", async () => {
     const result = await auth.callback(makeEvent(undefined, { code: "abc" }));
 
     expect(result.headers?.Location).toBe("http://localhost:5173/listing-management");
@@ -228,8 +228,12 @@ describe("auth handlers", () => {
 
   it("dispatches each API Gateway resource to its route", async () => {
     const event = (resource: string) => ({ ...makeEvent(), resource }) as APIGatewayProxyEvent;
+    const location = async (resource: string) =>
+      (await auth.handler(event(resource))).headers?.Location;
 
-    expect((await auth.handler(event("/auth/login"))).statusCode).toBe(302);
+    expect(await location("/auth/login")).toBe("https://idp.test/authorize");
+    expect(await location("/auth/callback")).toBe("http://localhost:5173/listing-management");
+    expect(await location("/auth/logout")).toBe("https://idp.test/logout");
     expect((await auth.handler(event("/auth/session"))).statusCode).toBe(200);
     expect((await auth.handler(event("/auth/elsewhere"))).statusCode).toBe(404);
   });
